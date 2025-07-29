@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@cloudinary/url-gen": "^1.21.0",
     "@kyvg/vue3-notification": "^3.4.1",
     "@nuxt/icon": "^1.15.0",
     "@nuxtjs/supabase": "^1.5.3",

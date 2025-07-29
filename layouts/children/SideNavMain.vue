@@ -15,7 +15,9 @@
       <MenuItem iconString="Trending" colorString="#161718" sizeString="26" />
       <MenuItem iconString="Grandeur Collections" colorString="#161718" sizeString="26" />
       <MenuItem iconString="Following" colorString="#161718" sizeString="26" />
-      <MenuItem iconString="Live shopping" colorString="#161718" sizeString="26" />
+      <NuxtLink to="/live-shopping">
+        <MenuItem iconString="Live shopping" colorString="#161718" sizeString="26" />
+      </NuxtLink>
 
       <div class="border-b lg:ml-2 mt-2" />
 
@@ -26,7 +28,7 @@
         <div v-for="category in categories.slice(0, 10)" :key="category.id" class="cursor-pointer">
           <CategoryItem
             :category="category.name"
-            :img-uri="category.thumbnailUrl ?? 'https://picsum.photos/id/1005/32'"
+            :img-uri="category.thumbnailCatUrl ?? 'https://picsum.photos/id/1005/32'"
             :alt-icon="category.name"
             @click="getProductsByCategory(category.name)"
             :disabled="productStore.isLoading"

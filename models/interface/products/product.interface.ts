@@ -5,7 +5,7 @@ import type { MediaInterface } from "./media.interface";
 import type { TagInterface } from "./tag.interface";  
 
 export interface ProductInterface {
-    id?: number;
+    readonly id: number;
     title: string;
     description?: string 
     price: number;
