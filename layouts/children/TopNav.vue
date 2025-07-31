@@ -106,7 +106,7 @@
         <div v-if="!userStore.isLoggedIn" class="flex items-center gap-2"> 
           <NuxtLink
             to="/cart"
-            class="relative pt-3 hover:bg-[#f02c56]/10 rounded-lg transition-all duration-250"
+            class="hidden md:relative pt-3 hover:bg-[#f02c56]/10 rounded-lg transition-all duration-250"
             aria-label="View cart"
           >
             <Icon name="mdi:cart-outline" size="23" class="text-gray-600 hover:text-[#f02c56] pt-2" />
@@ -139,7 +139,7 @@
           </button> -->
           <NuxtLink
             to="/cart"
-            class="relative pt-3 px-1.5 hover:bg-[#f02c56]/10 rounded-lg transition-all duration-250"
+            class="hidden md:relative pt-3 px-1.5 hover:bg-[#f02c56]/10 rounded-lg transition-all duration-250"
             aria-label="View cart"
           >
             <Icon name="mdi:cart-outline" size="23" class="text-gray-600 hover:text-[#f02c56]" />
