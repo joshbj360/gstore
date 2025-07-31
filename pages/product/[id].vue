@@ -1,385 +1,328 @@
 <template>
-  <div>
-    <!-- Loader -->
-    <LoadingSpinner v-if="productStore.isLoading && !initialLoadComplete" />
-
-    <!-- Error Message -->
-    <div v-else-if="error" class="flex justify-center items-center h-screen">
-      <p class="bg-[#f8f0f0] text-[#f02c56] p-4 rounded-lg">{{ error }}</p>
-    </div>
-
-    <!-- Product Page -->
+  <div class="relative min-h-screen bg-gray-50">
+    <!-- Swipe Container -->
     <div
-      v-else-if="productStore.currentProduct"
-      id="ProductPage"
-      class="fixed lg:flex justify-between z-50 top-0 left-0 w-full h-full bg-black lg:overflow-hidden overflow-auto"
-      role="region"
-      aria-label="Product Viewer"
-      @touchstart.passive="handleTouchStart"
-      @touchmove.passive="handleTouchMove"
-      @touchend.passive="handleTouchEnd"
-      @mousedown="handleMouseDown"
-      @keydown.left.prevent="showPreviousProduct"
-      @keydown.right.prevent="showNextProduct"
+      ref="swipeContainer"
+      class="h-screen w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory"
     >
-      <ProductImagesSection
-        :product="productStore.currentProduct"
-        :current-image-index="currentImageIndex"
-        :active-view="activeView"
-        @set-current-image="setCurrentImage"
-        @show-previous="showPreviousProduct"
-        @show-next="showNextProduct"
-        @delete-product="deleteProduct"
-      />
-
-      <ProductDetailsSection
-        :product="productStore.currentProduct"
-        :active-tab="activeTab"
-        :active-view="activeView"
-        :is-in-cart="isInCart"
-        :seller-store="sellerStore"
-        :similar-products="similarProducts"
-        @set-active-tab="activeTab = $event"
-        :loading="loading"
-      />
-
-      <ProductNavigationControls
-        :active-view="activeView"
-        @toggle-view="toggleView"
-        @show-previous="showPreviousProduct"
-        @show-next="showNextProduct"
-      />
-
-      <SwipeHintOverlay v-if="showSwipeHint" @close="showSwipeHint = false" />
+      <div
+        v-for="(product, index) in products"
+        :key="product.id"
+        class="h-screen w-full flex items-center justify-center snap-start relative"
+        :class="{ 'hidden': index !== currentIndex }"
+      >
+        <!-- Horizontal Media Slider -->
+        <div class="w-full h-full relative">
+          <Carousel
+            v-if="product.media?.length"
+            :items-to-show="1"
+            :wrap-around="true"
+            v-model="mediaIndex[index]"
+            class="w-full h-full"
+            @slide-start="pauseOtherVideos(index)"
+          >
+            <Slide v-for="(media, mIndex) in product.media" :key="mIndex">
+              <div class="w-full h-full relative">
+                <MediaDisplay
+                  :product-media="media"
+                  :loading="mIndex <= 1 ? 'eager' : 'lazy'"
+                  :mute-video="muteVideo[index]"
+                  :is-playing="index === currentIndex && mIndex === mediaIndex[index] ? isPlaying[index] : false"
+                  class="w-full h-full object-cover"
+                  @update:mute-video="updateMute(index, $event)"
+                  @update:is-playing="updatePlaying(index, $event)"
+                  @loaded="isMediaLoading[index][mIndex] = false"
+                  @error="handleMediaError(String(product.id), mIndex, $event)"
+                />
+                <!-- Loading Overlay -->
+                <div
+                  v-if="!isMediaLoading[index][mIndex] && index === currentIndex"
+                  class="absolute inset-0 flex items-center justify-center bg-black/50"
+                >
+                  <LoadingSpinner />
+                </div>
+              </div>
+            </Slide>
+            <!-- Navigation Buttons -->
+            <template #addons>
+              <Navigation>
+                <template #prev>
+                  <button
+                    class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                    aria-label="Previous media"
+                  >
+                    <Icon name="mdi:chevron-left" size="20" />
+                  </button>
+                </template>
+                <template #next>
+                  <button
+                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                    aria-label="Next media"
+                  >
+                    <Icon name="mdi:chevron-right" size="20" />
+                  </button>
+                </template>
+              </Navigation>
+              <Pagination class="absolute bottom-16 left-0 right-0 flex justify-center">
+                <template #default="{ active, index: dotIndex }">
+                  <div
+                    class="w-2 h-2 rounded-full mx-1"
+                    :class="active ? 'bg-[#f02c56]' : 'bg-white/50'"
+                    :aria-label="`Media ${dotIndex + 1}`"
+                  ></div>
+                </template>
+              </Pagination>
+            </template>
+          </Carousel>
+          <!-- Product Info Overlay -->
+          <div class="absolute bottom-8 left-4 right-4 text-white z-20">
+            <NuxtLink :to="`/product/${product.id}`" class="block">
+              <h3 class="text-base sm:text-lg font-semibold truncate">{{ product.title || 'Untitled' }}</h3>
+              <p class="text-sm sm:text-base">{{ formatPrice(product.price) }}</p>
+            </NuxtLink>
+          </div>
+        </div>
+        <!-- Swipe Hint -->
+        <!-- <SwipeHintOverlay v-if="index === currentIndex" /> -->
+      </div>
     </div>
 
-    <!-- Fallback for no product -->
-    <div v-else-if="!productStore.isLoading" class="flex justify-center items-center h-screen">
-      <p class="text-gray-500 text-lg">Product not found</p>
+    <!-- Vertical Navigation Buttons (Desktop or Fallback) -->
+    <div class="hidden lg:flex absolute top-1/2 left-0 right-0 justify-between px-4 z-30">
+      <button
+        @click="swipePrev"
+        class="bg-white/90 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all"
+        :disabled="currentIndex === 0"
+        aria-label="Previous product"
+      >
+        <Icon name="mdi:chevron-up" size="20" />
+      </button>
+      <button
+        @click="swipeNext"
+        class="bg-white/90 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all"
+        :disabled="currentIndex === products.length - 1"
+        aria-label="Next product"
+      >
+        <Icon name="mdi:chevron-down" size="20" />
+      </button>
     </div>
+
+    <!-- Error Modal -->
+    <div v-if="error" class="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+      <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+        <p class="text-red-500 mb-4">{{ error }}</p>
+        <button
+          @click="retryLoad"
+          class="bg-[#f02c56] text-white px-4 py-2 rounded-md hover:bg-[#df4949]"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+
+    <!-- Product Details Modal -->
+    <ProductDetailsModal
+      :product="products[currentIndex]"
+      :is-open="isModalOpen"
+      :product-id="modalProductId"
+      :active-view="'details'"
+      :active-tab="'details'"
+      :is-in-cart="false"
+      @update:is-open="isModalOpen = $event"
+    />
+
+    <!-- Floating Side Panel -->
+    <FloatingSidePanel 
+      :currentProductId="products[currentIndex]?.id != null ? String(products[currentIndex]?.id) : null" 
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeMount, onBeforeUnmount, watch } from 'vue'
-import { useDebounceFn } from '@vueuse/core'
-import { useRoute, useRouter } from 'vue-router';
-import { useProductStore, useCartStore, useCoreStore, useUserStore } from '#build/imports';
-import ProductImagesSection from '~/components/product/productDetails/mediaSection/ProductImagesSection.vue';
-import ProductDetailsSection from '~/components/product/productDetails/productDetails/ProductDetailSection.vue';
-import ProductNavigationControls from '@/components/product/ProductNavigationControls.vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useProductStore } from '~/stores/product.store';
+import { useRoute, useRouter } from '#imports';
+import LoadingSpinner from '~/components/shared/Loading.vue';
 import SwipeHintOverlay from '~/components/product/productDetails/SwipeHintOverlay.vue';
-import LoadingSpinner from '@/components/shared/Loading.vue';
-import { defaultSellerProfile, type SellerStoreInterface } from '~/models/interface/auth/user.interface';
-import { defaultProduct, type ProductInterface } from '~/models/interface/products/product.interface';
-import { notify } from '@kyvg/vue3-notification'
+import ProductDetailsModal from '~/components/product/productDetails/productDetails/ProductDetailSection.vue';
+import FloatingSidePanel from '~/components/product/ProductSidePanel.vue';
+import type { ProductInterface } from '~/models/interface/products/product.interface';
+import MediaDisplay from '~/components/product/productDetails/mediaSection/MediaDisplay.vue'
 
-
-// Stores
 const productStore = useProductStore();
-const cartStore = useCartStore();
-const coreStore = useCoreStore();
-const userStore = useUserStore();
-const categoryStore = useCategoryStore()
-
-// Router
 const route = useRoute();
 const router = useRouter();
-const productId = ref(Number(route.params.id) || null) 
-const similarProducts = ref<ProductInterface[]>([])
 
-// State
-const initialLoadComplete = ref(false);
+const products = ref<ProductInterface[]>([]);
+const currentIndex = ref(0);
+const mediaIndex = ref<number[]>([]);
+const isPlaying = ref<boolean[]>([]);
+const muteVideo = ref<boolean[]>([]);
+const isMediaLoading = ref<boolean[][]>([]);
 const error = ref<string | null>(null);
-const activeView = ref<'product' | 'details'>('product');
-const activeTab = ref<'details' | 'similar'>('details');
-const currentImageIndex = ref(0);
-const showSwipeHint = ref(false);
-const touchState = ref({
-  isActive: false,
-  startX: 0,
-  startY: 0,
-  startTime: 0,
-});
-const clickState = ref({
-  isActive: false,
-  startX: 0,
-  startY: 0,
-});
-const sellerStore = ref<SellerStoreInterface>(defaultSellerProfile);
-const isNavigating = ref(false);
+const isModalOpen = ref(false);
+const modalProductId = ref<string | null>(null);
 
-// Constants
-const loading = ref(false)
-const SWIPE_THRESHOLD = 50;
-const SWIPE_TIME_THRESHOLD = 300;
-const CLICK_MOVE_THRESHOLD = 5;
-const SWIPE_HINT_DURATION = 2000;
-const NAVIGATION_DEBOUNCE = 300; // ms to debounce navigation
-// Computed
-const isInCart = computed(() => cartStore.cartItems.some((cartProduct) => cartProduct.id === productId.value));
-
-// Methods
-const loadSellerProfile = async () => {
-  if (!productStore.currentProduct?.store_name) return;
-  // alert( productStore.currentProduct?.store_name);
+// Initialize from cache
+const initializeProducts = async () => {
   try {
-    const success = await userStore.fetchSellerStoreByStoreName(productStore.currentProduct.store_name );
-    if (success) {
-      sellerStore.value = userStore.seller as SellerStoreInterface;
-    } else {
-      notify({ title: 'Error', text: userStore.error || 'Failed to load seller profile', type: 'error' });
-      // error.value = userStore.error || 'Failed to load seller profile';
+    // Use cached products from homepage
+    if (productStore.products.length === 0) {
+      await productStore.fetchProducts(1, 20);
     }
+    products.value = productStore.products;
+
+    // Set initial index based on route
+    const productId = route.params.id as string;
+    const initialIndex = products.value.findIndex(p => String(p.id) === productId);
+    currentIndex.value = initialIndex >= 0 ? initialIndex : 0;
+
+    // Initialize state arrays
+    mediaIndex.value = products.value.map(() => 0);
+    isPlaying.value = products.value.map(() => true);
+    muteVideo.value = products.value.map(() => true);
+    isMediaLoading.value = products.value.map(p => p.media?.map(() => true) || []);
   } catch (err) {
-    notify({ title: 'Error', text: 'Failed to load seller information', type: 'error' });
-    console.error('Seller profile error:', err);
+    error.value = 'Failed to load products. Please try again.';
+    console.error('Initialize products error:', err);
   }
 };
 
-// Debounced navigation function
-const debouncedNavigate = useDebounceFn((direction: -1 | 1) => {
-  if (isNavigating.value) return;
-  
-  isNavigating.value = true;
-  const targetId = getAdjacentProductId(direction);
-  if (targetId) {
-    navigateToProduct(targetId).finally(() => {
-      isNavigating.value = false;
-    });
+// Load more products if nearing the end of cache
+const loadMoreProducts = async () => {
+  try {
+    await productStore.fetchMoreProducts();
+    products.value = productStore.products;
+    mediaIndex.value = products.value.map(() => 0);
+    isPlaying.value = products.value.map(() => true);
+    muteVideo.value = products.value.map(() => true);
+    isMediaLoading.value = products.value.map(p => p.media?.map(() => true) || []);
+  } catch (err) {
+    error.value = 'Failed to load more products.';
+    console.error('Load more products error:', err);
+  }
+};
+
+// Media state handlers
+const updatePlaying = (index: number, value: boolean) => {
+  isPlaying.value[index] = value;
+};
+
+const updateMute = (index: number, value: boolean) => {
+  muteVideo.value[index] = value;
+};
+
+const pauseOtherVideos = (currentIndex: number) => {
+  isPlaying.value = isPlaying.value.map((playing, i) => (i === currentIndex ? playing : false));
+};
+
+const handleMediaError = (productId: string, mIndex: number, event: Event) => {
+  const errorMessage = (event as ErrorEvent).error?.message || 'Unknown error';
+  error.value = `Failed to load media for product ${productId}: ${errorMessage}`;
+  const index = products.value.findIndex(p => String(p.id) === productId);
+  if (index !== -1 && typeof mIndex === 'number') isMediaLoading.value[index][mIndex] = false;
+};
+
+const retryLoad = () => {
+  error.value = null;
+  initializeProducts();
+};
+
+// Vertical swipe navigation
+const swipeContainer = ref<HTMLElement | null>(null);
+const swipePrev = () => {
+  if (currentIndex.value > 0) {
+    currentIndex.value--;
+    router.push(`/product/${products.value[currentIndex.value].id}`);
+    pauseOtherVideos(currentIndex.value);
+  }
+};
+
+const swipeNext = () => {
+  if (currentIndex.value < products.value.length - 1) {
+    currentIndex.value++;
+    router.push(`/product/${products.value[currentIndex.value].id}`);
+    pauseOtherVideos(currentIndex.value);
   } else {
-    isNavigating.value = false;
-  }
-}, NAVIGATION_DEBOUNCE);
-
-
-// Touch handlers
-const handleTouchStart = (e: TouchEvent) => {
-  touchState.value = {
-    isActive: true,
-    startX: e.touches[0].clientX,
-    startY: e.touches[0].clientY,
-    startTime: Date.now(),
-  };
-};;
-
-const handleTouchMove = (e: TouchEvent) => {
-  if (!touchState.value.isActive) return;
-  
-  // Only prevent default if we detect a significant horizontal movement
-  if (Math.abs(e.touches[0].clientX - touchState.value.startX) > 10) {
-    e.preventDefault();
+    loadMoreProducts();
   }
 };
-const handleTouchEnd = (e: TouchEvent) => {
-  if (!touchState.value.isActive || isNavigating.value) return;
 
-  const { startX, startY, startTime } = touchState.value;
-  const endX = e.changedTouches[0].clientX;
-  const endY = e.changedTouches[0].clientY;
-  const deltaX = startX - endX;
-  const deltaY = startY - endY;
-  const elapsed = Date.now() - startTime;
-
-  // Reset touch state
-  touchState.value.isActive = false;
-
-  // Check if it's a valid swipe
-  if (elapsed < SWIPE_TIME_THRESHOLD && 
-      (Math.abs(deltaX) > SWIPE_THRESHOLD || Math.abs(deltaY) > SWIPE_THRESHOLD)) {
-    
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      // Horizontal swipe - toggle view
-      activeView.value = deltaX > 0 ? 'product' : 'details';
-    } else {
-      // Vertical swipe - navigate products
-      if (deltaY > 0) debouncedNavigate(-1); // Swipe down - previous
-      else debouncedNavigate(1); // Swipe up - next
+// Touch swipe handling
+let touchStartY = 0;
+const handleSwipe = (e: WheelEvent | TouchEvent) => {
+  if ('deltaY' in e) {
+    // Mouse wheel
+    if (e.deltaY > 50) swipeNext();
+    else if (e.deltaY < -50) swipePrev();
+  } else if ('touches' in e) {
+    // Touch swipe
+    if (e.type === 'touchstart') {
+      touchStartY = e.touches[0].clientY;
+    } else if (e.type === 'touchend') {
+      const deltaY = touchStartY - e.changedTouches[0].clientY;
+      if (Math.abs(deltaY) > 50) {
+        if (deltaY > 0) swipeNext();
+        else swipePrev();
+      }
     }
   }
 };
 
-// Click handlers
-const handleMouseDown = (e: MouseEvent) => {
-  clickState.value = {
-    isActive: true,
-    startX: e.clientX,
-    startY: e.clientY,
-  };
+// Modal toggle
+const toggleDetails = (productId: string) => {
+  isModalOpen.value = !isModalOpen.value;
+  modalProductId.value = isModalOpen.value ? productId : null;
 };
 
-const handleClick = (e: MouseEvent) => {
-  if (!clickState.value.isActive || isNavigating.value) return;
+// Price formatting
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'NGN',
+    currencyDisplay: 'narrowSymbol'
+  }).format(price / 100);
+};
 
-  const { startX, startY } = clickState.value;
-  const moveX = Math.abs(e.clientX - startX);
-  const moveY = Math.abs(e.clientY - startY);
-
-  // Reset click state
-  clickState.value.isActive = false;
-
-  // Ignore if movement exceeds threshold
-  if (moveX > CLICK_MOVE_THRESHOLD || moveY > CLICK_MOVE_THRESHOLD) return;
-
-  // Only handle side clicks on desktop
-  if (window.innerWidth >= 1024) {
-    const target = e.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const thirdWidth = rect.width / 3;
-
-    if (clickX < thirdWidth) debouncedNavigate(-1); // Left side - previous
-    else if (clickX > thirdWidth * 2) debouncedNavigate(1); // Right side - next
+// Lifecycle hooks
+onMounted(async () => {
+  await initializeProducts();
+  if (swipeContainer.value) {
+    swipeContainer.value.addEventListener('wheel', handleSwipe, { passive: true });
+    swipeContainer.value.addEventListener('touchstart', handleSwipe, { passive: true });
+    swipeContainer.value.addEventListener('touchend', handleSwipe, { passive: true });
   }
-};
-
-const showPreviousProduct = () => {
-  const prevId = getAdjacentProductId(-1);
-  if (prevId) navigateToProduct(prevId);
-};
-
-const showNextProduct = () => {
-  const nextId = getAdjacentProductId(1);
-  if (nextId) navigateToProduct(nextId);
-};
-
-const getAdjacentProductId = (direction: -1 | 1): number | null => {
-  const products = productStore.getProductsByCategory(productStore.currentCategory);
-  if (!products.length) return null;
-  
-  const currentIndex = products.findIndex((p) => p.id === productId.value);
-  if (currentIndex === -1) return null;
-  
-  const newIndex = currentIndex + direction;
-  if (newIndex < 0 || newIndex >= products.length) return null;
-  
-  return products[newIndex].id  || null
-};
-
-
-// Navigation functions
-const navigateToProduct = async (id: number) => {
-  await router.push(`/product/${id}`);
-  currentImageIndex.value = 0;
-  window.scrollTo(0, 0); // Ensure we're at the top of the page
-};
-
-const loadProduct = async () => {
-  try {
-    error.value = null;
-    if (productId.value)     await productStore.getProductById(productId.value);
-    console.log(productStore.currentProduct)
-    if (!productStore.currentProduct) {
-      notify({ title: 'Error', text: 'Product not found', type: 'error' });
-    }
-
-  } catch (err) {
-    notify({ title: 'Error', text: 'Failed to load product details', type: 'error' });
-    console.error('Product load error:', err);
-  }
-};
-
-const deleteProduct = async () => {
-  if (!userStore.isLoggedIn || !userStore.isSeller || 
-      userStore.userProfile?.id !== productStore.currentProduct?.sellerId) {
-    error.value = 'You do not have permission to delete this product';
-    return;
-  }
-
-  if (confirm('Are you sure you want to permanently delete this product?')) {
-    try {
-      error.value = null;
-      await $fetch(`/api/prisma/products/delete-product/${productId.value}`, { 
-        method: 'DELETE' 
-      });
-      router.push('/');
-    } catch (err) {
-      error.value = 'Failed to delete product';
-      console.error('Delete error:', err);
-    }
-  }
-};
-
-const setCurrentImage = (index: number) => {
-  currentImageIndex.value = index;
-};
-
-const toggleView = () => {
-  activeView.value = activeView.value === 'product' ? 'details' : 'product';
-};
-
-// Lifecycle
-onMounted(() => {
-  if (coreStore.isFirstMount) {
-    showSwipeHint.value = true;
-    setTimeout(() => {
-      showSwipeHint.value = false;
-      coreStore.isFirstMount = false;
-    }, SWIPE_HINT_DURATION);
-  }
-  
-  // Prevent background scrolling when modal is open
-  document.body.style.overflow = 'hidden';
-  document.body.style.touchAction = 'none';
-
 });
 
-onBeforeMount(async () => {
-  await Promise.all([
-    loadProduct(),
-    
-  ]);
-  // await loadSellerProfile();
-  initialLoadComplete.value = true;
-});
-
-onBeforeUnmount(() => {
-  // Restore scrolling
-  document.body.style.overflow = '';
-  document.body.style.touchAction = '';
-});
-
-// Watchers
-watch(
-  () => route.params.id,
-  useDebounceFn(async (newId) => {
-    productId.value = Number(newId);
-    await Promise.all([
-      loadProduct(),
-    ]);
-    await loadSellerProfile();
-    currentImageIndex.value = 0;
-  }, 300)
-);
-
-watch(
-  () => productStore.currentProduct,
-  (newProduct) => {
-    if (newProduct) {
-      loadSellerProfile();
-    }
+onUnmounted(() => {
+  if (swipeContainer.value) {
+    swipeContainer.value.removeEventListener('wheel', handleSwipe);
+    swipeContainer.value.removeEventListener('touchstart', handleSwipe);
+    swipeContainer.value.removeEventListener('touchend', handleSwipe);
   }
-);
-
+});
 </script>
 
 <style scoped>
-#ProductPage {
-  touch-action: pan-y;
+.snap-y {
+  scroll-snap-type: y mandatory;
 }
-
-@media (min-width: 1024px) {
-  #ProductPage {
-    cursor: default;
+.snap-start {
+  scroll-snap-align: start;
+}
+.carousel__viewport {
+  height: 100%;
+}
+.carousel__slide {
+  width: 100%;
+  height: 100%;
+}
+.group:hover .opacity-0 {
+  opacity: 1;
+}
+@media (max-width: 640px) {
+  .h-screen {
+    height: 100vh;
   }
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

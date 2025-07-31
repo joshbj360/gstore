@@ -19,9 +19,9 @@
 
     <!-- Product Swipe Button -->
     <NuxtLink
-      to="/live-shopping"
-      class="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-gray-600 hover:bg-[#f02c56]/10 transition-all active:scale-95"
-      aria-label="View product swipe page"
+        :to="currentProduct ? `/product/${currentProduct.id}` : `/product/1`"
+        class="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-gray-600 hover:bg-[#f02c56]/10 transition-all active:scale-95"
+        aria-label="View product swipe page"
     >
       <Icon name="mdi:gesture-swipe" size="20" />
     </NuxtLink>
@@ -101,7 +101,6 @@ const currentProduct = computed(() => {
   if (route.path.includes('/product/')) {
     return productStore.currentProduct;
   }
-  return null;
 });
 
 const isLiked = computed(() => {

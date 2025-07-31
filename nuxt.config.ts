@@ -14,6 +14,7 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@vueuse/nuxt',
     'nuxt-tiptap-editor',
+    'vue3-carousel-nuxt',
   ],
   supabase: {
     redirect: false,
