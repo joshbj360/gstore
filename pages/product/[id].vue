@@ -1,100 +1,113 @@
 <template>
   <div class="relative min-h-screen bg-gray-50">
+     <NuxtLink
+      to="/"
+      class="absolute top-4 left-4 z-50 flex items-center bg-white/90 p-2 rounded-full shadow-md hover:bg-[#f02c56] hover:text-white transition-all"
+    >
+      <Icon name="mdi:arrow-left" size="20" />
+      <span class="hidden sm:inline ml-2">Back home</span>
+    </NuxtLink>
     <div
       ref="swipeContainer"
       class="h-screen w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory"
     >
-      <div
-        v-for="(product, index) in products"
-        :key="product.id"
-        class="h-screen w-full flex items-center justify-center snap-start relative"
-        :class="{ hidden: index !== currentIndex }"
-      >
-        <div class="w-full h-full relative group">
-          <Carousel
-            v-if="product.media?.length"
-            :items-to-show="1"
-            :wrap-around="true"
-            v-model="mediaIndex[index]"
-            class="w-full h-full"
-            @slide-start="pauseOtherVideos(index)"
-          >
-            <Slide v-for="(media, mIndex) in product.media" :key="mIndex">
-              <div class="w-full h-full relative">
-                <div
-                  class="absolute top-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-2 py-1 rounded-full z-10"
-                >
-                  Image {{ mIndex + 1 }} of {{ product.media.length }}
-                </div>
-                <MediaDisplay
-                  :product-media="media"
-                  :loading="mIndex <= 1 ? 'eager' : 'lazy'"
-                  :mute-video="muteVideo[index]"
-                  :is-playing="
-                    index === currentIndex && mIndex === mediaIndex[index]
-                      ? isPlaying[index]
-                      : false
-                  "
-                  class="w-full h-full object-contain"
-                  @update:mute-video="updateMute(index, $event)"
-                  @update:is-playing="updatePlaying(index, $event)"
-                  @loaded="isMediaLoading[index][mIndex] = false"
-                  @error="handleMediaError(String(product.id), mIndex, $event)"
-                />
-                <div
-                  v-if="!isMediaLoading[index][mIndex] && index === currentIndex"
-                  class="absolute inset-0 flex items-center justify-center bg-black/20"
-                >
-                  <LoadingSpinner />
-                </div>
-              </div>
-            </Slide>
-            <template #addons>
-              <Navigation>
-                <template #prev>
-                  <button
-                    class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all opacity-0 group-hover:opacity-100"
-                    aria-label="Previous media"
-                  >
-                    <Icon name="mdi:chevron-left" size="20" />
-                  </button>
-                </template>
-                <template #next>
-                  <button
-                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all opacity-0 group-hover:opacity-100"
-                    aria-label="Next media"
-                  >
-                    <Icon name="mdi:chevron-right" size="20" />
-                  </button>
-                </template>
-              </Navigation>
-              <Pagination
-                class="absolute bottom-16 left-0 right-0 flex justify-center"
-              >
-                <template #default="{ active, index: dotIndex }">
+      <transition-group name="product-swipe">
+        <div
+          v-for="(product, index) in products"
+          :key="product.id"
+          class="h-screen w-full flex items-center justify-center snap-start relative"
+          v-show="index === currentIndex"
+        >
+          <div class="w-full h-full relative group">
+            <Carousel
+              v-if="product.media?.length"
+              :items-to-show="1"
+              :wrap-around="true"
+              v-model="mediaIndex[index]"
+              class="w-full h-full"
+              @slide-start="pauseOtherVideos(index)"
+            >
+              <Slide v-for="(media, mIndex) in product.media" :key="mIndex">
+                <div class="w-full h-full relative">
                   <div
-                    class="w-2 h-2 rounded-full mx-1"
-                    :class="active ? 'bg-[#f02c56]' : 'bg-white/50'"
-                    :aria-label="`Media ${dotIndex + 1}`"
-                  ></div>
-                </template>
-              </Pagination>
-            </template>
-          </Carousel>
-          <div
-            class="absolute bottom-8 left-4 right-4 text-white z-20 p-4 bg-gradient-to-t from-black/60 to-transparent rounded-b-lg"
-          >
-            <NuxtLink :to="`/product/${product.id}`" class="block">
-              <h3 class="text-base sm:text-lg font-semibold truncate">
-                {{ product.title || "Untitled" }}
-              </h3>
-              <p class="text-sm sm:text-base">
-                {{ formatPrice(product.price) }}
-              </p>
-            </NuxtLink>
+                    class="absolute top-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-2 py-1 rounded-full z-10"
+                  >
+                    Image {{ mIndex + 1 }} of {{ product.media.length }}
+                  </div>
+                  <MediaDisplay
+                    :product-media="media"
+                    :loading="mIndex <= 1 ? 'eager' : 'lazy'"
+                    :mute-video="muteVideo[index]"
+                    :is-playing="
+                      index === currentIndex && mIndex === mediaIndex[index]
+                        ? isPlaying[index]
+                        : false
+                    "
+                    class="w-full h-full object-contain"
+                    @update:mute-video="updateMute(index, $event)"
+                    @update:is-playing="updatePlaying(index, $event)"
+                    @loaded="isMediaLoading[index][mIndex] = false"
+                    @error="
+                      handleMediaError(String(product.id), mIndex, $event)
+                    "
+                  />
+                  <div
+                    v-if="
+                      !isMediaLoading[index][mIndex] && index === currentIndex
+                    "
+                    class="absolute inset-0 flex items-center justify-center bg-black/20"
+                  >
+                    <LoadingSpinner />
+                  </div>
+                </div>
+              </Slide>
+              <template #addons>
+                <Navigation>
+                  <template #prev>
+                    <button
+                      class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                      aria-label="Previous media"
+                    >
+                      <Icon name="mdi:chevron-left" size="20" />
+                    </button>
+                  </template>
+                  <template #next>
+                    <button
+                      class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                      aria-label="Next media"
+                    >
+                      <Icon name="mdi:chevron-right" size="20" />
+                    </button>
+                  </template>
+                </Navigation>
+                <Pagination
+                  class="absolute bottom-16 left-0 right-0 flex justify-center"
+                >
+                  <template #default="{ active, index: dotIndex }">
+                    <div
+                      class="w-2 h-2 rounded-full mx-1"
+                      :class="active ? 'bg-[#f02c56]' : 'bg-white/50'"
+                      :aria-label="`Media ${dotIndex + 1}`"
+                    ></div>
+                  </template>
+                </Pagination>
+              </template>
+            </Carousel>
+            <div
+              class="absolute bottom-8 left-4 right-4 text-white z-20 p-4 bg-gradient-to-t from-black/60 to-transparent rounded-b-lg"
+            >
+              <NuxtLink :to="`/product/${product.id}`" class="block">
+                <h3 class="text-base sm:text-lg font-semibold truncate">
+                  {{ product.title || "Untitled" }}
+                </h3>
+                <p class="text-sm sm:text-base">
+                  {{ formatPrice(product.price) }}
+                </p>
+              </NuxtLink>
+            </div>
           </div>
         </div>
-      </div>
+      </transition-group>
     </div>
 
     <div
@@ -146,6 +159,11 @@
     <FloatingSidePanel 
       :product="products[currentIndex]"
       @toggleDetails="toggleDetails(String(products[currentIndex].id))"
+      @toggle-chat="isChatModalOpen = true"
+    />
+    <ProductChatModal
+      :is-open="isChatModalOpen"
+      @close="isChatModalOpen = false"
     />
   </div>
 </template>
@@ -160,6 +178,7 @@ import ProductDetailsModal from '@/components/product/productDetails/productDeta
 import FloatingSidePanel from "~/components/product/ProductSidePanel.vue";
 import type { ProductInterface } from "~/models/interface/products/product.interface";
 import MediaDisplay from "~/components/product/productDetails/mediaSection/MediaDisplay.vue";
+import ProductChatModal from "~/components/chat/ProductChatModal.vue";
 import "vue3-carousel/dist/carousel.css";
 
 const productStore = useProductStore();
@@ -175,6 +194,7 @@ const isMediaLoading = ref<boolean[][]>([]);
 const error = ref<string | null>(null);
 const isModalOpen = ref(false);
 const modalProductId = ref<string | null>(null);
+const isChatModalOpen = ref(false);
 
 // Initialize from cache
 const initializeProducts = async () => {
@@ -337,7 +357,6 @@ onUnmounted(() => {
   }
 });
 </script>
-
 <style>
 .snap-y {
   scroll-snap-type: y mandatory;
@@ -367,5 +386,21 @@ onUnmounted(() => {
 
 .carousel__pagination-button {
   background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Product swipe transitions */
+.product-swipe-enter-active,
+.product-swipe-leave-active {
+  transition: all 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53);
+}
+
+.product-swipe-enter-from {
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+.product-swipe-leave-to {
+  opacity: 0;
+  transform: translateY(-100%);
 }
 </style>

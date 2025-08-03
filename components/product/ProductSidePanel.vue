@@ -23,11 +23,11 @@
     </button>
 
     <button
-      @click="toggleChat"
+      @click="emit('toggle-chat')"
       class="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-gray-600 hover:bg-[#f02c56]/10 transition-all active:scale-95"
-      aria-label="Open chat"
+      aria-label="Open comments"
     >
-      <Icon name="mdi:chat" size="20" />
+      <Icon name="mdi:comment-text-outline" size="20" />
     </button>
 
     <button
@@ -53,13 +53,7 @@
       </span>
     </NuxtLink>
 
-    <NuxtLink
-      to="/"
-      class="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-gray-600 hover:bg-[#f02c56]/10 transition-all active:scale-95"
-      aria-label="Go to homepage"
-    >
-      <Icon name="mdi:home" size="20" />
-    </NuxtLink>
+
   </div>
 
   <transition
@@ -131,7 +125,7 @@ const props = defineProps<{
   product: ProductInterface | null;
 }>();
 
-const emit = defineEmits(["toggle-details"]);
+const emit = defineEmits(["toggle-details", "toggle-chat"]);
 
 const cartStore = useCartStore();
 const userStore = useUserStore();
@@ -169,10 +163,6 @@ const toggleLike = async () => {
   // Placeholder: Implement Supabase logic for likes
   console.log("Toggling like for product:", currentProduct.value.id);
   // Example: await supabase.from('product_likes').insert({ user_id, product_id });
-};
-
-const toggleChat = () => {
-  navigateTo("/chat"); // Adjust based on your chat implementation
 };
 
 const openShareModal = () => {

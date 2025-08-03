@@ -138,7 +138,7 @@
         {{ isInCart ? 'Added to Cart' : 'Add to Cart' }}
       </button>
     </div>
-    <div class="flex items-center justify-between mb-8 px-2">
+    <!-- <div class="flex items-center justify-between mb-8 px-2">
       <button class="flex flex-col items-center group" @click="isLiked = !isLiked">
         <div class="rounded-full p-2.5 group-hover:bg-gray-100/50 transition-colors duration-300">
           <Icon name="mdi:heart" size="20" :class="isLiked ? 'text-[#F02C56] fill-current' : 'text-gray-400'" />
@@ -180,10 +180,10 @@
         <span class="text-xs mt-1.5 text-gray-500 font-medium">Instagram</span>
       </button>
 
-    </div>
-    <div id="Comments" class="bg-white rounded-xl w-full h-[440px] border border-gray-100 shadow-xs overflow-hidden">
+    </div> -->
+    <!-- <div id="Comments" class="bg-white rounded-xl w-full h-[440px] border border-gray-100 shadow-xs overflow-hidden">
       <Chat />
-    </div>
+    </div> -->
   </div>
 </template>
 
