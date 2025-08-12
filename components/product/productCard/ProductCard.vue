@@ -71,8 +71,8 @@
         <button
           @click.stop="handleAddToCart"
           :disabled="isInCart || isOutOfStock"
-          class="h-7 w-7 flex items-center justify-center rounded-full bg-[#f02c56] text-white shadow-xs transition-colors disabled:bg-gray-200"
-          :class="{ 'bg-emerald-500': isInCart }"
+          class="h-7 w-7 flex items-center justify-center rounded-full  text-[#f02c56] shadow-xs transition-colors disabled:bg-gray-200"
+          :class="{ 'bg-emerald-200': isInCart }"
           aria-label="Add to cart"
         >
           <Icon 

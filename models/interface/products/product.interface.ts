@@ -22,7 +22,7 @@ export interface ProductInterface {
     sellerId?: string | undefined
     store_name: string
     socialMedia?: SocialMediaInterface
-      rating?: number;
+    rating?: number;
   reviewCount?: number;
 }
 

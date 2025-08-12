@@ -15,8 +15,8 @@
       <MenuItem iconString="Trending" colorString="#161718" sizeString="26" />
       <MenuItem iconString="Grandeur Collections" colorString="#161718" sizeString="26" />
       <MenuItem iconString="Following" colorString="#161718" sizeString="26" />
-      <NuxtLink to="/live-shopping">
-        <MenuItem iconString="Live shopping" colorString="#161718" sizeString="26" />
+      <NuxtLink to="/product/discover">
+        <MenuItem iconString="Discover" colorString="#161718" sizeString="26" />
       </NuxtLink>
 
       <div class="border-b lg:ml-2 mt-2" />

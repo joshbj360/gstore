@@ -1,10 +1,9 @@
 <template>
   <div
     id="InfoSection"
-    class="lg:max-w-[550px] relative w-full h-full bg-white overflow-y-auto"
-    :class="{ 'hidden lg:block': activeView === 'details', 'block': activeView === 'details' }"
+    class=" relative w-full h-full bg-white overflow-y-auto"
   >
-    <ProductQuickNavigation />
+    <!-- <ProductQuickNavigation /> -->
     
     <ProductTabs
       @update:active-tab="activeTab = $event"
@@ -13,7 +12,6 @@
         <ProductDetails 
           :product="product"
           :is-in-cart="isInCart"
-          :sellerStore=sellerStore
         />
       </template>
       
@@ -25,7 +23,6 @@
       </template>
       <template #seller>
         <MoreSellerProduct  
-          :seller-store-name="sellerStore"
           :active-tab="activeTab"
           :product-id="product.id"
           :store_name="product.store_name"
@@ -45,16 +42,10 @@ import ProductDetails from '~/components/product/productDetails/productDetails/c
 import SimilarProducts from '~/components/product/productDetails/productDetails/children/SimilarProducts.vue'
 import MoreSellerProduct from '~/components/product/productDetails/productDetails/children/MoreSellerProducts.vue'
 
-import  { type SellerStoreInterface, defaultSellerProfile } from '~/models/interface/auth/user.interface';
 
 const props = defineProps({
   product: {
     type: Object as PropType<ProductInterface>,
-    required: true
-  },
-  sellerStore: {
-    type: Object as PropType<SellerStoreInterface>,
-    default: defaultSellerProfile,
     required: true
   },
   activeTab: {
