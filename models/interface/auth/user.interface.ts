@@ -37,6 +37,7 @@ export interface SellerStoreInterface {
     linkedin?: string;
     tiktok?: string
   };
+  created_at?: string;
   products?: ProductInterface[];
   ratings?: {
     average: number;
@@ -48,6 +49,7 @@ export interface SellerStoreInterface {
     comment: string;
     created_at: string;
   }[];
+  followers_count?: number;
   is_verified?: boolean;
   verification_status?: 'PENDING' | 'APPROVED' | 'REJECTED';
   verification_reason?: string;
@@ -82,6 +84,8 @@ export const defaultSellerProfile: SellerStoreInterface = {
         count: 0
     },
     reviews: [],
+    followers_count: 0,
+    created_at: new Date().toISOString(),
     is_verified: false,
     verification_status: 'PENDING',
     verification_reason: '',

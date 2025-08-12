@@ -2,12 +2,13 @@
   <div class="p-6 md:p-8 max-w-3xl mx-auto">
     <div class="flex items-center justify-between mb-8">
       <div class="flex items-center">
-        <NuxtLink :to="`/seller/profile/${sellerStore.store_name}`" class="group relative">
+        <NuxtLink v-if="sellerStore?.store_name" :to="`/seller/profile/${sellerStore?.store_name}`" class="group relative">
           <div
             class="absolute inset-0 rounded-full bg-gradient-to-br from-[#f02c56]/10 to-[#f02c56]/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           </div>
           
           <img 
+            loading="lazy"
             :src="sellerStore?.store_logo || 'https://picsum.photos/id/1005/200'" 
             :alt="sellerStore?.store_name || 'User profile'"
             class="rounded-full w-12 h-12 object-cover border border-gray-100 group-hover:border-[#f02c56]/20 transition-all duration-300" 
@@ -36,9 +37,11 @@
             </button>
           </div>
           <div class="flex items-center text-xs text-gray-500 mt-1 tracking-wide">
-            <span>{{ sellerStore?.store_description?.substring(0, 50)|| '@unknown' }}</span>
-            <span class="mx-2 text-gray-300">|</span>
-            <span>{{ sellerStore?.store_location }}</span>
+            <span>{{ sellerStore?.store_description?.substring(0, 50) +"..."|| '@unknown' }}</span>
+          </div>
+          <div class="flex items-center text-xs text-gray-500 mt-1 tracking-wide">
+            <Icon name="mdi:map-marker" size="14" class="mr-1.5 opacity-80" />
+            <span v-if="sellerStore?.store_location">{{ sellerStore?.store_location }}</span>
           </div>
         </div>
       </div>
@@ -138,7 +141,7 @@
         {{ isInCart ? 'Added to Cart' : 'Add to Cart' }}
       </button>
     </div>
-    <div class="flex items-center justify-between mb-8 px-2">
+    <!-- <div class="flex items-center justify-between mb-8 px-2">
       <button class="flex flex-col items-center group" @click="isLiked = !isLiked">
         <div class="rounded-full p-2.5 group-hover:bg-gray-100/50 transition-colors duration-300">
           <Icon name="mdi:heart" size="20" :class="isLiked ? 'text-[#F02C56] fill-current' : 'text-gray-400'" />
@@ -180,20 +183,20 @@
         <span class="text-xs mt-1.5 text-gray-500 font-medium">Instagram</span>
       </button>
 
-    </div>
-    <div id="Comments" class="bg-white rounded-xl w-full h-[440px] border border-gray-100 shadow-xs overflow-hidden">
+    </div> -->
+    <!-- <div id="Comments" class="bg-white rounded-xl w-full h-[440px] border border-gray-100 shadow-xs overflow-hidden">
       <Chat />
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, toRefs, type PropType } from 'vue';
-import { defaultProduct, type ProductInterface } from '~/models/interface/products/product.interface';
-import Chat from '~/components/product/productDetails/Chat.vue';
-import { useCartStore } from '~/stores/cart.store';
-import { useUserStore } from '#build/imports';
-import  {defaultSellerProfile, type SellerStoreInterface } from '~/models/interface/auth/user.interface';
+import {type ProductInterface, defaultProduct} from '../../../../../models/interface/products/product.interface'
+import {type SellerStoreInterface, defaultSellerProfile} from '../../../../../models/interface/auth/user.interface'
+import { useCartStore } from '../../../../../stores/cart.store'
+import { useUserStore } from '../../../../../stores/user.store';
+
 
 const props = defineProps({
   product: {
@@ -205,20 +208,18 @@ const props = defineProps({
     type: Boolean as PropType<boolean>,
     default: false
   },
-  sellerStore: {
-    type: Object as PropType<SellerStoreInterface>,
-    default: defaultSellerProfile
-    }
 })
 
-const { product, isInCart, sellerStore } = toRefs(props);
+const { product, isInCart } = toRefs(props);
 const cartStore = useCartStore();
 const userStore = useUserStore()
 const isLiked = ref(true);
 const quantity = ref(1);
 const selectedSizes = ref<string[]>([]);
 const isFollowing = ref(false);
+const sellerStore = ref<SellerStoreInterface | null>(defaultSellerProfile)
 const productUrl = computed(() => `${window.location.origin}/item/${product.value?.id || ''}`);
+
 
 const priceComputed = computed(() => {
   return product.value?.price ? (product.value.price).toFixed(2) : '0.00';
@@ -260,4 +261,10 @@ const formatPrice = (price: number) => {
     
   }).format(price / 100);
 };
+onMounted(async () => {
+  if (product.value.store_name) {
+    await userStore.fetchSellerStoreByStoreName(product.value.store_name);
+    sellerStore.value = userStore.seller
+  }
+})
 </script>

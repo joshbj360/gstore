@@ -36,7 +36,7 @@ import { ref } from 'vue';
 import { useUserStore } from '~/stores/user.store';
 import TopNav from './children/TopNav.vue';
 import CategoryList from '~/components/category/CategoryList.vue';
-import Chat from '~/components/chat/chat.vue';
+import Chat from '~/components/chat/AIChat.vue';
 import SideNavMain from './children/SideNavMain.vue';
 import FloatingSidePanel from './children/FloatingSidePanel.vue';
 import { useRoute, useSupabaseUser } from '#imports';

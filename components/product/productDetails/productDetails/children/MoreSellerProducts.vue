@@ -1,7 +1,7 @@
 <template>
   <!-- Seller Products Tab -->
   <div v-if="activeTab === 'seller'" class="p-8">
-    <h2 class="text-xl font-semibold mb-4">More Products from {{ sellerStoreName.store_name }}</h2>
+    <h2 class="text-xl font-semibold mb-4">More Products from {{ store_name }}</h2>
 
     <div v-if="loading" class="text-center py-8">
       <LoadingSpinner />
@@ -11,7 +11,8 @@
     </div>
     <div v-else-if="moreSellerProducts.length === 0" class="text-center py-8 text-gray-500">
 
-      No products from this seller found
+      No products from this {{ store_name }} yet.
+      <br />
     </div>
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       <div
@@ -77,7 +78,6 @@ import { onMounted, ref, watch } from 'vue';
 
 interface Props {
   activeTab: 'details' | 'similar' | 'seller';
-  sellerStoreName: SellerStoreInterface;
   productId: number | undefined;
   store_name: string | undefined
 }
