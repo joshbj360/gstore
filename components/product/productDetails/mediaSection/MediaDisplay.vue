@@ -15,13 +15,11 @@
         <video
           ref="videoRef"
           :src="productMedia.url"
-          autoplay
-          :muted="muteVideo"
+          muted
           loop
           playsinline
           class="w-full h-full object-contain z-10"
           @error="handleError"
-          @click="togglePlay"
           aria-label="Product video"
         />
         <div class="absolute top-4 right-4 flex gap-2 z-20">
@@ -35,10 +33,10 @@
           <button
             @click.stop="toggleMute"
             class="bg-white/90 p-1.5 rounded-full shadow-sm hover:bg-[#f02c56] hover:text-white transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#f02c56]/50"
-            :aria-label="muteVideo ? 'Unmute video' : 'Mute video'"
+            :aria-label="isMuted ? 'Unmute video' : 'Mute video'"
           >
             <Icon
-              :name="muteVideo ? 'mdi:volume-off' : 'mdi:volume-high'"
+              :name="isMuted ? 'mdi:volume-off' : 'mdi:volume-high'"
               size="16"
             />
           </button>
@@ -81,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import type { PropType } from "vue";
 import {
   MediaType,
@@ -97,32 +95,42 @@ const props = defineProps({
     type: String as PropType<"eager" | "lazy">,
     default: "eager",
   },
+  isPlaying: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const emit = defineEmits<{
-  (e: "update:muteVideo", mute: boolean): void;
-}>();
-
-const muteVideo = ref(true);
+const isMuted = ref(true);
 const error = ref(false);
-const isPlaying = ref(true);
 const videoRef = ref<HTMLVideoElement | null>(null);
 
-const toggleMute = () => {
-  muteVideo.value = !muteVideo.value;
-  emit("update:muteVideo", muteVideo.value);
-};
+// THE FIX: Watch the isPlaying prop and command the video to play/pause
+watch(() => props.isPlaying, (shouldPlay) => {
+    if (videoRef.value) {
+        if (shouldPlay) {
+            videoRef.value.play().catch(e => console.error("Video play failed:", e));
+        } else {
+            videoRef.value.pause();
+            videoRef.value.currentTime = 0; // Optional: reset video to start
+        }
+    }
+});
 
 const togglePlay = () => {
   if (videoRef.value) {
-    if (isPlaying.value) {
+    if (!videoRef.value.paused) {
       videoRef.value.pause();
     } else {
-      videoRef.value.play().catch(() => {
-        error.value = true;
-      });
+      videoRef.value.play().catch(e => console.error("Video play failed:", e));
     }
-    isPlaying.value = !isPlaying.value;
+  }
+};
+
+const toggleMute = () => {
+  isMuted.value = !isMuted.value;
+  if (videoRef.value) {
+    videoRef.value.muted = isMuted.value;
   }
 };
 
@@ -134,16 +142,14 @@ const retryLoad = () => {
   error.value = false;
   if (videoRef.value && props.productMedia?.type === MediaType.VIDEO) {
     videoRef.value.load();
-    videoRef.value.play().catch(() => {
-      error.value = true;
-    });
-    isPlaying.value = true;
+    if(props.isPlaying) {
+        videoRef.value.play().catch(e => console.error("Video play failed:", e));
+    }
   }
 };
 </script>
 
 <style scoped>
-/* Ensure the container takes up the full space */
 .relative.w-full.h-full {
   overflow: hidden;
 }

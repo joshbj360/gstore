@@ -11,7 +11,17 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
     '@nuxtjs/supabase',
-    '@nuxtjs/tailwindcss',
+    ['@nuxtjs/tailwindcss', {
+      config: {
+        safelist: [
+          'object-contain',
+          'object-cover',
+          'filter',
+          'blur-lg',
+          'scale-110'
+        ]
+      }
+    }],
     '@vueuse/nuxt',
     'nuxt-tiptap-editor',
     'vue3-carousel-nuxt',
