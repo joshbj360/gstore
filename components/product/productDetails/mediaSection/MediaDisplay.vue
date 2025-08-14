@@ -1,7 +1,7 @@
 <template>
   <div class="relative w-full h-full bg-black">
     <div
-      class="absolute inset-0 w-full h-full bg-cover bg-center filter blur-lg scale-110"
+      class="blurry-background"
       :style="{ backgroundImage: `url(${productMedia?.url || ''})` }"
       v-if="productMedia?.type === 'IMAGE'"
     ></div>
@@ -18,7 +18,7 @@
           muted
           loop
           playsinline
-          class="w-full h-full object-contain z-10"
+          class="media-content"
           @error="handleError"
           aria-label="Product video"
         />
@@ -47,7 +47,7 @@
         <img
           :src="productMedia.url"
           :alt="`Product image ${productMedia.id || ''}`"
-          class="w-full h-full object-contain z-10"
+          class="media-content"
           :loading="loading"
           @error="handleError"
         />
@@ -57,7 +57,7 @@
         <img
           src="https://picsum.photos/id/1000/800/800"
           alt="Placeholder image"
-          class="w-full h-full object-contain z-10"
+          class="media-content"
         />
       </template>
 
@@ -105,14 +105,13 @@ const isMuted = ref(true);
 const error = ref(false);
 const videoRef = ref<HTMLVideoElement | null>(null);
 
-// THE FIX: Watch the isPlaying prop and command the video to play/pause
 watch(() => props.isPlaying, (shouldPlay) => {
     if (videoRef.value) {
         if (shouldPlay) {
             videoRef.value.play().catch(e => console.error("Video play failed:", e));
         } else {
             videoRef.value.pause();
-            videoRef.value.currentTime = 0; // Optional: reset video to start
+            videoRef.value.currentTime = 0;
         }
     }
 });
@@ -149,8 +148,25 @@ const retryLoad = () => {
 };
 </script>
 
-<style scoped>
-.relative.w-full.h-full {
-  overflow: hidden;
+<style>
+.blurry-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(1.5rem); /* blur-lg */
+  transform: scale(1.1); /* scale-110 */
+}
+
+.media-content {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* This is the most important rule */
+  z-index: 10;
 }
 </style>

@@ -35,7 +35,7 @@
                             </div>
                             <MediaDisplay 
                                 :product-media="media" 
-                                class="w-full h-full object-contain" 
+                                class="w-full h-full ob," 
                                 :is-playing="product.id === currentProduct?.id" 
                             />
                         </div>
