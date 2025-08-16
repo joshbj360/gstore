@@ -1,91 +1,90 @@
 <template>
-  <div v-if="isLoading && !products.length" class="fixed inset-0 flex items-center justify-center bg-white z-50">
-    <LoadingSpinner />
-  </div>
-
-  <div v-else-if="error" class="fixed inset-0 flex items-center justify-center bg-gray-50 p-4">
-    <div class="text-center">
-        <p class="text-red-500 mb-4">{{ error }}</p>
-        <NuxtLink to="/" class="bg-[#f02c56] text-white px-4 py-2 rounded-md hover:bg-[#df4949]">
-            Go to Homepage
-        </NuxtLink>
+    <div v-if="isLoading && !products.length" class="fixed inset-0 flex items-center justify-center bg-white z-50">
+        <LoadingSpinner />
     </div>
-  </div>
 
-  <div v-else class="relative min-h-screen bg-gray-900">
-    <NuxtLink to="/"
-        class="absolute top-4 left-4 z-40 flex items-center bg-white/80 p-2 rounded-full shadow-md hover:bg-[#f02c56] hover:text-white transition-all"
-        aria-label="Back to Homepage">
-        <Icon name="mdi:arrow-left" size="20" />
-    </NuxtLink>
+    <div v-else-if="error" class="fixed inset-0 flex items-center justify-center bg-gray-50 p-4">
+        <div class="text-center">
+            <p class="text-red-500 mb-4">{{ error }}</p>
+            <NuxtLink to="/" class="bg-[#f02c56] text-white px-4 py-2 rounded-md hover:bg-[#df4949]">
+                Go to Homepage
+            </NuxtLink>
+        </div>
+    </div>
 
-    <div ref="swipeContainer" class="h-screen w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory">
-        <div v-for="(product, index) in products" :key="product.id"
-            class="h-screen w-full flex items-center justify-center snap-start relative product-slide"
-            :data-index="index"
-            >
-            
-            <div class="w-full h-full relative group">
-                <Carousel v-if="product.media?.length" :items-to-show="1" :wrap-around="true" class="w-full h-full">
-                    <Slide v-for="(media, mIndex) in product.media" :key="media.url">
-                        <div class="w-full h-full flex items-center justify-center">
-                            <div
-                                class="absolute top-4 left-1/2 -translate-x-1/2 bg-black/40 text-white text-xs px-2 py-1 rounded-full z-10">
-                                {{ mIndex + 1 }} / {{ product.media.length }}
+    <div v-else class="relative min-h-screen bg-gray-900">
+        <NuxtLink to="/"
+            class="absolute top-4 left-4 z-40 flex items-center bg-white/80 p-2 rounded-full shadow-md hover:bg-[#f02c56] hover:text-white transition-all"
+            aria-label="Back to Homepage">
+            <Icon name="mdi:arrow-left" size="20" />
+        </NuxtLink>
+
+        <div ref="swipeContainer" class="h-screen w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory">
+            <div v-for="(product, index) in products" :key="product.id"
+                class="h-screen w-full flex items-center justify-center snap-start relative product-slide"
+                :data-index="index">
+                <div class="w-full h-full relative flex flex-col">
+                    <Carousel v-if="product.media?.length" :items-to-show="1" :wrap-around="true" class="w-full h-full">
+                        <Slide v-for="(media, mIndex) in product.media" :key="media.url">
+                            <div class="w-full h-full flex items-center justify-center relative">
+                                <!-- Media index badge -->
+                                <div
+                                    class="absolute top-4 left-1/2 -translate-x-1/2 bg-black/40 text-white text-xs px-2 py-1 rounded-full z-20">
+                                    {{ mIndex + 1 }} / {{ product.media.length }}
+                                </div>
+
+                                <!-- MediaDisplay with corrected sizing -->
+                                <MediaDisplay :product-media="media" :is-playing="product.id === currentProduct?.id"
+                                    class="w-full h-full" />
                             </div>
-                            <MediaDisplay 
-                                :product-media="media" 
-                                class="w-full h-full ob," 
-                                :is-playing="product.id === currentProduct?.id" 
-                            />
-                        </div>
-                    </Slide>
+                        </Slide>
 
-                    <template #addons>
-                        <Navigation>
-                            <template #prev>
-                                <button class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all opacity-0 group-hover:opacity-100">
-                                    <Icon name="mdi:chevron-left" size="24" />
-                                </button>
-                            </template>
-                            <template #next>
-                                <button class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all opacity-0 group-hover:opacity-100">
-                                    <Icon name="mdi:chevron-right" size="24" />
-                                </button>
-                            </template>
-                        </Navigation>
-                        <Pagination class="absolute bottom-24" />
-                    </template>
-                </Carousel>
-                
-                <div @click="openDetailsPanel(product)" class="absolute bottom-0 left-0 right-0 text-white z-20 p-6 bg-gradient-to-t from-black/70 to-transparent rounded-b-lg cursor-pointer">
-                    <h3 class="text-lg sm:text-xl font-semibold truncate">{{ product.title || 'Untitled' }}</h3>
-                    <p class="text-md sm:text-lg font-bold">{{ formatPrice(product.price) }}</p>
+                        <!-- Carousel navigation + pagination -->
+                        <template #addons>
+                            <Navigation>
+                                <template #prev>
+                                    <button
+                                        class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all opacity-0 group-hover:opacity-100">
+                                        <Icon name="mdi:chevron-left" size="24" />
+                                    </button>
+                                </template>
+                                <template #next>
+                                    <button
+                                        class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all opacity-0 group-hover:opacity-100">
+                                        <Icon name="mdi:chevron-right" size="24" />
+                                    </button>
+                                </template>
+                            </Navigation>
+                            <Pagination class="absolute bottom-24" />
+                        </template>
+                    </Carousel>
+
+                    <!-- Product footer -->
+                    <div @click="openDetailsPanel(product)"
+                        class="absolute bottom-0 left-0 right-0 text-white z-30 p-6 bg-gradient-to-t from-black/70 to-transparent rounded-b-lg cursor-pointer">
+                        <h3 class="text-lg sm:text-xl font-semibold truncate">
+                            {{ product.title || 'Untitled' }}
+                        </h3>
+                        <p class="text-md sm:text-lg font-bold">
+                            {{ formatPrice(product.price) }}
+                        </p>
+                    </div>
                 </div>
             </div>
+
+            <div v-if="isLoadingMore" class="h-24 flex items-center justify-center">
+                <LoadingSpinner />
+            </div>
         </div>
-        <div v-if="isLoadingMore" class="h-24 flex items-center justify-center">
-           <LoadingSpinner />
-        </div>
+
+        <FloatingSidePanel :product="currentProduct" @toggle-details="openDetailsPanel(currentProduct)"
+            @toggle-chat="openChatModal(currentProduct)" />
+
+        <ProductDetailsSidePanel v-if="panelProduct" :is-open="isDetailsPanelOpen" :product="panelProduct"
+            @close="isDetailsPanelOpen = false" />
+
+        <ProductChatModal v-if="panelProduct" :is-open="isChatModalOpen" @close="isChatModalOpen = false" />
     </div>
-
-    <FloatingSidePanel 
-      :product="currentProduct" 
-      @toggle-details="openDetailsPanel(currentProduct)"
-      @toggle-chat="openChatModal(currentProduct)" 
-    />
-
-    <ProductDetailsSidePanel v-if="panelProduct"
-      :is-open="isDetailsPanelOpen" 
-      :product="panelProduct" 
-      @close="isDetailsPanelOpen = false" 
-    />
-
-    <ProductChatModal v-if="panelProduct"
-      :is-open="isChatModalOpen" 
-      @close="isChatModalOpen = false" 
-    />
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -143,7 +142,7 @@ const loadInitialData = async () => {
         } else {
             feed = [...productStore.products];
         }
-        
+
         products.value = feed;
         const foundIndex = feed.findIndex(p => p.id === productId);
         currentProductIndex.value = foundIndex > -1 ? foundIndex : 0;
@@ -160,18 +159,18 @@ const loadInitialData = async () => {
 };
 
 const loadMoreProducts = async () => {
-  if (isLoadingMore.value || !productStore.hasMoreProducts) return;
-  isLoadingMore.value = true;
-  try {
-    await productStore.fetchMoreProducts();
-    products.value = [...productStore.products];
-    await nextTick();
-    observeNewSlides();
-  } catch (err) {
-    console.error("Failed to load more products", err);
-  } finally {
-    isLoadingMore.value = false;
-  }
+    if (isLoadingMore.value || !productStore.hasMoreProducts) return;
+    isLoadingMore.value = true;
+    try {
+        await productStore.fetchMoreProducts();
+        products.value = [...productStore.products];
+        await nextTick();
+        observeNewSlides();
+    } catch (err) {
+        console.error("Failed to load more products", err);
+    } finally {
+        isLoadingMore.value = false;
+    }
 };
 
 const setupIntersectionObserver = () => {
@@ -232,11 +231,32 @@ onUnmounted(() => {
 </script>
 
 <style>
-.snap-y { scroll-snap-type: y mandatory; }
-.snap-start { scroll-snap-align: start; }
-.carousel__pagination-button--active { background-color: #f02c56 !important; }
-.carousel__pagination-button { background-color: rgba(255, 255, 255, 0.6) !important; }
-.snap-y::-webkit-scrollbar { display: none; }
-.snap-y { -ms-overflow-style: none; scrollbar-width: none; }
-.product-slide { scroll-snap-align: start; }
+.snap-y {
+    scroll-snap-type: y mandatory;
+}
+
+.snap-start {
+    scroll-snap-align: start;
+}
+
+.carousel__pagination-button--active {
+    background-color: #f02c56 !important;
+}
+
+.carousel__pagination-button {
+    background-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.snap-y::-webkit-scrollbar {
+    display: none;
+}
+
+.snap-y {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.product-slide {
+    scroll-snap-align: start;
+}
 </style>

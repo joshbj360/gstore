@@ -1,5 +1,5 @@
 <template>
-  <div class="relative bg-white rounded-md shadow-xs overflow-hidden transition-transform active:scale-[0.98] w-full">
+  <div id="product-card" class="relative bg-white rounded-md shadow-xs overflow-hidden transition-transform active:scale-[0.98] w-full">
     <!-- Verification Badge - Top Left -->
     <button
       v-if="true"
@@ -41,10 +41,10 @@
       class="block w-full aspect-square relative overflow-hidden"
       aria-label="View product details"
     >
-      <ProductMedia 
-        :product-media="product.media?.[0]"
-        class="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-      />
+      <MediaDisplayCard
+  :product-media="product.media?.[0]"
+  class="absolute inset-0 w-full h-full hover:scale-105 transition-transform duration-200"
+/>
     </NuxtLink>
 
     <!-- Product Info -->
@@ -101,7 +101,7 @@
 import { ref, computed } from 'vue';
 import { useCartStore } from '~/stores/cart.store';
 import type { ProductInterface } from '~/models/interface/products/product.interface';
-import ProductMedia from '~/components/product/productDetails/mediaSection/MediaDisplay.vue'
+import MediaDisplayCard from './MediaDisplayCard.vue';
 
 const props = defineProps<{
   product: ProductInterface & {
