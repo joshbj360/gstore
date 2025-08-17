@@ -7,7 +7,7 @@
       muted
       playsinline
       loop
-      class="w-full h-full object-cover object-top transition-transform duration-200"
+      class="w-full h-full object-cover object-center transition-transform duration-200"
       @error="hasError = true"
     ></video>
 
@@ -16,7 +16,7 @@
       v-else-if="!hasError && productMedia?.type === 'IMAGE'"
       :src="productMedia.url"
       :alt="`Product image ${productMedia.id || ''}`"
-      class="w-full h-full object-cover object-top transition-transform duration-200"
+      class="w-full h-full object-cover object-center transition-transform duration-200"
       loading="lazy"
       @error="hasError = true"
     />

@@ -60,6 +60,7 @@ model SellerProfile {
   store_phone            String?
   store_website          String?
   store_socials          Json?
+  followers_count        Int                   @default(0)
   is_verified            Boolean               @default(false)
   verification_status    VerificationStatus    @default(PENDING)
   verification_reason    String?
@@ -103,10 +104,9 @@ model Products {
   slug          String              @unique
   description   String?
   price         Float
-  stock         Int?
   discount      Float?
   measurement   Measurement?
-  sizes         String[]
+  variants      ProductVariant[]
   status        ProductStatus?      @default(DRAFT)
   category      ProductCategories[] @relation("ProductCategory")
   tags          ProductTags[]       @relation("ProductTag")
@@ -123,6 +123,18 @@ model Products {
   reviews       Review[]
   notifications  Notification[]   @relation("NotificationToProduct")
 
+}
+
+model ProductVariant {
+  id    Int @id @default(autoincrement())
+  size  String
+  stock Int
+  price Float?
+
+  product Products @relation(fields: [productId], references: [id])
+  productId Int
+
+  @@unique([productId, size])
 }
 
 model Measurement {

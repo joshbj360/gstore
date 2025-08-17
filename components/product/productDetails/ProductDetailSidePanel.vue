@@ -24,6 +24,7 @@
         <div class="flex-1 overflow-y-auto">
           <ProductDetailSection
             :product="product"
+            :sellerStore="sellerStore"
             :is-in-cart="isInCart"
             :active-view="'details'"
             :active-tab="'details'"
@@ -71,6 +72,7 @@ const loadSellerProfile = async () => {
 
 
 onMounted(() => {
+  loadSellerProfile()
   isMobile.value = window.innerWidth < 768;
   window.addEventListener('resize', () => {
     isMobile.value = window.innerWidth < 768;
