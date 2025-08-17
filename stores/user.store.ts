@@ -11,8 +11,9 @@ export const useUserStore = defineStore('user', {
     isLoggedIn: false,
     loading: false,
     error: null as string | null,
+    sellerCache: new Map<string, SellerStoreInterface>(),
   }),
-  getters:{
+  getters: {
     isSeller(state): boolean {
       return state.userProfile?.role === 'seller' || false;
     },
@@ -190,41 +191,47 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-  async fetchSellerStoreByStoreName(store_name: string): Promise<boolean> {
-  const supabase = useSupabaseClient<Database>();
-  this.loading = true;
-  this.error = null;
+    async fetchSellerStoreByStoreName(store_name: string): Promise<boolean> {
+      if (this.sellerCache.has(store_name)) {
+        this.seller = this.sellerCache.get(store_name) as SellerStoreInterface
+        return true;
+      }
+      const supabase = useSupabaseClient<Database>();
+      this.loading = true;
+      this.error = null;
 
-  try {
-    const { data: sellerProfile, error } = await supabase
-      .from('SellerProfile') // Ensure correct table name
-      .select('id, profileId, store_name, store_description, store_logo, store_banner, store_location, store_phone, store_website, store_socials, is_verified, verification_status, verification_reason, created_at, updated_at')
-      .eq('store_name', store_name)
-      .single();
+      try {
+        const { data: sellerProfile, error } = await supabase
+          .from('SellerProfile') // Ensure correct table name
+          .select('id, profileId, store_name, store_description, store_logo, store_banner, store_location, store_phone, store_website, store_socials, is_verified, verification_status, verification_reason, created_at, updated_at')
+          .eq('store_name', store_name)
+          .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116: No rows found
-      this.error = `Failed to load seller profile: ${error.message}`;
-      throw error;
-    }
+        if (error && error.code !== 'PGRST116') { // PGRST116: No rows found
+          this.error = `Failed to load seller profile: ${error.message}`;
+          throw error;
+        }
 
-    if (!sellerProfile) {
-      this.error = 'Seller profile not found';
-      this.seller = null;
-      return false;
-    }
+        if (!sellerProfile) {
+          this.error = 'Seller profile not found';
+          this.seller = null;
+          return false;
+        }
 
-    this.seller = { ...sellerProfile } as SellerStoreInterface;
-    return true;
-  } catch (err) {
-    this.error = 'Failed to load seller profile';
-    this.seller = null;
-    return false;
-  } finally {
-    this.loading = false;
-  }
-},
+        const sellerData = { ...sellerProfile } as SellerStoreInterface;
+        this.sellerCache.set(store_name, sellerData)
+        this.seller = sellerData
+        return true;
+      } catch (err) {
+        this.error = 'Failed to load seller profile';
+        this.seller = null;
+        return false;
+      } finally {
+        this.loading = false;
+      }
+    },
 
-    async fetchSellerStore(): Promise<boolean> {
+    async fetchMyStore(): Promise<boolean> {
       const supabase = useSupabaseClient<Database>();
       this.loading = true;
       this.error = null;
@@ -286,7 +293,7 @@ export const useUserStore = defineStore('user', {
         const { data: newSeller, error } = await supabase
           .from('SellerProfile')
           .insert({
-            id:this.user.id,
+            id: this.user.id,
             profileId: this.user.id,
             store_name: data.store_name ?? null,
             store_description: data.store_description ?? null,
@@ -350,6 +357,6 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    
+
   },
 });

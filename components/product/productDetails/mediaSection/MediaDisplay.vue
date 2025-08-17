@@ -100,7 +100,7 @@ const props = defineProps({
   },
   isPlaying: {
     type: Boolean,
-    default: false,
+    default: true,
   },
 });
 

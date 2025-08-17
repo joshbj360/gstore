@@ -56,6 +56,10 @@ export const useProductStore = defineStore('product', {
       }
     },
 
+    clearCategoryFilter() {
+      this.currentCategory = null;
+    },
+
     async getProductById(id: number) {
       const product = this.productMap.get(id);
       if (product && Date.now() - (this.lastFetched.get(id) || 0) <= CACHE_DURATION) {

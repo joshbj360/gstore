@@ -9,9 +9,9 @@ export interface MediaInterface {
     caption?: string; // Caption for media
     createdAt?: Date; // Optional property
     updatedAt?: Date; // Optional property
-    dimensions?: {
-        width: number,
-        height: number
+    focalPoint?: {
+        x: number,
+        y: number
     },
     size?: number
 }

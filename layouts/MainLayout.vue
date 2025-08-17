@@ -1,72 +1,82 @@
 <template>
-  <div class="min-h-screen bg-gray-50 relative" id="mainlayout">
-    <!-- Top Navigation - Reduced padding for mobile -->
-    <TopNav :user="user" :userStore="userStore" class="px-2 sm:px-4" />
+  <div class="min-h-screen bg-gray-50" id="mainlayout">
+    <!-- Persistent Top Navigation for all screen sizes -->
+    <TopNav />
 
-    <!-- Mobile Category Slider - Tight padding -->
-    <div class="md:hidden pt-1 px-2">
-      <CategoryList />
-    </div>
-
-    <!-- Main Content Area - Adjusted for mobile -->
-    <div class="flex justify-center mx-auto w-full px-1 sm:px-2 lg:px-4 max-w-[1440px]">
-      <!-- Sidebar: Hidden on mobile -->
-      <div class="hidden lg:block w-64 shrink-0 bg-white rounded-lg shadow-sm">
+    <div class="flex justify-center mx-auto w-full px-2 sm:px-4 lg:px-6 max-w-[1440px]">
+      
+      <!-- DESKTOP SIDEBAR -->
+      <div class="hidden lg:block w-72 shrink-0">
         <SideNavMain />
       </div>
 
-      <!-- Main Content Slot - Reduced padding -->
-      <main class="flex-1 py-2 sm:py-3 px-0 sm:px-1">
-        <slot />
+      <!-- MAIN CONTENT COLUMN -->
+      <main class="flex-1 min-w-0 pt-16 lg:pt-20">
+        <!-- Mobile Category Slider -->
+        <TopMobileCategoryList class="lg:hidden" />
+        
+        <!-- Advertisement Section -->
+        <AdvertSection class="mt-4" />
+        
+        <!-- ProductLayout is rendered here via the slot -->
+        <div class="px-1 sm:px-2">
+            <slot />
+        </div>
       </main>
-
-      <!-- Chat Component - Positioned on the right side -->
-      <Chat class="hidden lg:block" />
     </div>
 
-    <!-- Mobile Chat Button - Smaller and more compact -->
-    <div class="">
-      <FloatingSidePanel />
+    <!-- DESKTOP CHAT PANEL (Right Side) -->
+    <div class="hidden lg:block">
+      <!-- Collapsible Chat Window -->
+      <transition
+        enter-active-class="transition-transform duration-300 ease-out"
+        leave-active-class="transition-transform duration-300 ease-in"
+        enter-from-class="translate-x-full"
+        leave-to-class="translate-x-full"
+      >
+        <Chat 
+          v-if="isChatOpen"
+          class="fixed top-0 right-0 w-96 h-screen border-l bg-white z-50"
+          @close="isChatOpen = false" 
+        />
+      </transition>
+      
+      <!-- Floating Button to Open Chat -->
+      <button 
+        v-if="!isChatOpen"
+        @click="isChatOpen = true"
+        class="fixed bottom-6 right-6 bg-[#f02c56] text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg hover:bg-[#df4949] transition-transform hover:scale-110 z-40"
+        aria-label="Open AI Chat"
+      >
+        <Icon name="mdi:chat-processing-outline" size="28" />
+      </button>
     </div>
+
+    <!-- MOBILE CHAT (Modal) -->
+    <div v-if="isMobileChatOpen" class="lg:hidden">
+      <div @click="isMobileChatOpen = false" class="fixed inset-0 bg-black/40 z-40"></div>
+      <Chat 
+        class="fixed bottom-0 left-0 right-0 h-[85vh] rounded-t-2xl z-50"
+        @close="isMobileChatOpen = false"
+      />
+    </div>
+
+    <!-- MOBILE FLOATING NAVIGATION -->
+    <FloatingNavMobile @open-chat="isMobileChatOpen = true" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useUserStore } from '~/stores/user.store';
 import TopNav from './children/TopNav.vue';
-import CategoryList from '~/components/category/CategoryList.vue';
-import Chat from '~/components/chat/AIChat.vue';
+import TopMobileCategoryList from '@/layouts/children/TopMobileCategory.vue'
+import Chat from '@/components/chat/AIChat.vue';
 import SideNavMain from './children/SideNavMain.vue';
-import FloatingSidePanel from './children/FloatingSidePanel.vue';
-import { useRoute, useSupabaseUser } from '#imports';
+import AdvertSection from '@/components/AdvertSection.vue';
+import FloatingNavMobile from '../layouts/children/FloatingNavMobile.vue';
 
-const userStore = useUserStore();
-const user = useSupabaseUser();
-const route = useRoute();
-
-
+// State for desktop chat panel
+const isChatOpen = ref(false);
+// State for mobile chat modal
+const isMobileChatOpen = ref(false);
 </script>
-
-<style scoped>
-/* Mobile-first responsive adjustments */
-@media (max-width: 640px) {
-  #mainlayout {
-    padding-left: 0.25rem;
-    padding-right: 0.25rem;
-  }
-  
-  main {
-    padding-left: 0.25rem;
-    padding-right: 0.25rem;
-  }
-}
-
-/* Chat button animation */
-button {
-  transition: transform 0.2s ease;
-}
-button:active {
-  transform: scale(0.95);
-}
-</style>

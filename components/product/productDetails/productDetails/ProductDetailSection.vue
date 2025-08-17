@@ -12,6 +12,7 @@
         <ProductDetails 
           :product="product"
           :is-in-cart="isInCart"
+          :sellerStore="sellerStore"
         />
       </template>
       
@@ -41,12 +42,19 @@ import ProductTabs from '~/components/product/productDetails/productDetails/chil
 import ProductDetails from '~/components/product/productDetails/productDetails/children/ProductDetails.vue';
 import SimilarProducts from '~/components/product/productDetails/productDetails/children/SimilarProducts.vue'
 import MoreSellerProduct from '~/components/product/productDetails/productDetails/children/MoreSellerProducts.vue'
+import seller from '~/middleware/seller';
+import type { SellerStoreInterface } from '~/models/interface/auth/user.interface';
 
 
 const props = defineProps({
   product: {
     type: Object as PropType<ProductInterface>,
     required: true
+  },
+  sellerStore: {
+    type: Object as PropType<SellerStoreInterface>,
+    required: true,
+    default: () => ({})
   },
   activeTab: {
     type: String as PropType<'details' | 'similar' | 'seller'>,

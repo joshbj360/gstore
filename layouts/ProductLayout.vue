@@ -11,7 +11,7 @@
     </div>
 
     <!-- Product Grid -->
-    <div v-if="!emptyState" id="product-grid" class="grid grid-cols-2 gap-1 sm:gap-2 p-1">
+    <div v-if="!emptyState" id="product-grid" class="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-1 sm:gap-2 p-1">
       <div 
         v-for="product in displayedProducts" 
         :key="product.id"
@@ -49,11 +49,12 @@
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
-import { useCoreStore, useProductStore } from '#build/imports';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useProductStore } from '#build/imports';
 import ProductCard from '~/components/product/productCard/ProductCard.vue';
-import Loading from '~/components/shared/Loading.vue'
+import Loading from '~/components/shared/Loading.vue';
+import { useRoute } from 'vue-router';
 
 const productStore = useProductStore();
 const route = useRoute();
@@ -81,45 +82,42 @@ const emptyStateMessage = computed(() => {
     : 'No products found';
 });
 
-// Initial Load
-onMounted(async () => {
-  await initializeData();
-  initialLoadComplete.value = true;
-});
-
-// Server-side initialization
-if (process.server) {
-  await initializeData();
-}
-
-async function initializeData() {
-  try {
-    error.value = null;
-    await productStore.initialize();
-    
-    if (route.query.category) {
-      await productStore.filterByCategory(route.query.category as string);
-    }
-  } catch (err) {
-    error.value = 'Failed to load products. Please try again.';
-    console.error('Initialization error:', err);
-  }
-}
-
-// Watch for category changes
+// Watch for category changes in the URL
 watch(
   () => route.query.category,
   async (newCategory) => {
+    const categoryName = newCategory as string | null;
     try {
       error.value = null;
-      await productStore.filterByCategory(newCategory as string | null);
+      if (categoryName) {
+        // If there's a category in the URL, apply the filter
+        await productStore.filterByCategory(categoryName);
+      } else {
+        // If there's NO category in the URL, clear the filter
+        productStore.clearCategoryFilter();
+      }
     } catch (err) {
       error.value = 'Failed to filter products by category.';
       console.error('Category filter error:', err);
     }
   },
-  { immediate: true }
+  { immediate: true } // immediate: true ensures this runs on initial load
 );
+
+
+// Initial data load function
+async function initializeData() {
+  try {
+    error.value = null;
+    // Initialize will fetch all products if the store is empty
+    await productStore.initialize();
+  } catch (err) {
+    error.value = 'Failed to load products. Please try again.';
+    console.error('Initialization error:', err);
+  } finally {
+    initialLoadComplete.value = true;
+  }
+}
 
 // Load More
 const loadMore = async () => {
@@ -131,7 +129,17 @@ const loadMore = async () => {
     console.error('Load more error:', err);
   }
 };
-</script>
+
+// Only run initializeData on mount if the products aren't already loaded.
+// The watcher will handle the category filtering.
+onMounted(() => {
+    if (productStore.products.length === 0) {
+        initializeData();
+    } else {
+        initialLoadComplete.value = true;
+    }
+});
+</script>>
 
 <style>
 /* Animation for grid items */

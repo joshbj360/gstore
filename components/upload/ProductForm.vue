@@ -54,22 +54,21 @@
         @input="clearError('discount')"
       />
 
-      <NumberInput
-        v-model:input="product.stock"
-        label="Stock Quantity"
-        :error="errors.stock"
-        @input="clearError('stock')"
-        required
-      />
-
-      <TagInput
-        v-model:modelValue="product.sizes"
-        label="Available Sizes"
-        placeholder="e.g., S, M, L"
-        :error="errors.sizes"
-        @input="clearError('sizes')"
-      />
+    <div>
+  <h3 class="text-sm font-medium text-gray-700 mb-2">Sizes & Inventory</h3>
+  <div v-for="(variant, index) in variants" :key="index" class="flex items-center gap-2 mb-2">
+    <TextInput v-model:input="variant.size" placeholder="Size (e.g., Medium)" class="flex-1" />
+    <NumberInput v-model:input="variant.stock" placeholder="Stock" class="w-24" />
+    <button @click="removeVariant(index)" type="button" class="p-2 text-gray-400 hover:text-red-500">
+      <Icon name="mdi:trash-can-outline" size="20" />
+    </button>
+  </div>
+  <button @click="addVariant" type="button" class="text-sm text-[#f02c56] hover:underline mt-2">
+    + Add another size
+  </button>
+</div>
     </div>
+    
 
     <!-- Shipping Details -->
     <div class="space-y-4">
@@ -173,6 +172,22 @@ const categoryStore = useCategoryStore();
 const userStore = useUserStore()
 const categories =ref<CategoryInterface[]>([])
 
+// 1. Reactive state for variants, starts with one empty row
+const variants = ref([{ size: '', stock: 0 }]);
+
+// 2. Function to add a new, empty variant row
+const addVariant = () => {
+  variants.value.push({ size: '', stock: 0 });
+};
+
+// 3. Function to remove a variant by its index
+const removeVariant = (index: number) => {
+  // Prevents removing the very last row
+  if (variants.value.length > 1) {
+    variants.value.splice(index, 1);
+  }
+};
+
 // Form Data
 const product = ref<ProductInterface>({ ...defaultProduct });
 const measurement = ref<MeasurementInterface>({ ...defaultMeasurement });
@@ -191,7 +206,7 @@ const canSubmit = computed(() => {
     product.value.description?.trim() &&
     selectedCategory.value.name &&
     product.value.price > 0 &&
-    product.value.stock >= 0 &&
+    product.value.variants.every(variant => variant.stock >= 0) &&
     props.mediaData.length > 0
   );
 
@@ -207,7 +222,7 @@ const submitForm = () => {
     slug:product.value.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
     tags: tags.value.map(tag => ({ name: tag })),
     category: selectedCategory.value,
-    sizes: product.value.sizes?.filter((size) => size.trim()) ?? [],
+    variants: product.value.variants.filter(variant => variant.size.trim() && variant.stock >= 0),
     media: props.mediaData,
     sellerId: userStore.user?.id, // Add sellerId from userStore
     store_name: userStore.seller?.store_name
@@ -233,7 +248,7 @@ const validateForm = () => {
   if (product.value.price <= 0) {
     errors.value.price = 'Valid price is required';
   }
-  if (product.value.stock < 0) {
+  if (product.value.variants.some(variant => variant.stock < 0)) {
     errors.value.stock = 'Valid stock quantity is required';
   }
   if (props.mediaData.length === 0) {
