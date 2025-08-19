@@ -79,7 +79,7 @@
 <script setup lang="ts">
 import type { MediaInterface } from '~/models/interface/products/media.interface';
 import TextInput from '../shared/TextInput.vue';
-import UploadWidget from '../shared/UploadWidget.vue';
+import UploadWidget from '../upload/UploadWidget.vue';
 
 const emit = defineEmits(['submit', 'close']);
 

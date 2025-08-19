@@ -1,163 +1,132 @@
 <template>
-  <div class="space-y-6">
-    <div class="space-y-1">
-      <h2 class="text-lg font-semibold">Product Information</h2>
-      <p class="text-sm text-gray-500">Fill in the details about your product</p>
-    </div>
+  <!-- The main form container with a relative class for the sticky footer -->
+  <div class="relative">
+    <form @submit.prevent="submitForm" class="space-y-8 pb-24">
+      
+      <!-- Section 1: Basic Information -->
+      <div class="p-6 border rounded-lg bg-white">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TextInput
+            v-model:input="product.title"
+            placeholder="e.g., Silk Abaya with Embroidery"
+            label="Product Name"
+            :error="errors.title"
+            required
+          />
+          <SelectInput
+            v-model:input="selectedCategory.name"
+            :categories="categories"
+            label="Category"
+            :error="errors.category"
+            @open-dialog="showCategoryDialog = true"
+            required
 
-    <!-- Basic Information -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <TextInput
-        v-model:input="product.title"
-        placeholder="e.g., Cotton T-Shirt"
-        label="Product Name"
-        :error="errors.title"
-        @input="clearError('title')"
-        required
-      />
+            class="z-10"
+          />
+        </div>
+      </div>
 
-      <SelectInput
-        v-model:input="selectedCategory.name"
-        :categories="categories"
-        label="Category"
-        :error="errors.category"
-        @open-dialog="toggleCategoryDialog"
-        required
-      />
-    </div>
-
-    <!-- Rich Text Editor -->
-    <div>
-      <label class="block  text-sm font-medium text-gray-700 mb-1">Description</label>
-      <RichTextEditor
-      :model-value="product.description"
-      @update:model-value="updateDescription"
-      label="Detailed Description"
-      :error="descriptionError"
-    />
-    </div>
-
-    <!-- Pricing & Inventory -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <CurrencyInput
-        v-model:input="product.price"
-        label="Price"
-        :error="errors.price"
-        @input="clearError('price')"
-        required
-      />
-
-      <CurrencyInput
-        v-model:input="product.discount"
-        label="Discount Price"
-        :error="errors.discount"
-        @input="clearError('discount')"
-      />
-
-    <div>
-  <h3 class="text-sm font-medium text-gray-700 mb-2">Sizes & Inventory</h3>
-  <div v-for="(variant, index) in variants" :key="index" class="flex items-center gap-2 mb-2">
-    <TextInput v-model:input="variant.size" placeholder="Size (e.g., Medium)" class="flex-1" />
-    <NumberInput v-model:input="variant.stock" placeholder="Stock" class="w-24" />
-    <button @click="removeVariant(index)" type="button" class="p-2 text-gray-400 hover:text-red-500">
-      <Icon name="mdi:trash-can-outline" size="20" />
-    </button>
-  </div>
-  <button @click="addVariant" type="button" class="text-sm text-[#f02c56] hover:underline mt-2">
-    + Add another size
-  </button>
-</div>
-    </div>
-    
-
-    <!-- Shipping Details -->
-    <div class="space-y-4">
-      <h3 class="text-sm font-medium text-gray-700">Shipping Information</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <NumberInput
-          v-model:input="measurement.length"
-          label="Length (cm)"
-          :error="errors.length"
-          @input="clearError('length')"
-        />
-
-        <NumberInput
-          v-model:input="measurement.width"
-          label="Width (cm)"
-          :error="errors.width"
-          @input="clearError('width')"
-        />
-
-        <NumberInput
-          v-model:input="measurement.height"
-          label="Height (cm)"
-          :error="errors.height"
-          @input="clearError('height')"
-        />
-
-        <NumberInput
-          v-model:input="measurement.weight"
-          label="Weight (kg)"
-          :error="errors.weight"
-          @input="clearError('weight')"
+      <!-- Section 2: Description -->
+      <div class="p-6 border rounded-lg bg-white">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Description</h3>
+        <RichTextEditor
+          :model-value="product.description"
+          @update:model-value="updateDescription"
+          :error="errors.description"
         />
       </div>
-    </div>
 
-    <!-- Tags -->
-    <TagInput
-      v-model:modelValue="tags"
-      label="Product Tags"
-      placeholder="e.g., summer, casual"
-      :error="errors.tags"
-      @input="clearError('tags')"
-    />
+      <!-- Section 3: Pricing & Inventory -->
+      <div class="p-6 border rounded-lg bg-white">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Pricing & Inventory</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CurrencyInput
+                v-model:input="product.price"
+                label="Price"
+                :error="errors.price"
+                required
+            />
+            <CurrencyInput
+                v-model:input="product.discount"
+                label="Discount Price (Optional)"
+                :error="errors.discount"
+            />
+        </div>
+        <div class="mt-6 p-4 border rounded-md bg-gray-50">
+            <h4 class="text-sm font-medium text-gray-700 mb-3">Sizes & Stock</h4>
+            <div v-for="(variant, index) in variants" :key="index" class="flex items-center gap-2 mb-2">
+                <TextInput v-model:input="variant.size" placeholder="Size (e.g., Medium, 42)" class="flex-1" />
+                <NumberInput v-model:input="variant.stock" placeholder="Stock" class="w-28" />
+                <button @click="removeVariant(index)" type="button" class="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-200 transition-colors">
+                    <Icon name="mdi:trash-can-outline" size="20" />
+                </button>
+            </div>
+            <button @click="addVariant" type="button" class="text-sm text-[#f02c56] hover:underline mt-2 font-semibold">
+                + Add another size
+            </button>
+        </div>
+      </div>
 
-    <!-- Form Actions -->
-    <div class="flex justify-end space-x-3 pt-6">
-      <button
-        @click="$emit('discard')"
-        type="button"
-        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-      >
-        Discard
-      </button>
-      <button
-        @click="submitForm"
-        type="button"
-        class="px-4 py-2 bg-[#F02C56] text-white rounded-md text-sm font-medium hover:bg-[#df4949]"
-      >
-        Save Product
-      </button>
+      <!-- Section 4: Shipping -->
+       <div class="p-6 border rounded-lg bg-white">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Shipping Details (Optional)</h3>
+         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <NumberInput v-model:input="measurement.length" label="Length (cm)" />
+            <NumberInput v-model:input="measurement.width" label="Width (cm)" />
+            <NumberInput v-model:input="measurement.height" label="Height (cm)" />
+            <NumberInput v-model:input="measurement.weight" label="Weight (kg)" />
+         </div>
+      </div>
+
+      <!-- Section 5: Tags -->
+      <div class="p-6 border rounded-lg bg-white">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Tags & Keywords</h3>
+        <TagInput
+            v-model:modelValue="tags"
+            label="Product Tags"
+            placeholder="Add a tag and press Enter..."
+        />
+      </div>
+
+    </form>
+    
+    <!-- Sticky Footer for Form Actions -->
+    <div class="sticky bottom-0 bg-white/80 backdrop-blur-sm border-t p-4 flex justify-end space-x-3">
+        <button @click="$emit('discard')" type="button" class="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+            Discard
+        </button>
+        <button @click="submitForm" type="button" class="px-6 py-2.5 bg-[#F02C56] text-white rounded-lg text-sm font-semibold hover:bg-[#df4949] transition-colors">
+            Save Product
+        </button>
     </div>
 
     <!-- Category Dialog -->
     <CategoryDialog
       v-if="showCategoryDialog"
-      v-model="showCategoryDialog"
       @submit="addNewCategory"
-      @close="closeCategoryDialog"
+      @close="showCategoryDialog = false"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useCategoryStore } from '~/stores/categories.store';
+import { ref, onMounted } from 'vue';
+import { useCategoryStore, useUserStore } from '~/stores';
 import { defaultProduct, type ProductInterface } from '~/models/interface/products/product.interface';
 import { defaultMeasurement, type MeasurementInterface } from '~/models/interface/products/measurement.interface';
 import type { MediaInterface } from '~/models/interface/products/media.interface';
 import { defaultCategory, type CategoryInterface } from '~/models/interface/products/category.interface';
-import { useUserStore } from '@/stores/user.store'
+import { notify } from "@kyvg/vue3-notification";
+
+// Component Imports
 import TextInput from '../shared/TextInput.vue';
-import SelectInput from '../category/SelectInput.vue'
+import SelectInput from '../category/SelectInput.vue';
 import TagInput from '../shared/TagInput.vue';
 import RichTextEditor from '../shared/RichTextEditor.vue';
 import CurrencyInput from '../shared/CurrencyInput.vue';
 import NumberInput from '../shared/NumberInput.vue';
 import CategoryDialog from '../category/CategoryDialog.vue';
-import seller from '~/middleware/seller';
-
 
 const emit = defineEmits(['submit', 'discard']);
 
@@ -169,143 +138,86 @@ const props = defineProps({
 });
 
 const categoryStore = useCategoryStore();
-const userStore = useUserStore()
-const categories =ref<CategoryInterface[]>([])
-
-// 1. Reactive state for variants, starts with one empty row
-const variants = ref([{ size: '', stock: 0 }]);
-
-// 2. Function to add a new, empty variant row
-const addVariant = () => {
-  variants.value.push({ size: '', stock: 0 });
-};
-
-// 3. Function to remove a variant by its index
-const removeVariant = (index: number) => {
-  // Prevents removing the very last row
-  if (variants.value.length > 1) {
-    variants.value.splice(index, 1);
-  }
-};
+const userStore = useUserStore();
+const categories = ref<CategoryInterface[]>([]);
 
 // Form Data
-const product = ref<ProductInterface>({ ...defaultProduct });
+const product = ref<Partial<ProductInterface>>({ ...defaultProduct });
 const measurement = ref<MeasurementInterface>({ ...defaultMeasurement });
 const tags = ref<string[]>([]);
 const selectedCategory = ref<CategoryInterface>(defaultCategory);
 const showCategoryDialog = ref(false);
-const newCategoryName = ref('');
-const newCategoryThumbnail = ref('');
+const variants = ref([{ size: '', stock: 1 }]);
 
 // Form Validation
 const errors = ref<Record<string, string>>({});
 
-const canSubmit = computed(() => {
-  return (
-    product.value.title?.trim() &&
-    product.value.description?.trim() &&
-    selectedCategory.value.name &&
-    product.value.price > 0 &&
-    product.value.variants.every(variant => variant.stock >= 0) &&
-    props.mediaData.length > 0
-  );
+// Variant Management
+const addVariant = () => variants.value.push({ size: '', stock: 1 });
+const removeVariant = (index: number) => {
+  if (variants.value.length > 1) {
+    variants.value.splice(index, 1);
+  } else {
+    notify({ type: 'warn', text: 'You must have at least one size variant.' });
+  }
+};
 
-});
+const updateDescription = (newValue: string) => {
+  product.value.description = newValue;
+};
 
-// Methods
+const validateForm = (): boolean => {
+  errors.value = {};
+  if (!product.value.title?.trim()) errors.value.title = 'Product name is required.';
+  if (!selectedCategory.value.name) errors.value.category = 'Category is required.';
+  if (!product.value.price || product.value.price <= 0) errors.value.price = 'A valid price is required.';
+  if (!product.value.description || product.value.description.length < 20) errors.value.description = 'A detailed description is required.';
+  
+  const validVariants = variants.value.filter(v => v.size.trim() && v.stock >= 0);
+  if (validVariants.length === 0) {
+    notify({ type: 'error', text: 'Please add at least one valid size with stock.' });
+    return false;
+  }
+  if (props.mediaData.length === 0) {
+    notify({ type: 'error', text: 'Please upload at least one image or video.' });
+    return false;
+  }
+  
+  return Object.keys(errors.value).length === 0;
+};
+
 const submitForm = () => { 
-  if (!validateForm()) return;
+  if (!validateForm()) {
+    notify({ type: 'error', text: 'Please correct the errors before saving.' });
+    return;
+  }
 
   const completeProduct = {
     ...product.value,
     measurement: measurement.value,
-    slug:product.value.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+    slug: product.value.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
     tags: tags.value.map(tag => ({ name: tag })),
     category: selectedCategory.value,
-    variants: product.value.variants.filter(variant => variant.size.trim() && variant.stock >= 0),
+    variants: variants.value.filter(v => v.size.trim() && v.stock >= 0),
     media: props.mediaData,
-    sellerId: userStore.user?.id, // Add sellerId from userStore
-    store_name: userStore.seller?.store_name
+    sellerId: userStore.user?.id,
+    store_name: userStore.seller?.store_name,
   };
 
   emit('submit', completeProduct);
 };
 
-const validateForm = () => {
-  errors.value = {};
-  if (!userStore.seller?.store_name){
-    alert('No seller selected!')
-  } 
-  if (!product.value.title?.trim()) {
-    errors.value.title = 'Product name is required';
-  }
-  if (!product.value.description?.trim()) {
-    errors.value.description = 'Description is required';
-  }
-  if (!selectedCategory.value.name) {
-    errors.value.category = 'Category is required';
-  }
-  if (product.value.price <= 0) {
-    errors.value.price = 'Valid price is required';
-  }
-  if (product.value.variants.some(variant => variant.stock < 0)) {
-    errors.value.stock = 'Valid stock quantity is required';
-  }
-  if (props.mediaData.length === 0) {
-    errors.value.media = '';
-    alert("At least one image is required")
-  }
-
-  return Object.keys(errors.value).length === 0;
-};
-
-const clearError = (field: string) => {
-  if (errors.value[field]) {
-    delete errors.value[field];
-  }
-};
-
-
-// Category Management
-const toggleCategoryDialog = () => {
-  showCategoryDialog.value = !showCategoryDialog.value;
-};
-
-const closeCategoryDialog = () => {
+const addNewCategory = (category: CategoryInterface) => {
+  categories.value.push(category);
+  selectedCategory.value = category;
   showCategoryDialog.value = false;
-  newCategoryName.value = '';
-  newCategoryThumbnail.value = '';
+  notify({ type: 'success', text: `Category "${category.name}" added.` });
 };
 
-const addNewCategory = async (category: { name: string; thumbnailCatUrl: string }) => {
-  try {
-    // await categoryStore.addCategory({
-    //   name: category.name,
-    //   thumbnailUrl: category.thumbnail
-    // });
-    categories.value.push(category)
-    selectedCategory.value = category
-    closeCategoryDialog();
-  } catch (err) {
-    errors.value.category = 'Failed to add category';
+onMounted(async () => {
+  if (categoryStore.categories.length === 0) {
+    await categoryStore.fetchCategories();
   }
-};
-
-onBeforeMount(async () => {
-  await categoryStore.fetchCategories()
-  categories.value = categoryStore.categories
-})
-
-const descriptionError = ref('');
-
-const updateDescription = (newValue: string) => {
-  product.value.description = newValue;
-  
-  // Optional validation
-  if (newValue.length < 20) {
-    descriptionError.value = 'Description must be at least 20 characters';
-  } else {
-    descriptionError.value = '';
-  }
-}
+  categories.value = categoryStore.categories;
+});
 </script>

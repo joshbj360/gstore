@@ -68,6 +68,7 @@ model SellerProfile {
   updated_at             DateTime              @updatedAt @db.Timestamptz
   verificationDocuments  VerificationDocument[]
   reviews                Review[]
+  media                  Media[]
 }
 
 model VerificationDocument {
@@ -154,6 +155,9 @@ model Media {
   product    Products  @relation(fields: [productId], references: [id])
   productId  Int
   created_at DateTime  @default(now()) @db.Timestamptz(6)
+
+  seller    SellerProfile @relation(fields: [sellerId], references: [id])
+  sellerId  String         @db.Uuid
 }
 
 model Category {

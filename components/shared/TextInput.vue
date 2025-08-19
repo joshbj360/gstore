@@ -26,6 +26,7 @@
                 :type="inputType"
                 v-model="inputComputed"
                 autocomplete="off"
+                :placeholder="placeholder"
             >
         </client-only>
         <span v-if="error" class="text-red-500 text-[14px] font-semibold">
@@ -37,8 +38,8 @@
 
 <script setup>
     const emit = defineEmits(['update:input'])
-    const props = defineProps(['input', 'label', 'max', 'inputType', 'error'])
-    const { input, label, max, inputType, error } = toRefs(props)
+    const props = defineProps(['input', 'label', 'max', 'inputType', 'error', 'placeholder'])
+    const { input, label, max, inputType, error, placeholder } = toRefs(props)
     let isFocused = ref(false)
     const inputComputed = computed({
         get: () => input.value,
