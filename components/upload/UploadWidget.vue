@@ -69,6 +69,10 @@ const props = defineProps({
     type: String,
     default: 'image/*,video/*',
   },
+  sellerId: {
+    type: String,
+    required: true  
+  }
 })
 
 const emit = defineEmits<{
@@ -120,7 +124,7 @@ const initializeWidget = () => {
     uploadPreset,
     multiple: props.allowMultiple,
     maxFiles: props.maxFiles,
-    folder: props.folder,
+    folder: `${props.folder}/seller/0 ${props.sellerId}`,
     buttonCaption: props.mediaLabel,
     showAlreadyUploaded: true,
     styles: {
@@ -165,10 +169,12 @@ const handleUploadSuccess = (result: CloudinaryResult) => {
     type: mediaType,
     format: result.info.format,
     caption: '',
-    dimensions: result.info.width && result.info.height 
-      ? { width: result.info.width, height: result.info.height }
-      : undefined,
+    focalPoint: {
+      x: result.info.width || 0,
+      y: result.info.height || 0
+    },
     size: result.info.bytes,
+    sellerId: props.sellerId
   };
 
   emit('upload-complete', [media,]);

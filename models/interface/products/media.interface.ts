@@ -14,6 +14,7 @@ export interface MediaInterface {
         y: number
     },
     size?: number
+    sellerId?: string; // Seller ID for media ownership
 }
 
 

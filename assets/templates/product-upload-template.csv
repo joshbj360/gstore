@@ -1,11 +1,11 @@
-title,price,slug,description,stock,category,thumbnailUrl,tags,media_urls,media_types
-Abaya green,20000,Abaya-green,Abaya green is a great product,5,Women clothing,https://example.com/thumb.jpg,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968829/3_hxhabu.jpg,IMAGE
-Abaya green-stripes,18000,Abaya-green-stripes,Abaya green-stripes is a great product,5,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968828/2_hu4z6e.jpg,IMAGE
-Abaya elegant purple,18000,Abaya-elegant-purple,Abaya elegant purple is a great product,5,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968828/6_l6hlil.jpg,IMAGE
-Abaya 001,18000,Abaya-001,Abaya 001 is a great product,5,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968828/9_l9ovhz.jpg,IMAGE
-Abaya 002,18000,Abaya-002,Abaya 002 is a great product,5,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968828/5_o0zvzn.jpg,IMAGE
-Abaya 003,18000,Abaya-003,Abaya 003 is a great product,5,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968827/11_eaiu2a.jpg,IMAGE
-Abaya 004,18000,Abaya-004,Abaya 004 is a great product,5,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968825/4_c9dz54.jpg,IMAGE
-Abaya 005,18000,Abaya-005,Abaya 005 is a great product,5,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968824/8_kd19dk.jpg,IMAGE
-Abaya 006,18000,Abaya-006,Abaya 006 is a great product,5,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968823/7_a7a660.jpg,IMAGE
-Abaya 007,18000,Abaya-007,Abaya 007 is a great product,5,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968823/0_rzadkw.jpg,IMAGE
+title,price,slug,description,category,thumbnailUrl,tags,media_urls,media_types,sizes,stocks
+Elegant Abaya,25000,elegant-abaya,A beautiful flowing abaya for special occasions.,Women's Fashion,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968829/3_hxhabu.jpg,IMAGE,S|M|L|XL,10|15|12|5
+Modern Kaftan,18000,modern-kaftan,A stylish and comfortable kaftan.,Women's Fashion,,kaftan,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968828/2_hu4z6e.jpg,IMAGE,One Size,25
+Abaya elegant purple,18000,Abaya-elegant-purple,Abaya elegant purple is a great product,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968828/6_l6hlil.jpg,IMAGE,One Size,25
+Abaya 001,18000,Abaya-001,Abaya 001 is a great product,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968828/9_l9ovhz.jpg,IMAGE,One Size,25
+Abaya 002,18000,Abaya-002,Abaya 002 is a great product,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968828/5_o0zvzn.jpg,IMAGE,S|M|L|XL,10|15|12|5
+Abaya 003,18000,Abaya-003,Abaya 003 is a great product,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968827/11_eaiu2a.jpg,IMAGE,S|M|L|XL,10|15|12|5
+Abaya 004,18000,Abaya-004,Abaya 004 is a great product,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968825/4_c9dz54.jpg,IMAGE,S|M|L|XL,10|15|12|5
+Abaya 005,18000,Abaya-005,Abaya 005 is a great product,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968824/8_kd19dk.jpg,IMAGE,S|M|L|XL,10|15|12|5
+Abaya 006,18000,Abaya-006,Abaya 006 is a great product,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968823/7_a7a660.jpg,IMAGE,S|M|L|XL,25|10|5|4
+Abaya 007,18000,Abaya-007,Abaya 007 is a great product,Women clothing,,abaya,https://res.cloudinary.com/dcci05bzj/image/upload/v1749968823/0_rzadkw.jpg,IMAGE,S|M|L|XL,25|10|5|4

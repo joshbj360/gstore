@@ -1,7 +1,8 @@
 import type { ProductInterface } from "../products/product.interface";
+import type { MediaInterface } from '../products/media.interface';
 
 export interface UserInterface {
-  id?: string
+  readonly id: string
   displayName?: string
   email: string | undefined
   phone?: string | undefined
@@ -22,7 +23,7 @@ export interface UserProfileInterface {
 }
 
 export interface SellerStoreInterface {
-  profile_id?: string
+  profileId: string
   store_name: string | undefined
   store_description: string;
   store_logo?: string;
@@ -30,6 +31,7 @@ export interface SellerStoreInterface {
   store_location?: string;
   store_phone?: string;
   store_website?: string;
+  media?: MediaInterface[];
   store_socials?: {
     facebook?: string;
     twitter?: string;
@@ -64,19 +66,19 @@ export interface SellerStoreInterface {
 }
 
 export const defaultSellerProfile: SellerStoreInterface = {
-    profile_id: '1',
-    store_name: 'Grandeur Store',
-    store_description: 'Grandeur luxury store. We make you look GRAND!',
+    profileId: '0',
+    store_name: 'Store name',
+    store_description: 'Store description',
     store_logo: '',
     store_banner: '',
-    store_location: '',
-    store_phone: '',
-    store_website: '',
+    store_location: 'Store location',
+    store_phone: '0800000000',
+    store_website: 'Store website',
     store_socials: {
-        facebook: '',
-        twitter: '',
-        instagram: '',
-        linkedin: ''
+        facebook: '@facebook',
+        twitter: '@twitter',
+        instagram: '@instagram',
+        linkedin: '@linkedin'
     },
     products: [],
     ratings: {

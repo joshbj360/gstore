@@ -19,7 +19,11 @@
         </span>
       </NuxtLink>
 
-      <NuxtLink v-if="userStore.isLoggedIn" to="/buyer/profile" class="flex flex-col items-center justify-center text-gray-600 hover:text-[#f02c56]">
+      <NuxtLink v-if="userStore.isLoggedIn && userStore.isSeller" to="/seller/dashboard" class="flex flex-col items-center justify-center text-gray-600 hover:text-[#f02c56]">
+        <Icon name="mdi:view-dashboard-outline" size="24" />
+        <span class="text-xs mt-1">Dashboard</span>
+      </NuxtLink>
+      <NuxtLink v-else-if="userStore.isLoggedIn && !userStore.isSeller" to="/buyer/profile" class="flex flex-col items-center justify-center text-gray-600 hover:text-[#f02c56]">
         <Icon name="mdi:account-outline" size="24" />
         <span class="text-xs mt-1">Profile</span>
       </NuxtLink>

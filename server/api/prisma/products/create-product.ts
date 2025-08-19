@@ -1,23 +1,24 @@
-import { PrismaClient, $Enums } from '@prisma/client';
-import { MediaInterface } from '~/models/interface/products/media.interface';
+import { PrismaClient } from '@prisma/client';
+import type { MediaInterface } from '~/models/interface/products/media.interface';
 import type { ProductInterface } from '~/models/interface/products/product.interface';
 import { serverSupabaseUser } from '#supabase/server';
-import { th } from '@faker-js/faker';
 
 const prisma = new PrismaClient();
 
 export default defineEventHandler(async (event) => {
-  // Authenticate user
   const user = await serverSupabaseUser(event);
   if (!user) {
     throw createError({ statusCode: 401, message: 'Unauthorized' });
   }
 
-  const body = await readBody<ProductInterface>(event);
+  const body = await readBody<ProductInterface & { variants?: { size: string, stock: number }[] }>(event);
 
-  // Basic validation
-  if (!body.title?.trim() || !body.price || !body.slug?.trim()) {
-    throw createError({ statusCode: 400, message: 'Title, price, and slug are required' });
+  // --- UPDATED VALIDATION ---
+  if (!body.title?.trim() || !body.price) {
+    throw createError({ statusCode: 400, message: 'Title and price are required' });
+  }
+  if (!body.variants || body.variants.length === 0 || body.variants.some(v => !v.size || v.stock == null)) {
+      throw createError({ statusCode: 400, message: 'At least one product variant with a size and stock is required' });
   }
 
   try {
@@ -26,12 +27,20 @@ export default defineEventHandler(async (event) => {
         title: body.title.trim(),
         description: body.description?.trim() || null,
         price: body.price,
-        stock: body.stock ?? null,
-        slug: body.slug.trim(),
+        slug: body.slug?.trim() || body.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''), // Auto-generate slug if not provided
         sellerId: user.id,
         store_name: body.store_name,
+        discount: body.discount || 0,
+        
+        // --- NEW: Create variants instead of a single stock ---
+        variants: {
+          create: body.variants.map(variant => ({
+            size: variant.size,
+            stock: variant.stock,
+          })),
+        },
 
-        // Handle category (nested through relation table)
+        // Category handling remains the same
         category: body.category ? {
           create: [{
             category: {
@@ -46,7 +55,7 @@ export default defineEventHandler(async (event) => {
           }],
         } : undefined,
 
-        // Handle tags (many-to-many through join table)
+        // Tags handling remains the same
         tags: body.tags ? {
           create: body.tags.map(tag => ({
             tag: {
@@ -58,22 +67,22 @@ export default defineEventHandler(async (event) => {
           })),
         } : undefined,
 
-        // Handle media
+        // Media handling remains the same
         media: body.media ? {
           create: body.media.map((mediaItem: MediaInterface) => ({
             url: mediaItem.url,
             type: mediaItem.type,
+            sellerId: mediaItem.sellerId || user.id, // Use sellerId from media or fallback to user id
           })),
         } : undefined,
-
-        created_at: new Date(),
-        updated_at: new Date(),
       },
 
+      // --- UPDATED INCLUDE: Return the new variants in the response ---
       include: {
         category: { include: { category: true } },
         tags: { include: { tag: true } },
         media: true,
+        variants: true, // Include variants in the returned product data
       },
     });
 
