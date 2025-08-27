@@ -12,13 +12,13 @@
           </div>
           <div class="flex space-x-2 mt-4 sm:mt-0 shrink-0">
             <button @click="activeTab = 'single'" class="px-4 py-2 text-sm font-medium rounded-md transition-colors" :class="{
-              'bg-[#F02C56] text-white shadow-md': activeTab === 'single',
+              'bg-[#C42B78] text-white shadow-md': activeTab === 'single',
               'text-gray-700 bg-gray-100 hover:bg-gray-200': activeTab !== 'single'
             }">
               Single Upload
             </button>
             <button @click="activeTab = 'bulk'" class="px-4 py-2 text-sm font-medium rounded-md transition-colors" :class="{
-              'bg-[#F02C56] text-white shadow-md': activeTab === 'bulk',
+              'bg-[#C42B78] text-white shadow-md': activeTab === 'bulk',
               'text-gray-700 bg-gray-100 hover:bg-gray-200': activeTab !== 'bulk'
             }">
               Bulk Upload
@@ -31,7 +31,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div class="space-y-6">
             <h2 class="text-lg font-semibold text-gray-800">
-              <span class="text-xs font-bold py-1 px-2 rounded-full bg-[#f02c56]/10 text-[#f02c56] mr-2">1</span>
+              <span class="text-xs font-bold py-1 px-2 rounded-full bg-[#C42B78]/10 text-[#C42B78] mr-2">1</span>
               Upload Media
             </h2>
             <div class="bg-gray-50 p-6 rounded-lg border border-dashed">
@@ -48,7 +48,7 @@
 
           <div class="space-y-6">
              <h2 class="text-lg font-semibold text-gray-800">
-              <span class="text-xs font-bold py-1 px-2 rounded-full bg-[#f02c56]/10 text-[#f02c56] mr-2">2</span>
+              <span class="text-xs font-bold py-1 px-2 rounded-full bg-[#C42B78]/10 text-[#C42B78] mr-2">2</span>
               Add Details
             </h2>
             <ProductForm 

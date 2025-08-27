@@ -1,9 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import type { MediaInterface } from '~/models/interface/products/media.interface';
 import type { ProductInterface } from '~/models/interface/products/product.interface';
 import { serverSupabaseUser } from '#supabase/server';
 
-const prisma = new PrismaClient();
+import prisma from '~/server/prisma/prismaClient'
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event);

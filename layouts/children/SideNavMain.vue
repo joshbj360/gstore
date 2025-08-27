@@ -10,7 +10,7 @@
           <NuxtLink :to="item.path">
             <MenuItem 
               :icon="item.icon" 
-              :color="isActive(item.path) ? '#f02c56' : '#161718'" 
+              :color="isActive(item.path) ? '#C42B78' : '#161718'" 
               :size="item.size" 
               :text="item.text" 
             />
@@ -30,7 +30,7 @@
           <NuxtLink
             v-for="category in categoryStore.categories.slice(0, 8)"
             :key="category.id"
-            :to="`/?category=${category.name}`"
+            :to="`/category/${category.slug}`"
             class="block"
           >
             <CategoryItem

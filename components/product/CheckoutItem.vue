@@ -13,7 +13,7 @@
       <div class="flex items-center">
         <span
           v-if="showWelcomeDeal"
-          class="bg-[#f02c56] text-white text-[9px] font-semibold px-2 py-0.5 rounded-md"
+          class="bg-[#C42B78] text-white text-[9px] font-semibold px-2 py-0.5 rounded-md"
         >
           Welcome Deal
         </span>

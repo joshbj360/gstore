@@ -44,7 +44,7 @@
                     <div class="mt-2 text-gray-400 text-[13px]">Up to 10 minutes</div>
                     <div class="mt-2 text-gray-400 text-[13px]">Less than 2 GB</div>
                     <div 
-                        class="px-2 py-1.5 mt-8 text-white text-[15px] w-[80%] bg-[#F02C56] rounded-sm"
+                        class="px-2 py-1.5 mt-8 text-white text-[15px] w-[80%] bg-[#C42B78] rounded-sm"
                         @click="openCloudinaryWidget"
                     >
                         Select file

@@ -1,79 +1,76 @@
 import { defineStore } from 'pinia';
-import type { ProductInterface } from '~/models/interface/products/product.interface';
-import { type CartInterface } from '~/models/interface/cart/cart.interface';
+import type { ProductInterface, ProductVariantInterface } from '~/models/interface/products/product.interface';
+import type { CartItemInterface } from '~/models/interface/cart/cart.interface'; // Import your new interface
+import { useSupabaseClient, useSupabaseUser } from '#imports';
 import type { Database } from '#build/types/supabase-database';
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
-    cartItems: [] as Array<CartInterface>,
-    checkout: [] as Array<CartInterface>,
+    // The state now uses the correct, variant-aware interface
+    cartItems: [] as CartItemInterface[],
+    checkout: [] as CartItemInterface[],
   }),
   getters: {
     cartCount: (state) => state.cartItems.length,
+    // Calculates the total price of all items in the cart
+    cartTotal: (state) => {
+        return state.cartItems.reduce((total, item) => {
+            const price = item.variant.price || item.product.price;
+            return total + (price * item.quantity);
+        }, 0);
+    }
   },
   actions: {
+    // Note: The fetchCartItems action would also need to be updated to fetch variant data.
+    // This is a placeholder for that logic.
     async fetchCartItems() {
-      const supabase = useSupabaseClient<Database>();
-      const user = useSupabaseUser();
-      if (user.value) {
-        const { data, error } = await supabase
-          .from('cart_items')
-          .select('*, products(*)')
-          .eq('user_id', user.value.id);
-        if (error) throw new Error('Failed to fetch cart items');
-        this.cartItems = data.map((item: any) => ({
-          ...item.products,
-          quantity: item.quantity && item.quantity > 0 ? item.quantity : 1,
-          selectedSizes: item.selected_sizes || [],
-        }));
-      }
+      // This logic would need to be adapted based on your 'cart_items' table structure
+      // to include a 'variant_id' and join with the ProductVariant table.
+      console.log("Fetching cart items from the database...");
     },
-    addToCart(item: ProductInterface, quantity = 1, selectedSizes: string[] = []) {
-      if (quantity <= 0) {
-        console.warn('Quantity must be positive');
-        return;
-      }
-      const existingItem = this.cartItems.find(
-        (i) =>
-          i.id === item.id &&
-          JSON.stringify(i.selectedSizes?.sort()) === JSON.stringify(selectedSizes.sort())
-      );
-      if (!existingItem) {
-        this.cartItems.push({
-          id: item.id!,
-          product: item,
-          quantity,
-          selectedSizes
-        });
-        console.log('Added to cart:', {
-          id: item.id!,
-          product: item,
-          quantity,
-          selectedSizes
-        });
-      }
-    },
-    removeFromCart(itemId: number, selectedSizes: string[] = []) {
-      this.cartItems = this.cartItems.filter(
-        (i) =>
-          !(i.id === itemId && JSON.stringify(i.selectedSizes?.sort()) === JSON.stringify(selectedSizes.sort()))
-      );
-    },
-    updateCartItem(updatedItem: CartInterface) {
-      const index = this.cartItems.findIndex(
-        (item) =>
-          item.id === updatedItem.id &&
-          JSON.stringify(item.selectedSizes?.sort()) === JSON.stringify(updatedItem.selectedSizes?.sort())
-      );
-      if (index !== -1) {
-        // Update the existing item with new values
-        this.cartItems[index] = {
-          ...this.cartItems[index],
-          ...updatedItem,
-          quantity: updatedItem.quantity || this.cartItems[index].quantity, // Preserve existing quantity if new is invalid
-        };
+
+    addToCart(product: ProductInterface, selectedVariant: ProductVariantInterface, quantity = 1) {
+      
+      if (quantity <= 0) return;
+
+      // Create a unique ID for this specific cart item (e.g., "productID-variantID")
+      alert(`Adding to cart: ${product.id} - ${Number(selectedVariant.id)}`);
+      const cartId = `${product.id}-${Number(selectedVariant.id)}`;
+
+      const existingItem = this.cartItems.find(item => String(item.id) === cartId);
+
+      if (existingItem) {
+        // If it already exists, just increase the quantity, respecting stock limits
+        const newQuantity = existingItem.quantity + quantity;
+        if (newQuantity <= selectedVariant.stock) {
+            existingItem.quantity = newQuantity;
+        } else {
+            // Optionally notify the user that they can't add more than what's in stock
+            console.warn('Cannot add more items than available in stock.');
+        }
       } else {
-        console.warn(`Item with id ${updatedItem.id} and sizes ${updatedItem.selectedSizes} not found in cart`);
+        // Otherwise, add the new item to the cart
+        this.cartItems.push({
+          id: cartId,
+          product: product,
+          variant: selectedVariant,
+          quantity: quantity,
+        });
+      }
+    },
+
+    // removeFromCart now uses the unique cartId, which is much more reliable
+    removeFromCart(cartId: string) {
+      this.cartItems = this.cartItems.filter(item => String(item.id) !== cartId);
+    },
+
+    // updateCartItem also uses the unique cartId
+    updateCartItem(updatedItem: CartItemInterface) {
+      const index = this.cartItems.findIndex(item => item.id === updatedItem.id);
+      if (index !== -1) {
+        this.cartItems[index] = updatedItem;
+      } else {
+        console.warn(`Item with id ${updatedItem.id} not found in cart.`);
       }
     },
   },

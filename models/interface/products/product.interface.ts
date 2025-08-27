@@ -23,6 +23,8 @@ export interface ProductInterface {
     socialMedia?: SocialMediaInterface
     rating?: number;
   reviewCount?: number;
+  likeCount?: number;
+  productSoldCount?: number;
 }
 
 export interface ProductVariantInterface {
@@ -31,7 +33,7 @@ export interface ProductVariantInterface {
     stock: number
     price?: number
 
-    productID: number
+    productID?: number
 }
 
 export interface ProductFileInterface {

@@ -5,7 +5,7 @@
       <div class="container mx-auto px-4 py-3 flex items-center">
         <button
           @click="navigateHome"
-          class="flex items-center text-gray-700 hover:text-[#f02c56] transition-colors"
+          class="flex items-center text-gray-700 hover:text-[#C42B78] transition-colors"
         >
           <Icon name="mdi:arrow-left" size="24" class="mr-2" />
           <span class="font-medium">Back to Home</span>
@@ -38,12 +38,12 @@
           <!-- Video Controls -->
           <div class="absolute top-4 right-4 flex gap-2 z-20">
             <button @click="toggleMute" 
-                    class="bg-white/90 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all"
+                    class="bg-white/90 p-2 rounded-full hover:bg-[#C42B78] hover:text-white transition-all"
                     :aria-label="muteVideo ? 'Unmute video' : 'Mute video'">
               <Icon :name="muteVideo ? 'mdi:volume-off' : 'mdi:volume-high'" size="20" />
             </button>
             <button @click="togglePlay(index)"
-                    class="bg-white/90 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all"
+                    class="bg-white/90 p-2 rounded-full hover:bg-[#C42B78] hover:text-white transition-all"
                     :aria-label="isPlaying[index] ? 'Pause video' : 'Play video'">
               <Icon :name="isPlaying[index] ? 'mdi:pause' : 'mdi:play'" size="20" />
             </button>
@@ -57,7 +57,7 @@
             <div class="flex gap-2 mt-2">
               <button v-for="platform in socialPlatforms" :key="platform.name"
                       @click="shareToSocial(platform.url(product.id, product.title))"
-                      class="bg-white/90 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all"
+                      class="bg-white/90 p-2 rounded-full hover:bg-[#C42B78] hover:text-white transition-all"
                       :aria-label="`Share to ${platform.name}`">
                 <Icon :name="platform.icon" size="20" />
               </button>
@@ -71,12 +71,12 @@
     <!-- Navigation Arrows (Desktop) -->
     <div class="hidden lg:flex absolute top-1/2 left-0 right-0 justify-between px-4 z-30">
       <button @click="swipePrev" 
-              class="bg-white/90 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all"
+              class="bg-white/90 p-2 rounded-full hover:bg-[#C42B78] hover:text-white transition-all"
               aria-label="Previous product">
         <Icon name="mdi:chevron-up" size="24" />
       </button>
       <button @click="swipeNext" 
-              class="bg-white/90 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all"
+              class="bg-white/90 p-2 rounded-full hover:bg-[#C42B78] hover:text-white transition-all"
               aria-label="Next product">
         <Icon name="mdi:chevron-down" size="24" />
       </button>
@@ -87,7 +87,7 @@
       <div class="bg-white rounded-lg p-6 max-w-sm w-full">
         <p class="text-red-500 mb-4">{{ error }}</p>
         <button @click="retryLoad" 
-                class="bg-[#f02c56] text-white px-4 py-2 rounded-md hover:bg-[#df4949]">
+                class="bg-[#C42B78] text-white px-4 py-2 rounded-md hover:bg-[#df4949]">
           Retry
         </button>
       </div>

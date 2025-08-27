@@ -1,10 +1,9 @@
-import { type ProductInterface } from "../../interface/products/product.interface";
+import { type ProductInterface, type ProductVariantInterface } from "../../interface/products/product.interface";
 
-export interface CartInterface {
-    id: number;
+export interface CartItemInterface {
+    id: string;
     product: ProductInterface;
+
+    variant: ProductVariantInterface;
     quantity: number;
-    selectedSizes?: string[];
-    selectedColors?: string[];
-    selectedMaterials?: string[];
 }

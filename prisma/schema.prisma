@@ -7,6 +7,259 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Profile {
+  id            String            @id @db.Uuid
+  email         String            @unique
+  role          String            @default("user")
+  avatar        String?
+  username      String?
+  created_at    DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime          @updatedAt @db.Timestamptz(6)
+  likes         Like[]            @relation("ProfileLikes")
+  notifications Notification[]    @relation("NotificationToProfile")
+  products      Products[]        @relation("SellerProducts")
+  reviews       Review[]          @relation("UserReviews")
+  sellerProfile SellerProfile?    @relation("SellerProfile")
+  shares        Share[]           @relation("ProfileShares")
+  socialMedia   SocialMediaInfo[] @relation("ProfileSocialMedia")
+}
+
+model SellerProfile {
+  id                    String                 @id @default(uuid()) @db.Uuid
+  profileId             String                 @unique @db.Uuid
+  store_name            String?
+  store_description     String?
+  store_logo            String?
+  store_banner          String?
+  store_location        String?
+  store_phone           String?
+  store_website         String?
+  store_socials         Json?
+  followers_count       Int                    @default(0)
+  is_verified           Boolean                @default(false)
+  verification_status   VerificationStatus     @default(PENDING)
+  verification_reason   String?
+  created_at            DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime               @updatedAt @db.Timestamptz(6)
+  store_slug            String                 @unique @default("store-name-slug")
+  media                 Media[]
+  reviews               Review[]
+  profile               Profile                @relation("SellerProfile", fields: [profileId], references: [id])
+  verificationDocuments VerificationDocument[]
+}
+
+model VerificationDocument {
+  id              String             @id @default(uuid()) @db.Uuid
+  sellerProfileId String             @db.Uuid
+  type            String
+  url             String
+  status          VerificationStatus @default(PENDING)
+  created_at      DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime           @updatedAt @db.Timestamptz(6)
+  sellerProfile   SellerProfile      @relation(fields: [sellerProfileId], references: [id])
+}
+
+model Review {
+  id              String         @id @default(uuid()) @db.Uuid
+  userId          String         @db.Uuid
+  productId       Int
+  sellerProfileId String         @db.Uuid
+  rating          Int
+  comment         String?
+  created_at      DateTime       @default(now()) @db.Timestamptz(6)
+  notifications   Notification[] @relation("NotificationToReview")
+  product         Products       @relation(fields: [productId], references: [id])
+  sellerProfile   SellerProfile  @relation(fields: [sellerProfileId], references: [id])
+  user            Profile        @relation("UserReviews", fields: [userId], references: [id])
+
+  @@unique([userId, productId])
+}
+
+model Products {
+  id            Int                 @id @default(autoincrement())
+  title         String
+  slug          String              @unique
+  description   String?
+  price         Float
+  discount      Float?
+  status        ProductStatus?      @default(DRAFT)
+  sellerId      String              @db.Uuid
+  store_name    String
+  created_at    DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime            @updatedAt @db.Timestamptz(6)
+  likes         Like[]
+  measurement   Measurement?
+  media         Media[]
+  notifications Notification[]      @relation("NotificationToProduct")
+  orderItem     OrderItem[]
+  category      ProductCategories[] @relation("ProductCategory")
+  tags          ProductTags[]       @relation("ProductTag")
+  variants      ProductVariant[]
+  seller        Profile             @relation("SellerProducts", fields: [sellerId], references: [id])
+  reviews       Review[]
+  share         Share[]             @relation("ProductShare")
+  socialMedia   SocialMediaInfo[]   @relation("ProductSocialMedia")
+}
+
+model ProductVariant {
+  id        Int      @id @default(autoincrement())
+  size      String
+  stock     Int
+  price     Float?
+  productId Int
+  product   Products @relation(fields: [productId], references: [id])
+
+  @@unique([productId, size])
+}
+
+model Measurement {
+  id        Int       @id @default(autoincrement())
+  productId Int?      @unique
+  weight    Float?
+  length    Float?
+  width     Float?
+  height    Float?
+  product   Products? @relation(fields: [productId], references: [id])
+}
+
+model Media {
+  id         Int           @id @default(autoincrement())
+  url        String
+  type       MediaType
+  productId  Int
+  created_at DateTime      @default(now()) @db.Timestamptz(6)
+  sellerId   String        @db.Uuid
+  product    Products      @relation(fields: [productId], references: [id])
+  seller     SellerProfile @relation(fields: [sellerId], references: [id])
+}
+
+model Category {
+  id              Int                 @id @default(autoincrement())
+  name            String              @unique
+  thumbnailCatUrl String?
+  created_at      DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime            @updatedAt @db.Timestamptz(6)
+  slug            String              @unique @default("category-slug")
+  products        ProductCategories[] @relation("ProductCategory")
+}
+
+model ProductCategories {
+  productId  Int
+  categoryId Int
+  category   Category @relation("ProductCategory", fields: [categoryId], references: [id])
+  product    Products @relation("ProductCategory", fields: [productId], references: [id])
+
+  @@id([productId, categoryId])
+}
+
+model Tag {
+  id         Int           @id @default(autoincrement())
+  name       String        @unique
+  created_at DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at DateTime      @updatedAt @db.Timestamptz(6)
+  products   ProductTags[] @relation("ProductTag")
+}
+
+model ProductTags {
+  productId Int
+  tagId     Int
+  product   Products @relation("ProductTag", fields: [productId], references: [id])
+  tag       Tag      @relation("ProductTag", fields: [tagId], references: [id])
+
+  @@id([productId, tagId])
+}
+
+model Orders {
+  id            Int            @id @default(autoincrement())
+  userId        String         @db.Uuid
+  stripeId      String         @unique
+  name          String
+  address       String
+  zipcode       String
+  city          String
+  country       String
+  totalAmount   Int
+  status        OrderStatus    @default(PENDING)
+  created_at    DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime       @updatedAt @db.Timestamptz(6)
+  notifications Notification[] @relation("NotificationToOrder")
+  orderItem     OrderItem[]
+}
+
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  orderId    Int
+  productId  Int
+  quantity   Int
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  order      Orders   @relation(fields: [orderId], references: [id])
+  product    Products @relation(fields: [productId], references: [id])
+}
+
+model Addresses {
+  id         Int      @id @default(autoincrement())
+  userId     String   @unique @db.Uuid
+  name       String
+  address    String
+  zipcode    String
+  city       String
+  country    String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+}
+
+model Like {
+  id         Int      @id @default(autoincrement())
+  userId     String   @db.Uuid
+  productId  Int
+  created_at DateTime @default(now())
+  product    Products @relation(fields: [productId], references: [id])
+  profile    Profile  @relation("ProfileLikes", fields: [userId], references: [id])
+
+  @@unique([userId, productId])
+}
+
+model Share {
+  id         Int      @id @default(autoincrement())
+  userId     String   @db.Uuid
+  productId  Int
+  platform   String?
+  shareUrl   String?
+  created_at DateTime @default(now())
+  product    Products @relation("ProductShare", fields: [productId], references: [id])
+  profile    Profile  @relation("ProfileShares", fields: [userId], references: [id])
+
+  @@unique([userId, productId, platform])
+}
+
+model SocialMediaInfo {
+  id         Int       @id @default(autoincrement())
+  userId     String?   @db.Uuid
+  productId  Int?
+  platform   String
+  handle     String
+  created_at DateTime  @default(now())
+  product    Products? @relation("ProductSocialMedia", fields: [productId], references: [id])
+  profile    Profile?  @relation("ProfileSocialMedia", fields: [userId], references: [id])
+}
+
+model Notification {
+  id         Int              @id @default(autoincrement())
+  userId     String           @db.Uuid
+  message    String
+  type       NotificationType
+  read       Boolean          @default(false)
+  orderId    Int?
+  reviewId   String?          @db.Uuid
+  productId  Int?
+  created_at DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at DateTime         @updatedAt @db.Timestamptz(6)
+  order      Orders?          @relation("NotificationToOrder", fields: [orderId], references: [id])
+  product    Products?        @relation("NotificationToProduct", fields: [productId], references: [id])
+  review     Review?          @relation("NotificationToReview", fields: [reviewId], references: [id])
+  profile    Profile          @relation("NotificationToProfile", fields: [userId], references: [id])
+}
+
 enum ProductStatus {
   DRAFT
   PUBLISHED
@@ -31,267 +284,9 @@ enum VerificationStatus {
   REJECTED
 }
 
-model Profile {
-  id             String           @id @db.Uuid // Supabase auth.users.id
-  email          String           @unique
-  role           String           @default("user")
-  avatar         String?
-  username       String?
-  created_at     DateTime         @default(now()) @db.Timestamptz
-  updated_at     DateTime         @updatedAt @db.Timestamptz
-  products       Products[]       @relation("SellerProducts")
-  likes          Like[]           @relation("ProfileLikes")
-  shares         Share[]          @relation("ProfileShares")
-  socialMedia    SocialMediaInfo[] @relation("ProfileSocialMedia")
-  sellerProfile  SellerProfile?   @relation("SellerProfile")
-  reviews        Review[]         @relation("UserReviews")
-  notifications  Notification[]   @relation("NotificationToProfile")
-}
-
-model SellerProfile {
-  id                     String                @id @db.Uuid @default(uuid())
-  profileId              String                @unique @db.Uuid
-  profile                Profile               @relation("SellerProfile", fields: [profileId], references: [id])
-  store_name             String?
-  store_description      String?
-  store_logo             String?
-  store_banner           String?
-  store_location         String?
-  store_phone            String?
-  store_website          String?
-  store_socials          Json?
-  followers_count        Int                   @default(0)
-  is_verified            Boolean               @default(false)
-  verification_status    VerificationStatus    @default(PENDING)
-  verification_reason    String?
-  created_at             DateTime              @default(now()) @db.Timestamptz
-  updated_at             DateTime              @updatedAt @db.Timestamptz
-  verificationDocuments  VerificationDocument[]
-  reviews                Review[]
-  media                  Media[]
-}
-
-model VerificationDocument {
-  id                String             @id @db.Uuid @default(uuid())
-  sellerProfileId   String             @db.Uuid
-  sellerProfile     SellerProfile      @relation(fields: [sellerProfileId], references: [id])
-  type              String             // 'ID', 'Business License'
-  url               String
-  status            VerificationStatus @default(PENDING)
-  created_at        DateTime           @default(now()) @db.Timestamptz
-  updated_at        DateTime           @updatedAt @db.Timestamptz
-}
-
-model Review {
-  id                String        @id @db.Uuid @default(uuid())
-  userId            String        @db.Uuid
-  productId         Int
-  sellerProfileId   String        @db.Uuid
-  rating            Int
-  comment           String?
-  created_at        DateTime      @default(now()) @db.Timestamptz
-  user              Profile       @relation("UserReviews", fields: [userId], references: [id])
-  product           Products      @relation(fields: [productId], references: [id])
-  sellerProfile     SellerProfile @relation(fields: [sellerProfileId], references: [id])
-  notifications  Notification[]   @relation("NotificationToReview")
-
-
-  @@unique([userId, productId])
-}
-
-model Products {
-  id            Int                 @id @default(autoincrement())
-  title         String
-  slug          String              @unique
-  description   String?
-  price         Float
-  discount      Float?
-  measurement   Measurement?
-  variants      ProductVariant[]
-  status        ProductStatus?      @default(DRAFT)
-  category      ProductCategories[] @relation("ProductCategory")
-  tags          ProductTags[]       @relation("ProductTag")
-  media         Media[]
-  orderItem     OrderItem[]
-  likes         Like[]
-  share         Share[]             @relation("ProductShare")
-  socialMedia   SocialMediaInfo[]   @relation("ProductSocialMedia")
-  sellerId      String              @db.Uuid
-  store_name   String
-  seller        Profile             @relation("SellerProducts", fields: [sellerId], references: [id])
-  created_at    DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime            @updatedAt @db.Timestamptz(6)
-  reviews       Review[]
-  notifications  Notification[]   @relation("NotificationToProduct")
-
-}
-
-model ProductVariant {
-  id    Int @id @default(autoincrement())
-  size  String
-  stock Int
-  price Float?
-
-  product Products @relation(fields: [productId], references: [id])
-  productId Int
-
-  @@unique([productId, size])
-}
-
-model Measurement {
-  id        Int       @id @default(autoincrement())
-  product   Products? @relation(fields: [productId], references: [id])
-  productId Int?      @unique
-  weight    Float?
-  length    Float?
-  width     Float?
-  height    Float?
-}
-
-model Media {
-  id         Int       @id @default(autoincrement())
-  url        String
-  type       MediaType
-  product    Products  @relation(fields: [productId], references: [id])
-  productId  Int
-  created_at DateTime  @default(now()) @db.Timestamptz(6)
-
-  seller    SellerProfile @relation(fields: [sellerId], references: [id])
-  sellerId  String         @db.Uuid
-}
-
-model Category {
-  id              Int                 @id @default(autoincrement())
-  name            String              @unique
-  products        ProductCategories[] @relation("ProductCategory")
-  thumbnailCatUrl String?
-  created_at      DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime            @updatedAt @db.Timestamptz(6)
-}
-
-model ProductCategories {
-  product     Products  @relation("ProductCategory", fields: [productId], references: [id])
-  productId   Int
-  category    Category  @relation("ProductCategory", fields: [categoryId], references: [id])
-  categoryId  Int
-
-  @@id([productId, categoryId])
-}
-
-model Tag {
-  id         Int            @id @default(autoincrement())
-  name       String         @unique
-  products   ProductTags[]  @relation("ProductTag")
-  created_at DateTime       @default(now()) @db.Timestamptz(6)
-  updated_at DateTime       @updatedAt @db.Timestamptz(6)
-}
-
-model ProductTags {
-  product   Products @relation("ProductTag", fields: [productId], references: [id])
-  productId Int
-  tag       Tag      @relation("ProductTag", fields: [tagId], references: [id])
-  tagId     Int
-
-  @@id([productId, tagId])
-}
-
-model Orders {
-  id          Int         @id @default(autoincrement())
-  userId      String      @db.Uuid
-  stripeId    String      @unique
-  name        String
-  address     String
-  zipcode     String
-  city        String
-  country     String
-  orderItem   OrderItem[]
-  totalAmount Int
-  status      OrderStatus @default(PENDING)
-  created_at  DateTime    @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime    @updatedAt @db.Timestamptz(6)
-  notifications  Notification[]   @relation("NotificationToOrder")
-
-}
-
-model OrderItem {
-  id         Int      @id @default(autoincrement())
-  order      Orders   @relation(fields: [orderId], references: [id])
-  orderId    Int
-  product    Products @relation(fields: [productId], references: [id])
-  productId  Int
-  quantity   Int
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-}
-
-model Addresses {
-  id         Int      @id @default(autoincrement())
-  userId     String   @unique @db.Uuid
-  name       String
-  address    String
-  zipcode    String
-  city       String
-  country    String
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @updatedAt @db.Timestamptz(6)
-}
-
-model Like {
-  id         Int      @id @default(autoincrement())
-  userId     String   @db.Uuid
-  productId  Int
-  product    Products @relation(fields: [productId], references: [id])
-  profile    Profile  @relation("ProfileLikes", fields: [userId], references: [id])
-  created_at DateTime @default(now())
-
-  @@unique([userId, productId])
-}
-
-model Share {
-  id         Int      @id @default(autoincrement())
-  userId     String   @db.Uuid
-  productId  Int
-  platform   String?
-  shareUrl   String?
-  product    Products @relation("ProductShare", fields: [productId], references: [id])
-  profile    Profile  @relation("ProfileShares", fields: [userId], references: [id])
-  created_at DateTime @default(now())
-
-  @@unique([userId, productId, platform])
-}
-
-model SocialMediaInfo {
-  id         Int       @id @default(autoincrement())
-  userId     String?   @db.Uuid
-  productId  Int?
-  platform   String
-  handle     String
-  product    Products? @relation("ProductSocialMedia", fields: [productId], references: [id])
-  profile    Profile?  @relation("ProfileSocialMedia", fields: [userId], references: [id])
-  created_at DateTime  @default(now())
-}
-model Notification {
-  id         Int      @id @default(autoincrement())
-  userId     String   @db.Uuid
-  message    String
-  type       NotificationType
-  read       Boolean  @default(false)
-  orderId    Int?
-  reviewId   String? @db.Uuid
-  productId  Int?
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @updatedAt @db.Timestamptz(6)
-
-  profile    Profile  @relation("NotificationToProfile", fields: [userId], references: [id])
-  order      Orders?  @relation("NotificationToOrder", fields: [orderId], references: [id])
-  review     Review?  @relation("NotificationToReview", fields: [reviewId], references: [id])
-  product    Products? @relation("NotificationToProduct", fields: [productId], references: [id])
-}
-
 enum NotificationType {
   ORDER
   REVIEW
   PRODUCT
   GENERAL
 }
-
-

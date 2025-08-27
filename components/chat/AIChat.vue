@@ -18,7 +18,7 @@
         <div 
           class="rounded-lg px-3 py-2 max-w-sm break-words"
           :class="{
-            'bg-[#f02c56] text-white rounded-br-none': message.sender === 'user',
+            'bg-[#C42B78] text-white rounded-br-none': message.sender === 'user',
             'bg-gray-100 text-gray-800 rounded-bl-none': message.sender === 'assistant'
           }"
         >
@@ -43,13 +43,13 @@
           @input="adjustTextareaHeight"
           @keydown.enter.prevent="sendMessage"
           placeholder="Ask about a product..."
-          class="w-full p-2 text-sm border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#f02c56] resize-none"
+          class="w-full p-2 text-sm border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#C42B78] resize-none"
           rows="1"
         ></textarea>
         <button
           type="submit"
           :disabled="!messageInput.trim() || isTyping"
-          class="p-2 bg-[#f02c56] text-white rounded-lg hover:bg-[#df4949] disabled:bg-gray-300 disabled:cursor-not-allowed shrink-0"
+          class="p-2 bg-[#C42B78] text-white rounded-lg hover:bg-[#df4949] disabled:bg-gray-300 disabled:cursor-not-allowed shrink-0"
         >
           <Icon name="mdi:send" size="20" />
         </button>

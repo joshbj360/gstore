@@ -8,7 +8,7 @@
       </select>
       <button
         @click="enhanceProduct"
-        class="bg-[#f02c56] text-white px-4 py-2 rounded-lg hover:bg-[#f02c56]/80"
+        class="bg-[#C42B78] text-white px-4 py-2 rounded-lg hover:bg-[#C42B78]/80"
         :disabled="!selectedProduct || loading"
       >
         {{ loading ? 'Enhancing...' : 'Enhance with AI' }}

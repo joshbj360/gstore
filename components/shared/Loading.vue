@@ -6,7 +6,7 @@
     aria-busy="true"
   >
     <div class="p-4 sm:p-6 bg-white rounded-lg shadow-lg flex flex-col items-center">
-      <Icon name="mdi:loading" size="48" class="text-[#f02c56] animate-spin" />
+      <Icon name="mdi:loading" size="48" class="text-[#C42B78] animate-spin" />
       <span class="mt-3 text-sm sm:text-base font-medium text-gray-800">Loading...</span>
     </div>
   </div>

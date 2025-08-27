@@ -15,7 +15,7 @@
               v-model="formData.name"
               id="name"
               type="text"
-              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#F02C56] focus:border-transparent"
+              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#C42B78] focus:border-transparent"
               placeholder="John Doe"
               required
             />
@@ -29,7 +29,7 @@
               v-model="formData.email"
               id="email"
               type="email"
-              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#F02C56] focus:border-transparent"
+              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#C42B78] focus:border-transparent"
               placeholder="john.doe@example.com"
               required
             />
@@ -43,7 +43,7 @@
               v-model="formData.storeName"
               id="storeName"
               type="text"
-              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#F02C56] focus:border-transparent"
+              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#C42B78] focus:border-transparent"
               placeholder="My Fashion Hub"
               required
             />
@@ -56,7 +56,7 @@
             <textarea
               v-model="formData.description"
               id="description"
-              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#F02C56] focus:border-transparent h-24 resize-none"
+              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#C42B78] focus:border-transparent h-24 resize-none"
               placeholder="Tell us about your store and what you plan to sell..."
               required
             />
@@ -68,7 +68,7 @@
             <button
               type="submit"
               :disabled="isSubmitting"
-              class="w-full py-2 px-4 bg-[#F02C56] text-white rounded-md hover:bg-[#df4949] transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+              class="w-full py-2 px-4 bg-[#C42B78] text-white rounded-md hover:bg-[#df4949] transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {{ isSubmitting ? 'Submitting...' : 'Apply Now' }}
             </button>

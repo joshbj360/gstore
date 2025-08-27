@@ -45,7 +45,7 @@
       <button 
         v-if="!isChatOpen"
         @click="isChatOpen = true"
-        class="fixed bottom-6 right-6 bg-[#f02c56] text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg hover:bg-[#df4949] transition-transform hover:scale-110 z-40"
+        class="fixed bottom-6 right-6 bg-[#C42B78] text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg hover:bg-[#df4949] transition-transform hover:scale-110 z-40"
         aria-label="Open AI Chat"
       >
         <Icon name="mdi:chat-processing-outline" size="28" />
