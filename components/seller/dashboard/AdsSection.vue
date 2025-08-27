@@ -3,7 +3,7 @@
     <h2 class="text-lg font-medium mb-4">Manage Ads</h2>
     <div class="bg-white p-6 rounded-lg shadow-sm">
       <p class="text-gray-600">Create and monitor ad campaigns (coming soon).</p>
-      <button class="mt-4 bg-[#f02c56] text-white px-4 py-2 rounded-lg hover:bg-[#f02c56]/80">
+      <button class="mt-4 bg-[#C42B78] text-white px-4 py-2 rounded-lg hover:bg-[#C42B78]/80">
         Create Ad
       </button>
     </div>

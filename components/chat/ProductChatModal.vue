@@ -59,11 +59,11 @@
               v-model="newComment"
               type="text"
               placeholder="Write a comment..."
-              class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f02c56]"
+              class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C42B78]"
             />
             <button
               type="submit"
-              class="p-2 bg-[#f02c56] text-white rounded-lg hover:bg-[#df4949]"
+              class="p-2 bg-[#C42B78] text-white rounded-lg hover:bg-[#df4949]"
             >
               <Icon name="mdi:send" size="24" />
             </button>

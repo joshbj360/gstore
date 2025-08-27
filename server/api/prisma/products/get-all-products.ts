@@ -16,7 +16,8 @@ export default defineEventHandler(async (event) => {
                     },
                 },
                 media: true,
-                measurement: true
+                measurement: true,
+                variants: true
             },
             skip: offset,
             take: limit,

@@ -5,13 +5,13 @@
     <!-- Cart Button -->
     <NuxtLink
       to="/cart"
-      class="relative w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-gray-600 hover:bg-[#f02c56]/10 transition-all active:scale-95"
+      class="relative w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-gray-600 hover:bg-[#C42B78]/10 transition-all active:scale-95"
       aria-label="View cart"
     >
       <Icon name="mdi:cart" size="20" />
       <span
         v-if="cartStore.cartCount"
-        class="absolute -top-1 -right-1 bg-[#f02c56] text-white text-xs w-4 h-4 rounded-full flex items-center justify-center"
+        class="absolute -top-1 -right-1 bg-[#C42B78] text-white text-xs w-4 h-4 rounded-full flex items-center justify-center"
       >
         {{ cartStore.cartCount }}
       </span>
@@ -20,7 +20,7 @@
     <!-- Product Swipe Button -->
     <NuxtLink
         :to="currentProduct ? `/product/${currentProduct.id}` : `/product/1`"
-        class="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-gray-600 hover:bg-[#f02c56]/10 transition-all active:scale-95"
+        class="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-gray-600 hover:bg-[#C42B78]/10 transition-all active:scale-95"
         aria-label="View product swipe page"
     >
       <Icon name="mdi:gesture-swipe" size="20" />
@@ -48,7 +48,7 @@
           <a
             href="https://www.tiktok.com"
             target="_blank"
-            class="p-2 rounded-full hover:bg-[#f02c56]/10"
+            class="p-2 rounded-full hover:bg-[#C42B78]/10"
             aria-label="Share on TikTok"
           >
             <Icon name="mdi:tiktok" size="24" />
@@ -56,7 +56,7 @@
           <a
             href="https://www.instagram.com"
             target="_blank"
-            class="p-2 rounded-full hover:bg-[#f02c56]/10"
+            class="p-2 rounded-full hover:bg-[#C42B78]/10"
             aria-label="Share on Instagram"
           >
             <Icon name="mdi:instagram" size="24" />
@@ -64,7 +64,7 @@
           <a
             href="https://www.facebook.com"
             target="_blank"
-            class="p-2 rounded-full hover:bg-[#f02c56]/10"
+            class="p-2 rounded-full hover:bg-[#C42B78]/10"
             aria-label="Share on Facebook"
           >
             <Icon name="mdi:facebook" size="24" />
@@ -72,7 +72,7 @@
         </div>
         <button
           @click="isShareModalOpen = false"
-          class="mt-4 w-full py-2 bg-[#f02c56] text-white rounded-lg hover:bg-[#df4949]"
+          class="mt-4 w-full py-2 bg-[#C42B78] text-white rounded-lg hover:bg-[#df4949]"
         >
           Close
         </button>

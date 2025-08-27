@@ -6,7 +6,7 @@
     <div v-else-if="error" class="fixed inset-0 flex items-center justify-center bg-gray-50 p-4">
         <div class="text-center">
             <p class="text-red-500 mb-4">{{ error }}</p>
-            <NuxtLink to="/" class="bg-[#f02c56] text-white px-4 py-2 rounded-md hover:bg-[#df4949]">
+            <NuxtLink to="/" class="bg-[#C42B78] text-white px-4 py-2 rounded-md hover:bg-[#df4949]">
                 Go to Homepage
             </NuxtLink>
         </div>
@@ -14,7 +14,7 @@
 
     <div v-else class="relative min-h-screen bg-gray-900">
         <NuxtLink to="/"
-            class="absolute top-4 left-4 z-40 flex items-center bg-white/80 p-2 rounded-full shadow-md hover:bg-[#f02c56] hover:text-white transition-all"
+            class="absolute top-4 left-4 z-40 flex items-center bg-white/80 p-2 rounded-full shadow-md hover:bg-[#C42B78] hover:text-white transition-all"
             aria-label="Back to Homepage">
             <Icon name="mdi:arrow-left" size="20" />
         </NuxtLink>
@@ -44,13 +44,13 @@
                             <Navigation>
                                 <template #prev>
                                     <button
-                                        class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all opacity-0 group-hover:opacity-100">
+                                        class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-[#C42B78] hover:text-white transition-all opacity-0 group-hover:opacity-100">
                                         <Icon name="mdi:chevron-left" size="24" />
                                     </button>
                                 </template>
                                 <template #next>
                                     <button
-                                        class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-[#f02c56] hover:text-white transition-all opacity-0 group-hover:opacity-100">
+                                        class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-[#C42B78] hover:text-white transition-all opacity-0 group-hover:opacity-100">
                                         <Icon name="mdi:chevron-right" size="24" />
                                     </button>
                                 </template>
@@ -240,7 +240,7 @@ onUnmounted(() => {
 }
 
 .carousel__pagination-button--active {
-    background-color: #f02c56 !important;
+    background-color: #C42B78 !important;
 }
 
 .carousel__pagination-button {

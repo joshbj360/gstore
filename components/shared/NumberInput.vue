@@ -13,7 +13,7 @@
         :class="[
           'block w-full rounded-md border py-2 px-3 focus:outline-none sm:text-sm',
           error ? 'border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500' 
-                : 'border-gray-300 placeholder-gray-400 focus:border-[#F02C56] focus:ring-[#F02C56]'
+                : 'border-gray-300 placeholder-gray-400 focus:border-[#C42B78] focus:ring-[#C42B78]'
         ]"
       />
     </div>

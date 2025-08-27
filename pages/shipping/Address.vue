@@ -3,7 +3,7 @@
     <div class="container mx-auto px-4 py-4 flex items-center">
       <button
         @click="navigateTOCheckout"
-        class="flex items-center text-gray-700 hover:text-[#f02c56] transition-colors focus:outline-none focus:ring-2 focus:ring-[#f02c56]/50 focus:ring-offset-2"
+        class="flex items-center text-gray-700 hover:text-[#C42B78] transition-colors focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50 focus:ring-offset-2"
       >
         <Icon name="mdi:arrow-left" size="24" class="mr-2" />
         <span class="font-medium">Back to Checkout</span>

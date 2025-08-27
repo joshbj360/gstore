@@ -25,7 +25,7 @@
             <div>
               <div class="flex items-center gap-3">
                 <h1 class="text-xl md:text-2xl font-bold text-gray-900">{{ sellerStore.store_name }}</h1>
-                <Icon v-if="sellerStore.is_verified" name="mdi:check-decagram" size="20" class="text-[#f02c56]" />
+                <Icon v-if="sellerStore.is_verified" name="mdi:check-decagram" size="20" class="text-[#C42B78]" />
               </div>
 
               <p 
@@ -49,11 +49,11 @@
           </div>
           
           <div class="flex gap-3">
-            <button @click="openChat" class="px-5 py-2.5 rounded-lg font-medium text-sm border border-[#f02c56] text-[#f02c56] hover:bg-[#f02c56]/10 transition-colors flex items-center">
+            <button @click="openChat" class="px-5 py-2.5 rounded-lg font-medium text-sm border border-[#C42B78] text-[#C42B78] hover:bg-[#C42B78]/10 transition-colors flex items-center">
               <Icon name="mdi:message-outline" size="18" class="mr-2" />
               Chat
             </button>
-            <button v-if="userStore.isLoggedIn && userStore.user?.id !== sellerStore.profile_id" @click="toggleFollow" class="px-5 py-2.5 rounded-lg font-medium text-sm border transition-colors w-28" :class="{ 'border-[#f02c56] text-[#f02c56] hover:bg-[#f02c56]/10': !isFollowing, 'bg-[#f02c56] text-white border-[#f02c56]': isFollowing }">
+            <button v-if="userStore.isLoggedIn && userStore.user?.id !== sellerStore.profileId" @click="toggleFollow" class="px-5 py-2.5 rounded-lg font-medium text-sm border transition-colors w-28" :class="{ 'border-[#C42B78] text-[#C42B78] hover:bg-[#C42B78]/10': !isFollowing, 'bg-[#C42B78] text-white border-[#C42B78]': isFollowing }">
               {{ isFollowing ? 'Following' : 'Follow' }}
             </button>
           </div>
@@ -61,9 +61,9 @@
       </div>
       
       <div class="flex items-center border-b border-gray-200 mb-8">
-        <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id" class="px-4 py-3 font-medium text-sm relative" :class="{'text-[#f02c56]': activeTab === tab.id, 'text-gray-600 hover:text-gray-900': activeTab !== tab.id}">
+        <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id" class="px-4 py-3 font-medium text-sm relative" :class="{'text-[#C42B78]': activeTab === tab.id, 'text-gray-600 hover:text-gray-900': activeTab !== tab.id}">
           {{ tab.label }}
-          <span v-if="activeTab === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f02c56]"></span>
+          <span v-if="activeTab === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#C42B78]"></span>
         </button>
       </div>
       
@@ -82,11 +82,11 @@
           <p>{{ sellerStore.store_description }}</p>
           <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 not-prose">
             <div>
-                <h3 class="font-medium text-gray-800 mb-2 flex items-center gap-2"><Icon name="mdi:calendar-month" size="18" class="text-[#f02c56]" />Store Since</h3>
+                <h3 class="font-medium text-gray-800 mb-2 flex items-center gap-2"><Icon name="mdi:calendar-month" size="18" class="text-[#C42B78]" />Store Since</h3>
                 <p>{{ formatDate(sellerStore.created_at) }}</p>
             </div>
             <div>
-                <h3 class="font-medium text-gray-800 mb-2 flex items-center gap-2"><Icon name="mdi:map-marker-outline" size="18" class="text-[#f02c56]" />Location</h3>
+                <h3 class="font-medium text-gray-800 mb-2 flex items-center gap-2"><Icon name="mdi:map-marker-outline" size="18" class="text-[#C42B78]" />Location</h3>
                 <p>{{ sellerStore.store_location || 'Not specified' }}</p>
             </div>
           </div>

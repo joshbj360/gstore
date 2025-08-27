@@ -1,7 +1,7 @@
 <template>
   <div>
     <button
-      class="mt-2 px-6 py-2.5 text-white text-[15px] bg-[#F02C56] rounded-lg hover:bg-[#df4949] transition flex items-center justify-center gap-2"
+      class="mt-2 px-6 py-2.5 text-white text-[15px] bg-[#C42B78] rounded-lg hover:bg-[#df4949] transition flex items-center justify-center gap-2"
       @click="openCloudinaryWidget"
       :disabled="isLoading"
     >
@@ -131,14 +131,14 @@ const initializeWidget = () => {
       palette: {
         window: '#F8F8F8',
         sourceBg: '#FFFFFF',
-        windowBorder: '#F02C56',
-        tabIcon: '#F02C56',
+        windowBorder: '#C42B78',
+        tabIcon: '#C42B78',
         inactiveTabIcon: '#555555',
-        menuIcons: '#F02C56',
-        link: '#F02C56',
-        action: '#F02C56',
-        inProgress: '#F02C56',
-        complete: '#F02C56',
+        menuIcons: '#C42B78',
+        link: '#C42B78',
+        action: '#C42B78',
+        inProgress: '#C42B78',
+        complete: '#C42B78',
         error: '#FF0000',
         textDark: '#000000',
         textLight: '#FFFFFF',

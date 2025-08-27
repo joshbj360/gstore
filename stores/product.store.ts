@@ -20,9 +20,13 @@ export const useProductStore = defineStore('product', {
   }),
 
   getters: {
-    getProductsByCategory: (state) => (category?: string | null) => {
-      if (!category) return state.products;
-      return state.categoryCache.get(category) || [];
+    /**
+     * Retrieves products for a given category SLUG from the cache.
+     * If no slug is provided, it returns all products.
+     */
+     getProductsByCategory: (state) => (categorySlug?: string | null) => {
+      if (!categorySlug) return state.products;
+      return state.categoryCache.get(categorySlug) || [];
     },
     getSimilarProducts: (state) => (productId: number) => {
       const cachedSimilarProducts = state.similarProductCache.get(productId);
@@ -105,39 +109,59 @@ export const useProductStore = defineStore('product', {
     },
 
     async fetchMoreProducts(limit: number = DEFAULT_PAGE_LIMIT) {
+      if (this.isLoading) return;
       this.isLoading = true;
       try {
-        const nextPage = Math.floor(this.products.length / limit) + 1;
-        if (this.currentCategory) {
-          const data = await $fetch<ProductInterface[]>(
-            `/api/prisma/products/get-products-by-category-name/${encodeURIComponent(this.currentCategory)}`,
-            { query: { page: nextPage, limit } }
-          );
-          if (data) this.cacheProducts(data, this.currentCategory);
+        const currentProducts = this.currentCategory ? this.getProductsByCategory(this.currentCategory) : this.products;
+        const nextPage = Math.floor(currentProducts.length / limit) + 1;
+
+        const endpoint = this.currentCategory 
+            ? `/api/prisma/products/get-products-by-category-slug/${this.currentCategory}`
+            : '/api/prisma/products/get-all-products';
+
+        const data = await $fetch<ProductInterface[]>(endpoint, {
+          query: { page: nextPage, limit },
+        });
+
+        if (data) {
+          this.cacheProducts(data, this.currentCategory ?? undefined);
+          this.hasMoreProducts = data.length === limit;
         } else {
-          const data = await $fetch<ProductInterface[]>('/api/prisma/products/get-all-products', {
-            query: { page: nextPage, limit },
-          });
-          if (data) this.cacheProducts(data);
+          this.hasMoreProducts = false;
         }
       } catch (err) {
         console.error('fetchMoreProducts error:', err);
-        throw err;
       } finally {
         this.isLoading = false;
       }
     },
 
-    async filterByCategory(categoryName: string | null) {
-      this.currentCategory = categoryName;
-      if (categoryName && !this.categoryCache.has(categoryName)) {
+    /**
+     * Filters products by a category SLUG.
+     * Fetches from the API only if the category is not already cached.
+     */
+    async filterByCategory(slug: string | null) {
+      if (!slug) {
+        this.clearCategoryFilter();
+        return;
+      }
+      
+      this.currentCategory = slug;
+      const isCached = this.categoryCache.has(slug);
+
+      if (!isCached) {
         this.isLoading = true;
         try {
-          const data = await $fetch<ProductInterface[]>(
-            `/api/prisma/products/get-products-by-category-name/${encodeURIComponent(categoryName)}`,
-            { query: { page: 1, limit: this.DEFAULT_PAGE_LIMIT } }
-          );
-          if (data) this.cacheProducts(data, categoryName);
+          // The API now returns both category details and products
+          const { products } = await $fetch(`/api/prisma/products/get-products-by-category-slug/${slug}`) as { products: ProductInterface[] };
+
+          if (products) {
+            // The cacheProducts function will handle adding these to the correct cache
+            this.cacheProducts(products, slug);
+            this.hasMoreProducts = products.length === DEFAULT_PAGE_LIMIT;
+          }
+        } catch (error) {
+            console.error(`Failed to fetch products for category ${slug}:`, error);
         } finally {
           this.isLoading = false;
         }
@@ -198,32 +222,28 @@ export const useProductStore = defineStore('product', {
       }
     },
 
-    cacheProducts(products: ProductInterface[], category?: string) {
-      const validProducts = products.filter(p =>
-        p && typeof p.id === 'number' && p.title && Array.isArray(p.media)
-      );
+      /**
+     * Caches products globally and by category SLUG.
+     */
+    cacheProducts(productsToCache: ProductInterface[], categorySlug?: string | null) {
+      const validProducts = productsToCache.filter(p => p && typeof p.id === 'number');
 
-      const newProducts: ProductInterface[] = [];
       validProducts.forEach((product) => {
-        if (!this.productMap.has(Number(product.id))) {
-          newProducts.push(product);
+        // Update the global product map
+        this.productMap.set(product.id!, product);
+        
+        // Add to the main products list if it's not already there
+        if (!this.products.some(p => p.id === product.id)) {
+            this.products.push(product);
         }
-        this.productMap.set(Number(product.id), product);
-        this.lastFetched.set(Number(product.id), Date.now());
       });
 
-      this.products = [
-        ...newProducts,
-        ...this.products.filter((p) => !newProducts.some((np) => np.id === p.id)),
-      ];
-
-      if (category) {
-        const existing = this.categoryCache.get(category) || [];
-        this.categoryCache.set(category, [
-          ...newProducts,
-          ...existing.filter((p) => !newProducts.some((np) => np.id === p.id)),
-        ]);
-        this.lastFetched.set(category, Date.now());
+      // If a category slug is provided, update the category-specific cache
+      if (categorySlug) {
+        const existing = this.categoryCache.get(categorySlug) || [];
+        const newForCategory = validProducts.filter(p => !existing.some(ep => ep.id === p.id));
+        this.categoryCache.set(categorySlug, [...existing, ...newForCategory]);
       }
-    },}
+    },
+  }
 })

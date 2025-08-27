@@ -62,7 +62,7 @@
                     <Icon name="mdi:trash-can-outline" size="20" />
                 </button>
             </div>
-            <button @click="addVariant" type="button" class="text-sm text-[#f02c56] hover:underline mt-2 font-semibold">
+            <button @click="addVariant" type="button" class="text-sm text-[#C42B78] hover:underline mt-2 font-semibold">
                 + Add another size
             </button>
         </div>
@@ -96,7 +96,7 @@
         <button @click="$emit('discard')" type="button" class="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
             Discard
         </button>
-        <button @click="submitForm" type="button" class="px-6 py-2.5 bg-[#F02C56] text-white rounded-lg text-sm font-semibold hover:bg-[#df4949] transition-colors">
+        <button @click="submitForm" type="button" class="px-6 py-2.5 bg-[#C42B78] text-white rounded-lg text-sm font-semibold hover:bg-[#df4949] transition-colors">
             Save Product
         </button>
     </div>
@@ -134,6 +134,10 @@ const props = defineProps({
   mediaData: {
     type: Array as () => MediaInterface[],
     default: () => []
+  },
+  existingProduct: {
+    type: Object as () => ProductInterface | null,
+    default: null
   }
 });
 
@@ -206,6 +210,19 @@ const submitForm = () => {
 
   emit('submit', completeProduct);
 };
+// NEW: Watch for an existing product and populate the form
+watch(() => props.existingProduct, (newProduct) => {
+    if (newProduct) {
+        product.value = { ...newProduct };
+        variants.value = newProduct.variants && newProduct.variants.length > 0 ? [...newProduct.variants] : [{ size: '', stock: 1 }];
+        tags.value = newProduct.tags ? newProduct.tags.map(t => t.name) : [];
+        if (newProduct.category) {
+            // Assuming category is an object with a name property
+            const categoryName = (newProduct.category as any).name || newProduct.category;
+            selectedCategory.value = { name: categoryName };
+        }
+    }
+}, { immediate: true }); // immediate: true runs the watcher on component mount
 
 const addNewCategory = (category: CategoryInterface) => {
   categories.value.push(category);

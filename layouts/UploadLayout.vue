@@ -3,7 +3,7 @@
       <div class="container mx-auto px-4 py-3 flex items-center">
         <button 
           @click="navigateHome"
-          class="flex items-center text-gray-700 hover:text-[#f02c56] transition-colors"
+          class="flex items-center text-gray-700 hover:text-[#C42B78] transition-colors"
         >
           <Icon name="mdi:arrow-left" size="24" class="mr-2" />
           <span class="font-medium">Back to Home</span>

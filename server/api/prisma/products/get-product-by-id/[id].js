@@ -16,6 +16,8 @@ export default defineEventHandler(async (event) => {
           },
         },
         media: true, // Include the associated media
+        measurement: true, // Include the measurement details
+        variants: true, // Include the associated variants
       },
     });
 

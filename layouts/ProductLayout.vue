@@ -2,7 +2,7 @@
   <div class="w-full max-w-6xl mx-auto px-1 sm:px-0" id="ProductLayout">
     <!-- Loader -->
     <div v-if="productStore.isLoading && !initialLoadComplete" class="fixed inset-0 z-50 flex items-center justify-center bg-white/80">
-      <Loading class="h-12 w-12 text-[#f02c56]" />
+      <Loading class="h-12 w-12 text-[#C42B78]" />
     </div>
 
     <!-- Error Message -->
@@ -27,7 +27,7 @@
       <p class="text-gray-600 font-medium text-sm">{{ emptyStateMessage }}</p>
       <button
         @click="initializeData"
-        class="mt-3 text-[#f02c56] text-sm hover:underline"
+        class="mt-3 text-[#C42B78] text-sm hover:underline"
       >
         Try Again
       </button>
@@ -38,7 +38,7 @@
       <button
         @click="loadMore"
         :disabled="productStore.isLoading"
-        class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-full shadow-sm text-white bg-[#f02c56] hover:bg-[#df4949] focus:outline-none disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
+        class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-full shadow-sm text-white bg-[#C42B78] hover:bg-[#df4949] focus:outline-none disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
       >
         <span v-if="!productStore.isLoading">Load More</span>
         <span v-else class="flex items-center">

@@ -3,7 +3,7 @@
     <div class="container mx-auto px-4 py-4 flex items-center">
       <button
         @click="navigateHome"
-        class="flex items-center text-gray-700 hover:text-[#f02c56] transition-colors focus:outline-none focus:ring-2 focus:ring-[#f02c56]/50 focus:ring-offset-2"
+        class="flex items-center text-gray-700 hover:text-[#C42B78] transition-colors focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50 focus:ring-offset-2"
       >
         <Icon name="mdi:arrow-left" size="24" class="mr-2" />
         <span class="font-medium">Back to Home</span>
@@ -77,19 +77,66 @@
               <span class="text-xl">${{ (total / 100).toFixed(2) }}</span>
             </div>
           </div>
-          <form @submit.prevent="pay" class="mt-6" aria-label="Payment form">
+          
+          <!-- Payment Method Selection -->
+          <div class="mt-6">
+            <h3 class="text-lg font-semibold mb-3">Payment Method</h3>
+            <div class="space-y-3">
+              <div class="flex items-center">
+                <input 
+                  id="pay-now" 
+                  type="radio" 
+                  value="paynow" 
+                  v-model="paymentMethod"
+                  class="h-4 w-4 text-[#C42B78] focus:ring-[#C42B78] border-gray-300"
+                >
+                <label for="pay-now" class="ml-2 block text-sm font-medium text-gray-700">
+                  Pay Now (Card, Bank Transfer, etc.)
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input 
+                  id="pay-on-delivery" 
+                  type="radio" 
+                  value="payondelivery" 
+                  v-model="paymentMethod"
+                  class="h-4 w-4 text-[#C42B78] focus:ring-[#C42B78] border-gray-300"
+                >
+                <label for="pay-on-delivery" class="ml-2 block text-sm font-medium text-gray-700">
+                  Pay on Delivery (Cash or Card)
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pay Now Section (only shown when selected) -->
+          <div v-if="paymentMethod === 'paynow'" class="mt-6">
             <div class="border border-gray-300 rounded-lg p-3" id="paystack-element"></div>
             <p class="text-red-600 text-sm mt-2 text-center" id="paystack-errors" role="alert" />
-            <button
-              :disabled="isProcessing || !shippingStore.address"
-              type="submit"
-              class="mt-6 w-full bg-gradient-to-r from-[#f02c56] to-[#FE630C] text-white text-xl font-semibold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all focus:outline-none focus:ring-2 focus:ring-[#f02c56]/50 focus:ring-offset-2"
-              aria-label="Place order button"
-            >
-              <Icon v-if="isProcessing" name="eos-icons:loading" class="mr-2 animate-spin" />
-              <span>{{ isProcessing ? 'Processing...' : 'Place Order' }}</span>
-            </button>
-          </form>
+          </div>
+
+          <!-- COD Notice (only shown when selected) -->
+          <div v-if="paymentMethod === 'payondelivery'" class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex">
+              <Icon name="mdi:information" class="text-yellow-600 mr-2 mt-0.5" />
+              <div>
+                <h4 class="font-medium text-yellow-800">Pay on Delivery</h4>
+                <p class="text-sm text-yellow-700 mt-1">
+                  You'll pay when your order arrives. An additional verification step may be required upon delivery.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            :disabled="isProcessing || !shippingStore.address"
+            @click="processOrder"
+            class="mt-6 w-full bg-gradient-to-r from-[#C42B78] to-[#FE630C] text-white text-xl font-semibold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50 focus:ring-offset-2"
+            aria-label="Place order button"
+          >
+            <Icon v-if="isProcessing" name="eos-icons:loading" class="mr-2 animate-spin" />
+            <span>{{ isProcessing ? 'Processing...' : paymentMethod === 'payondelivery' ? 'Confirm Order' : 'Pay Now' }}</span>
+          </button>
         </div>
         <div class="bg-white rounded-xl shadow-sm p-6 mt-6">
           <h3 class="text-lg font-semibold">Grandeur Guarantee</h3>
@@ -130,6 +177,7 @@ const total = ref(0);
 const subtotal = ref(0);
 const clientReference = ref<string | null>(null);
 const isProcessing = ref(false);
+const paymentMethod = ref('paynow'); // Default payment method
 
 // Fetch address on mount
 onBeforeMount(async () => {
@@ -209,16 +257,65 @@ const paystackInit = async () => {
   }
 };
 
-const pay = () => {
+const processOrder = () => {
   if (!shippingStore.address) {
     showError('Please add a shipping address');
     return;
   }
-  if (paystack.value) {
+  
+  if (paymentMethod.value === 'paynow') {
+    // Process payment with Paystack
     isProcessing.value = true;
-    paystack.value.openIframe();
-  } else {
-    showError('Payment gateway not initialized.');
+    if (paystack.value) {
+      paystack.value.openIframe();
+    } else {
+      showError('Payment gateway not initialized.');
+      isProcessing.value = false;
+    }
+  } else if (paymentMethod.value === 'payondelivery') {
+    // Process COD order
+    isProcessing.value = true;
+    createCODOrder();
+  }
+};
+
+const createCODOrder = async () => {
+  try {
+    // Generate a unique reference for COD orders
+    const codReference = 'COD_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    await useFetch('/api/prisma/create-order', {
+      method: 'POST',
+      body: {
+        userId: user.value?.id,
+        reference: codReference,
+        paymentMethod: 'cash_on_delivery',
+        paymentStatus: 'pending',
+        name: shippingStore.address?.name,
+        address: shippingStore.address?.address,
+        localGovernmentArea: shippingStore.address?.localGovernmentArea,
+        state: shippingStore.address?.state,
+        phoneNumber: shippingStore.address?.phoneNumber,
+        postalCode: shippingStore.address?.postalCode,
+        country: shippingStore.address?.country,
+        email: shippingStore.address?.email,
+        city: shippingStore.address?.city,
+        products: cartStore.checkout.map((item: CartInterface) => ({
+          id: item.id,
+          product: item.product,
+          quantity: item.quantity,
+          selectedSizes: item.selectedSizes,
+        })),
+      },
+    });
+    
+    // Clear cart and redirect to success page
+    cartStore.checkout = [];
+    router.push('/success?type=cod');
+  } catch (error) {
+    showError('Order creation failed. Please try again.');
+  } finally {
+    isProcessing.value = false;
   }
 };
 
@@ -241,6 +338,8 @@ const createOrder = async (reference: string) => {
       body: {
         userId: user.value?.id,
         reference,
+        paymentMethod: 'online',
+        paymentStatus: 'completed',
         name: shippingStore.address?.name,
         address: shippingStore.address?.address,
         localGovernmentArea: shippingStore.address?.localGovernmentArea,

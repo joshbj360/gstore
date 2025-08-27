@@ -4,7 +4,7 @@
       <div class="container mx-auto px-4 py-3 flex items-center justify-between">
         <button 
           @click="navigateHome"
-          class="flex items-center text-gray-700 hover:text-[#f02c56] transition-colors"
+          class="flex items-center text-gray-700 hover:text-[#C42B78] transition-colors"
         >
           <Icon name="mdi:arrow-left" size="24" />
           <span class="font-medium text-sm ml-2 hidden sm:inline">Back to Home</span>
@@ -25,7 +25,7 @@
               aria-label="Notifications"
             >
               <Icon name="mdi:bell-outline" size="22" />
-              <span v-if="unreadNotifications" class="absolute top-1 right-1 bg-[#f02c56] text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center border-2 border-white">
+              <span v-if="unreadNotifications" class="absolute top-1 right-1 bg-[#C42B78] text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center border-2 border-white">
                 {{ unreadNotifications }}
               </span>
             </button>
@@ -61,7 +61,7 @@
         -->
         <nav class="border-b border-gray-200">
           <div class="sm:hidden p-3">
-            <select v-model="activeSection" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#f02c56]/50">
+            <select v-model="activeSection" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50">
               <option v-for="section in sections" :key="section.id" :value="section.id">
                 {{ section.label }}
               </option>
@@ -74,8 +74,8 @@
               @click="activeSection = section.id"
               class="px-4 py-3 text-sm font-medium flex items-center whitespace-nowrap"
               :class="{
-                'text-[#f02c56] border-b-2 border-[#f02c56]': activeSection === section.id,
-                'text-gray-500 hover:text-[#f02c56] hover:bg-gray-50': activeSection !== section.id
+                'text-[#C42B78] border-b-2 border-[#C42B78]': activeSection === section.id,
+                'text-gray-500 hover:text-[#C42B78] hover:bg-gray-50': activeSection !== section.id
               }"
             >
               <Icon :name="section.icon" size="18" class="mr-2" />

@@ -43,7 +43,7 @@
         <button 
           @click="selectMedia" 
           :disabled="selectedMedia.length === 0"
-          class="px-6 py-2 bg-[#F02C56] text-white rounded-lg text-sm font-semibold hover:bg-[#df4949] disabled:opacity-50"
+          class="px-6 py-2 bg-[#C42B78] text-white rounded-lg text-sm font-semibold hover:bg-[#df4949] disabled:opacity-50"
         >
           Select {{ selectedMedia.length }} Item(s)
         </button>
@@ -113,7 +113,7 @@ const selectMedia = () => {
 
 const tabClass = (tabName: string) => {
     return activeTab.value === tabName
-        ? 'px-4 py-3 text-sm font-semibold text-[#f02c56] border-b-2 border-[#f02c56]'
+        ? 'px-4 py-3 text-sm font-semibold text-[#C42B78] border-b-2 border-[#C42B78]'
         : 'px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-800';
 };
 
