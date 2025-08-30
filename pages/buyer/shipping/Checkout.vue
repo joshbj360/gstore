@@ -119,7 +119,7 @@ onMounted(async () => {
     return;
   }
   if (cartStore.checkout.length === 0) {
-    router.push('/cart');
+    router.push('/buyer/cart');
     return;
   }
   if (!shippingStore.address) {

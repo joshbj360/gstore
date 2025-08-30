@@ -53,7 +53,7 @@
 
       <NuxtLink
         v-if="cartStore.cartCount > 0"
-        to="buyer/shipping/checkout"
+        to="/buyer/shipping/checkout"
         class="mt-2 flex flex-col items-center justify-center p-3 rounded-lg bg-white/90 shadow-lg text-brand-dark font-bold text-center transition-all transform hover:scale-110"
         aria-label="Proceed to checkout"
       >
