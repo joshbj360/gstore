@@ -31,17 +31,17 @@
       <!-- Navigation Icons -->
       <div class="flex items-center gap-2">
         <!-- Cart Icon (Always Visible) -->
-        <NuxtLink v-if="!isExtraSmallScreen" to="/cart" class="relative p-2 hover:bg-[#C42B78]/10 rounded-lg transition-all duration-250" aria-label="View shopping cart">
-          <Icon name="mdi:cart-outline" :size="isExtraSmallScreen ? '22' : '20'" class="text-gray-600 hover:text-[#C42B78]" />
+        <NuxtLink v-if="!isExtraSmallScreen" to="/buyer/cart" class="relative p-2 hover:bg-brand/10 rounded-lg transition-all duration-250" aria-label="View shopping cart">
+          <Icon name="mdi:cart-outline" :size="isExtraSmallScreen ? '22' : '20'" class="text-gray-600 hover:text-brand-dark" />
           <span v-if="cartStore.cartCount > 0" class="cart-badge">
             {{ cartStore.cartCount }}
           </span>
-          <!-- <span  class="ml-2 text-sm font-medium text-gray-600 hover:text-[#C42B78]">My Cart</span> -->
+          <!-- <span  class="ml-2 text-sm font-medium text-gray-600 hover:text-brand-dark">My Cart</span> -->
         </NuxtLink>
 
         <!-- Non-Logged-In User Actions -->
         <div v-if="!userStore.isLoggedIn" class="flex items-center gap-2">
-          <NuxtLink to="/seller/profile/create-profile" class="bg-[#C42B78] text-white rounded-lg text-sm font-medium hover:bg-[#d81b36] transition-all whitespace-nowrap flex items-center justify-center" :class="isExtraSmallScreen ? 'w-10 h-10' : 'px-4 py-2'">
+          <NuxtLink to="/seller/profile/create-profile" class="bg-brand text-white rounded-lg text-sm font-medium hover:bg-[#d81b36] transition-all whitespace-nowrap flex items-center justify-center" :class="isExtraSmallScreen ? 'w-10 h-10' : 'px-4 py-2'">
             <Icon name="mdi:store-plus-outline" :size="isExtraSmallScreen ? '22' : '20'" />
             <span v-if="!isExtraSmallScreen" class="ml-2">Sell</span>
           </NuxtLink>
@@ -53,7 +53,7 @@
 
         <!-- Logged-In User Actions (Non-Seller) -->
         <div v-else-if="userStore.isLoggedIn && !userStore.isSeller" class="flex items-center gap-2">
-          <NuxtLink to="/seller/profile/create-profile" class="bg-[#C42B78] text-white rounded-lg text-sm font-medium hover:bg-[#d81b36] transition-all whitespace-nowrap flex items-center justify-center" :class="isExtraSmallScreen ? 'w-10 h-10' : 'px-4 py-2'">
+          <NuxtLink to="/seller/profile/create-profile" class="bg-brand text-white rounded-lg text-sm font-medium hover:bg-[#d81b36] transition-all whitespace-nowrap flex items-center justify-center" :class="isExtraSmallScreen ? 'w-10 h-10' : 'px-4 py-2'">
             <Icon name="mdi:store-plus-outline" :size="isExtraSmallScreen ? '22' : '20'" />
             <span v-if="!isExtraSmallScreen" class="ml-2">Sell</span>
           </NuxtLink>
@@ -65,7 +65,7 @@
 
         <!-- Logged-In Seller Actions -->
         <div v-else class="flex items-center gap-2">
-          <NuxtLink to="/upload" class="hidden md:flex items-center text-sm font-medium text-gray-600 hover:text-[#C42B78]" aria-label="Upload product">
+          <NuxtLink to="/upload" class="hidden md:flex items-center text-sm font-medium text-gray-600 hover:text-brand-dark" aria-label="Upload product">
             <Icon name="mdi:plus-box-outline" size="22" />
             <span class="ml-2">Add a product</span>
           </NuxtLink>
@@ -86,7 +86,7 @@
                   <NuxtLink v-else to="/buyer/profile" @click="showMenu = false" class="menu-item">
                     <Icon name="mdi:account-circle-outline" size="20" class="mr-3" /> My Profile
                   </NuxtLink>
-                  <NuxtLink to="/cart" @click="showMenu = false" class="menu-item">
+                  <NuxtLink to="/buyer/cart" @click="showMenu = false" class="menu-item">
                     <Icon name="mdi:cart-outline" size="20" class="mr-3" /> My Cart
                   </NuxtLink>
                 </div>
@@ -188,7 +188,7 @@ watch(searchItem, performSearch);
 
 <style scoped>
 .cart-badge {
-  @apply absolute -top-1 -right-1 bg-[#C42B78] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-white;
+  @apply absolute -top-1 -right-1 bg-brand text-white text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-white;
 }
 .menu-item {
   @apply flex items-center py-2 px-4 text-sm text-gray-700 hover:bg-gray-100;

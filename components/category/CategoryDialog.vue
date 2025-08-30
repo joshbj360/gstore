@@ -65,7 +65,7 @@
           </button>
           <button
             type="submit"
-            class="px-4 py-2 bg-[#C42B78] text-white rounded-md text-sm font-medium hover:bg-[#df4949]"
+            class="px-4 py-2 bg-brand text-white rounded-md text-sm font-medium hover:bg-[#df4949]"
             :disabled="!name || !thumbnailCatUrl"
           >
             Add Category

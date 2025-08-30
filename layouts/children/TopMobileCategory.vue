@@ -14,7 +14,7 @@
         <NuxtLink
           to="/"
           class="flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-300"
-          :class="isActive(null) ? 'bg-[#C42B78] text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+          :class="isActive(null) ? 'bg-brand text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
         >
           All
         </NuxtLink>
@@ -25,7 +25,7 @@
           :key="category.id"
           :to="`/category/${category.slug}`"
           class="flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-300"
-          :class="isActive(category.name) ? 'bg-[#C42B78] text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+          :class="isActive(category.name) ? 'bg-brand text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
         >
           {{ category.name }}
         </NuxtLink>

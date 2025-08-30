@@ -1,3 +1,4 @@
+import { trueColor } from "@cloudinary/url-gen/qualifiers/colorSpace";
 import { defineStore } from "pinia";
 import type { ProductInterface } from "~/models/interface/products/product.interface";
 
@@ -153,12 +154,12 @@ export const useProductStore = defineStore('product', {
         this.isLoading = true;
         try {
           // The API now returns both category details and products
-          const { products } = await $fetch(`/api/prisma/products/get-products-by-category-slug/${slug}`) as { products: ProductInterface[] };
+          const response = await $fetch<{ products: ProductInterface[] }>(`/api/prisma/products/get-products-by-category-slug/${slug}`);
 
-          if (products) {
+          if (response && response.products) {
             // The cacheProducts function will handle adding these to the correct cache
-            this.cacheProducts(products, slug);
-            this.hasMoreProducts = products.length === DEFAULT_PAGE_LIMIT;
+            this.cacheProducts(response.products, slug);
+            this.hasMoreProducts = response.products.length === DEFAULT_PAGE_LIMIT;
           }
         } catch (error) {
             console.error(`Failed to fetch products for category ${slug}:`, error);
@@ -245,5 +246,6 @@ export const useProductStore = defineStore('product', {
         this.categoryCache.set(categorySlug, [...existing, ...newForCategory]);
       }
     },
-  }
+  },
+  
 })

@@ -10,7 +10,7 @@
     <div class="absolute top-0 left-0 right-0 flex justify-between items-center p-4 sm:p-6 z-20">
       <button
         @click="navigateToHome"
-        class="rounded-full p-2 bg-white/90 hover:bg-[#C42B78] text-gray-800 hover:text-white transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50"
+        class="rounded-full p-2 bg-white/90 hover:bg-brand text-gray-800 hover:text-white transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50"
         aria-label="Close product view"
       >
         <Icon name="mdi:close" size="16" />
@@ -18,14 +18,14 @@
       <div v-if="isOwner" class="flex flex-col gap-2">
         <button
           @click="navigateToEdit"
-          class="rounded-full p-2 bg-white/90 hover:bg-[#C42B78] text-gray-800 hover:text-white transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50"
+          class="rounded-full p-2 bg-white/90 hover:bg-brand text-gray-800 hover:text-white transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50"
           aria-label="Edit product"
         >
           <Icon name="mdi:pencil" size="16" />
         </button>
         <button
           @click.stop="$emit('delete-product')"
-          class="rounded-full p-2 bg-white/90 hover:bg-[#C42B78] text-gray-800 hover:text-white transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50"
+          class="rounded-full p-2 bg-white/90 hover:bg-brand text-gray-800 hover:text-white transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50"
           aria-label="Delete product"
         >
           <Icon name="mdi:delete" size="16" />

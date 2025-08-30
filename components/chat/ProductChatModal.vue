@@ -63,7 +63,7 @@
             />
             <button
               type="submit"
-              class="p-2 bg-[#C42B78] text-white rounded-lg hover:bg-[#df4949]"
+              class="p-2 bg-brand text-white rounded-lg hover:bg-[#df4949]"
             >
               <Icon name="mdi:send" size="24" />
             </button>

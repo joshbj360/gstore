@@ -2,7 +2,7 @@
   <div>
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-medium">Your Products</h2>
-      <NuxtLink to="/upload" class="bg-[#C42B78] text-white px-4 py-2 rounded-lg hover:bg-[#C42B78]/80">
+      <NuxtLink to="/upload" class="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand/80">
         Add Product
       </NuxtLink>
     </div>

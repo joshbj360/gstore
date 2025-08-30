@@ -18,7 +18,7 @@
     <div v-if="isUploading || uploadComplete" class="p-4 border rounded-lg bg-gray-50">
       <h3 class="font-semibold mb-2">Upload Progress</h3>
       <div class="w-full bg-gray-200 rounded-full h-2.5">
-        <div class="bg-[#C42B78] h-2.5 rounded-full transition-all duration-300" :style="{ width: `${progress}%` }"></div>
+        <div class="bg-brand h-2.5 rounded-full transition-all duration-300" :style="{ width: `${progress}%` }"></div>
       </div>
       <p class="text-sm text-gray-600 mt-2 text-center">{{ progressMessage }}</p>
       
@@ -33,7 +33,7 @@
       <button @click="downloadTemplate" class="px-4 py-2 border rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
         Download Template
       </button>
-      <button @click="startUpload" :disabled="isUploading || !file" class="px-6 py-2 bg-[#C42B78] text-white rounded-md font-medium disabled:bg-gray-400 disabled:cursor-not-allowed">
+      <button @click="startUpload" :disabled="isUploading || !file" class="px-6 py-2 bg-brand text-white rounded-md font-medium disabled:bg-gray-400 disabled:cursor-not-allowed">
         {{ isUploading ? 'Uploading...' : 'Start Upload' }}
       </button>
     </div>

@@ -24,7 +24,8 @@ export interface ProductInterface {
     rating?: number;
   reviewCount?: number;
   likeCount?: number;
-  productSoldCount?: number;
+ soldCount?: number;
+ shippingZoneId?: string
 }
 
 export interface ProductVariantInterface {

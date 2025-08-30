@@ -7,7 +7,7 @@
           v-for="category in displayedCategories"
           :key="category.id"
           :to=" '/'"
-          class="text-sm sm:text-base text-gray-600 hover:text-[#C42B78] hover:bg-[#C42B78]/10 px-2 py-1 rounded-lg font-medium transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50"
+          class="text-sm sm:text-base text-gray-600 hover:text-brand-dark hover:bg-brand/10 px-2 py-1 rounded-lg font-medium transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50"
           :aria-label="`Go to ${category.name} category`"
         >
           {{ category.name }}
@@ -18,11 +18,11 @@
       <!-- Action Icons -->
       <div class="flex items-center gap-2 mt-2 sm:gap-3">
         <div v-if="!userStore.isLoggedIn">
-          <NuxtLink to="/shoppingcart" class="relative p-1.5 hover:bg-[#C42B78]/10 rounded-lg transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50" aria-label="View shopping cart">
-            <Icon name="mdi:cart" size="23" class="text-gray-600 hover:text-[#C42B78]" />
+          <NuxtLink to="/shoppingcart" class="relative p-1.5 hover:bg-brand/10 rounded-lg transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50" aria-label="View shopping cart">
+            <Icon name="mdi:cart" size="23" class="text-gray-600 hover:text-brand-dark" />
             <span
               v-if="cartStore.cartCount"
-              class="absolute -top-1 -right-1 bg-[#C42B78] text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-medium"
+              class="absolute -top-1 -right-1 bg-brand text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-medium"
             >
               {{ cartStore.cartCount }}
             </span>
@@ -30,20 +30,20 @@
         </div>
         
         <div v-else>
-          <NuxtLink to="/messages" class="relative p-1.5 hover:bg-[#C42B78]/10 rounded-lg transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50" aria-label="View messages">
-          <Icon name="mdi:email-outline" size="20" class="text-gray-600 hover:text-[#C42B78]" />
+          <NuxtLink to="/messages" class="relative p-1.5 hover:bg-brand/10 rounded-lg transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50" aria-label="View messages">
+          <Icon name="mdi:email-outline" size="20" class="text-gray-600 hover:text-brand-dark" />
           <span
             v-if="messageCount"
-            class="absolute -top-1 -right-1 bg-[#C42B78] text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-medium"
+            class="absolute -top-1 -right-1 bg-brand text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-medium"
           >
             {{ messageCount }}
           </span>
         </NuxtLink>
-        <NuxtLink to="/profile" class="relative p-1.5 hover:bg-[#C42B78]/10 rounded-lg transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50" aria-label="View profile">
-          <Icon name="mdi:account-outline" size="20" class="text-gray-600 hover:text-[#C42B78]" />
+        <NuxtLink to="/profile" class="relative p-1.5 hover:bg-brand/10 rounded-lg transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50" aria-label="View profile">
+          <Icon name="mdi:account-outline" size="20" class="text-gray-600 hover:text-brand-dark" />
           <span
             v-if="notificationCount"
-            class="absolute -top-1 -right-1 bg-[#C42B78] text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-medium"
+            class="absolute -top-1 -right-1 bg-brand text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-medium"
           >
             {{ notificationCount }}
           </span>

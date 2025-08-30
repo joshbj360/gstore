@@ -14,7 +14,15 @@ module.exports = {
     'object-cover', // It's good practice to safelist its opposite too
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        brand: {
+          DEFAULT: "#C42B78", // replace with your brand hex
+          light: "#E55FA1",
+          dark: "#9E205E",
+        }
+      }
+    },
   },
   plugins: [],
 }

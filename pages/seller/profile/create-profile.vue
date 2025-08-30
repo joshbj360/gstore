@@ -12,13 +12,13 @@
           <div class="relative pt-1">
             <div class="flex mb-2 items-center justify-between">
               <div>
-                <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-[#C42B78] bg-[#C42B78]/10">
+                <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-brand-dark bg-brand/10">
                   Step {{ currentStep }} of 3
                 </span>
               </div>
             </div>
-            <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-[#C42B78]/20">
-              <div :style="{ width: `${(currentStep / 3) * 100}%` }" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#C42B78] transition-all duration-500"></div>
+            <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-brand/20">
+              <div :style="{ width: `${(currentStep / 3) * 100}%` }" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-brand transition-all duration-500"></div>
             </div>
           </div>
         </div>
@@ -54,7 +54,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-2">Store Logo</label>
             <div class="flex items-center gap-4">
               <img :src="formData.store_logo || 'https://picsum.photos/id/1005/200'" alt="Store Logo" class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md" />
-              <button type="button" @click="triggerLogoUpload" class="py-2 px-4 bg-[#C42B78]/10 text-[#C42B78] rounded-md hover:bg-[#C42B78]/20 transition-colors text-sm font-semibold">
+              <button type="button" @click="triggerLogoUpload" class="py-2 px-4 bg-brand/10 text-brand-dark rounded-md hover:bg-brand/20 transition-colors text-sm font-semibold">
                 Upload Logo
               </button>
               <input ref="logoInput" type="file" accept="image/*" class="hidden" @change="handleLogoUpload" />
@@ -88,10 +88,10 @@
           <button @click="prevStep" :disabled="currentStep === 1" class="py-2 px-4 text-gray-600 rounded-md hover:bg-gray-100 text-sm font-semibold disabled:opacity-50">
             Back
           </button>
-          <button v-if="currentStep < 3" @click="nextStep" class="py-2 px-6 bg-[#C42B78] text-white rounded-md hover:bg-[#df4949] text-sm font-semibold">
+          <button v-if="currentStep < 3" @click="nextStep" class="py-2 px-6 bg-brand text-white rounded-md hover:bg-[#df4949] text-sm font-semibold">
             Next
           </button>
-          <button v-if="currentStep === 3" @click="saveProfile" :disabled="isSaving" class="py-2 px-6 bg-[#C42B78] text-white rounded-md hover:bg-[#df4949] text-sm font-semibold disabled:opacity-50">
+          <button v-if="currentStep === 3" @click="saveProfile" :disabled="isSaving" class="py-2 px-6 bg-brand text-white rounded-md hover:bg-[#df4949] text-sm font-semibold disabled:opacity-50">
             {{ isSaving ? 'Creating...' : 'Finish & Create Store' }}
           </button>
         </div>

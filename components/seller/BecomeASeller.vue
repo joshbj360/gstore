@@ -68,7 +68,7 @@
             <button
               type="submit"
               :disabled="isSubmitting"
-              class="w-full py-2 px-4 bg-[#C42B78] text-white rounded-md hover:bg-[#df4949] transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+              class="w-full py-2 px-4 bg-brand text-white rounded-md hover:bg-[#df4949] transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {{ isSubmitting ? 'Submitting...' : 'Apply Now' }}
             </button>
