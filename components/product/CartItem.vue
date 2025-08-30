@@ -5,7 +5,7 @@
         type="checkbox" 
         :checked="selected"
         @change="toggleSelection"
-        class="h-5 w-5 rounded border-gray-300 text-[#C42B78] focus:ring-[#C42B78]/50"
+        class="h-5 w-5 rounded border-gray-300 text-brand-dark focus:ring-[#C42B78]/50"
       >
       <NuxtLink :to="`/product/${item.product.id}`" class="block mt-4">
         <div class="w-24 h-24 rounded-lg overflow-hidden bg-gray-100">
@@ -28,7 +28,7 @@
         Size: {{ item.variant.size }}
       </p>
 
-      <p class="font-bold text-lg text-[#C42B78] mt-2">
+      <p class="font-bold text-lg text-brand-dark mt-2">
         {{ formatPrice(item.variant.price || item.product.price) }}
       </p>
       
@@ -48,7 +48,7 @@
         </div>
 
         <div class="flex items-center text-sm">
-          <button @click="emitSaveForLater" class="text-gray-500 hover:text-[#C42B78] font-medium transition-colors">
+          <button @click="emitSaveForLater" class="text-gray-500 hover:text-brand-dark font-medium transition-colors">
               Save for Later
           </button>
           <div class="h-4 border-l mx-3"></div>

@@ -15,7 +15,7 @@
         v-if="product"
         @click="toggleLike"
         class="action-button flex-col"
-        :class="{ 'text-[#C42B78]': isLiked }"
+        :class="{ 'text-brand-dark': isLiked }"
         aria-label="Like product"
       >
         <Icon :name="isLiked ? 'mdi:heart' : 'mdi:heart-outline'" size="24" />
@@ -53,8 +53,8 @@
 
       <NuxtLink
         v-if="cartStore.cartCount > 0"
-        to="/shipping/checkout"
-        class="mt-2 flex flex-col items-center justify-center p-3 rounded-lg bg-white/90 shadow-lg text-[#C42B78] font-bold text-center transition-all transform hover:scale-110"
+        to="buyer/shipping/checkout"
+        class="mt-2 flex flex-col items-center justify-center p-3 rounded-lg bg-white/90 shadow-lg text-brand-dark font-bold text-center transition-all transform hover:scale-110"
         aria-label="Proceed to checkout"
       >
         <Icon name="mdi:truck-fast-outline" size="28" />
@@ -148,13 +148,13 @@ const openShareModal = () => {
 
 <style scoped>
 .action-button {
-  @apply w-12 h-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-[#C42B78] hover:text-white transition-all active:scale-95 transform hover:scale-110;
+  @apply w-12 h-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-brand hover:text-white transition-all active:scale-95 transform hover:scale-110;
 }
 .action-label-text {
   @apply text-xs font-semibold leading-tight mt-0.5;
 }
 .cart-badge {
-  @apply absolute -top-1 -right-1 bg-[#C42B78] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-white;
+  @apply absolute -top-1 -right-1 bg-brand text-white text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-white;
 }
 .fade-enter-active, .fade-leave-active {
   transition: opacity 0.3s ease;

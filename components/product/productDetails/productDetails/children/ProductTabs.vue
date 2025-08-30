@@ -7,8 +7,8 @@
         :key="tab.id"
         @click="setActiveTab(tab.id)"
         :class="{
-          'border-b-2 border-[#C42B78] text-[#C42B78]': activeTab === tab.id,
-          'text-gray-600 hover:text-[#C42B78] hover:bg-[#C42B78]/10': activeTab !== tab.id,
+          'border-b-2 border-[#C42B78] text-brand-dark': activeTab === tab.id,
+          'text-gray-600 hover:text-brand-dark hover:bg-brand/10': activeTab !== tab.id,
         }"
         class="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50 transition-all duration-250"
         role="tab"

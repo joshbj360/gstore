@@ -6,7 +6,7 @@
           <img src="~/assets/images/grandeur-logo.png" alt="Grandeur Logo" class="h-8 w-auto" />
         </NuxtLink>
 
-        <NuxtLink to="/" class="hidden sm:inline-flex items-center px-4 py-2 rounded-lg font-medium text-sm border border-[#C42B78] text-[#C42B78] hover:bg-[#C42B78]/10 transition-colors">
+        <NuxtLink to="/" class="hidden sm:inline-flex items-center px-4 py-2 rounded-lg font-medium text-sm border border-[#C42B78] text-brand-dark hover:bg-brand/10 transition-colors">
           <Icon name="mdi:store-outline" class="mr-2" size="18"/>
           Continue Shopping
         </NuxtLink>

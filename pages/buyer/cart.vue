@@ -13,7 +13,7 @@
         </div>
         <h2 class="text-2xl font-bold text-gray-800">Your cart is empty</h2>
         <p class="text-gray-500 mt-2 mb-6">Looks like you haven't added anything to your cart yet.</p>
-        <NuxtLink to="/" class="px-6 py-3 bg-[#C42B78] text-white font-semibold rounded-lg shadow-md hover:bg-[#d81b36] transition-transform hover:scale-105">
+        <NuxtLink to="/" class="px-6 py-3 bg-brand text-white font-semibold rounded-lg shadow-md hover:bg-[#d81b36] transition-transform hover:scale-105">
           Continue Shopping
         </NuxtLink>
       </div>
@@ -23,7 +23,7 @@
           <div class="bg-white rounded-xl shadow-sm p-6">
             <div class="flex items-center justify-between pb-4 border-b">
               <div class="flex items-center">
-                <input type="checkbox" v-model="selectAll" class="h-5 w-5 rounded border-gray-300 text-[#C42B78] focus:ring-[#C42B78]/50">
+                <input type="checkbox" v-model="selectAll" class="h-5 w-5 rounded border-gray-300 text-brand-dark focus:ring-[#C42B78]/50">
                 <label for="select-all" class="ml-3 text-sm font-medium">
                   Select All ({{ cartStore.cartItems.length }} item{{ cartStore.cartItems.length !== 1 ? 's' : '' }})
                 </label>
@@ -55,7 +55,7 @@
                         <p class="font-semibold text-sm">{{ item.product.title }}</p>
                         <p class="text-gray-500 text-sm">{{ formatPrice(item.product.price) }}</p>
                     </div>
-                    <button @click="moveToCart(item)" class="text-sm text-[#C42B78] hover:underline">Move to Cart</button>
+                    <button @click="moveToCart(item)" class="text-sm text-brand-dark hover:underline">Move to Cart</button>
                 </div>
             </div>
           </div>
@@ -80,7 +80,7 @@
                 </div>
               </div>
             </div>
-            <button @click="goToCheckout" :disabled="!selectedItems.length" class="mt-6 w-full bg-[#C42B78] text-white py-3 px-6 rounded-lg font-semibold shadow-md hover:bg-[#d81b36] transition-transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed">
+            <button @click="goToCheckout" :disabled="!selectedItems.length" class="mt-6 w-full bg-brand text-white py-3 px-6 rounded-lg font-semibold shadow-md hover:bg-[#d81b36] transition-transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed">
               Proceed to Checkout
             </button>
           </div>
@@ -156,7 +156,7 @@ const totalPriceComputed = computed(() => {
 
 const goToCheckout = () => {
   cartStore.checkout = [...selectedItems.value];
-  router.push('/shipping/checkout');
+  router.push('/buyer/shipping/checkout');
 };
 
 const formatPrice = (price: number) => {

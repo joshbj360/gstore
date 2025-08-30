@@ -39,6 +39,10 @@ export default defineEventHandler(async (event) => {
           })),
         },
 
+        shippingZone: body.shippingZoneId ? {
+          connect : { id: body.shippingZoneId}
+        } : undefined,
+
         // Category handling remains the same
         category: body.category ? {
           create: [{
@@ -82,6 +86,7 @@ export default defineEventHandler(async (event) => {
         tags: { include: { tag: true } },
         media: true,
         variants: true, // Include variants in the returned product data
+        shippingZone: true,
       },
     });
 

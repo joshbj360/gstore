@@ -6,7 +6,7 @@
                 <Icon name="mdi:close" size="24"/>
             </NuxtLink>
             <h1 class="font-semibold">Quick Add Product</h1>
-            <button @click="postProduct" :disabled="!canPost || isUploading" class="text-sm font-bold text-[#C42B78] disabled:text-gray-400">
+            <button @click="postProduct" :disabled="!canPost || isUploading" class="text-sm font-bold text-brand-dark disabled:text-gray-400">
                 {{ isUploading ? 'Posting...' : 'Post' }}
             </button>
         </div>

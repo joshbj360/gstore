@@ -1,7 +1,7 @@
 <template>
   <div>
     <button
-      class="mt-2 px-6 py-2.5 text-white text-[15px] bg-[#C42B78] rounded-lg hover:bg-[#df4949] transition flex items-center justify-center gap-2"
+      class="mt-2 px-6 py-2.5 text-white text-[15px] bg-brand rounded-lg hover:bg-[#df4949] transition flex items-center justify-center gap-2"
       @click="openCloudinaryWidget"
       :disabled="isLoading"
     >

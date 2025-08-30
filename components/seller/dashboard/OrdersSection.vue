@@ -8,7 +8,7 @@
           :key="status"
           @click="activeStatus = status"
           class="mr-2 px-4 py-2 rounded-lg"
-          :class="{ 'bg-[#C42B78] text-white': activeStatus === status, 'bg-gray-200': activeStatus !== status }"
+          :class="{ 'bg-brand text-white': activeStatus === status, 'bg-gray-200': activeStatus !== status }"
         >
           {{ status }}
         </button>

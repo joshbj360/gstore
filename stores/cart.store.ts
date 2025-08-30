@@ -1,77 +1,138 @@
 import { defineStore } from 'pinia';
+import { useUserStore } from './user.store';
 import type { ProductInterface, ProductVariantInterface } from '~/models/interface/products/product.interface';
-import type { CartItemInterface } from '~/models/interface/cart/cart.interface'; // Import your new interface
-import { useSupabaseClient, useSupabaseUser } from '#imports';
-import type { Database } from '#build/types/supabase-database';
+import type { CartItemInterface } from '~/models/interface/cart/cart.interface';
+import { notify } from "@kyvg/vue3-notification";
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
-    // The state now uses the correct, variant-aware interface
     cartItems: [] as CartItemInterface[],
     checkout: [] as CartItemInterface[],
+    isLoading: false,
   }),
+
   getters: {
     cartCount: (state) => state.cartItems.length,
-    // Calculates the total price of all items in the cart
     cartTotal: (state) => {
-        return state.cartItems.reduce((total, item) => {
-            const price = item.variant.price || item.product.price;
-            return total + (price * item.quantity);
-        }, 0);
-    }
-  },
-  actions: {
-    // Note: The fetchCartItems action would also need to be updated to fetch variant data.
-    // This is a placeholder for that logic.
-    async fetchCartItems() {
-      // This logic would need to be adapted based on your 'cart_items' table structure
-      // to include a 'variant_id' and join with the ProductVariant table.
-      console.log("Fetching cart items from the database...");
+      return state.cartItems.reduce((total, item) => {
+        const price = item.variant.price || item.product.price;
+        return total + (price * item.quantity);
+      }, 0);
     },
+  },
 
-    addToCart(product: ProductInterface, selectedVariant: ProductVariantInterface, quantity = 1) {
-      
-      if (quantity <= 0) return;
+  actions: {
+    /**
+     * Fetches the user's cart from the database if they are logged in.
+     * For guests, this does nothing, allowing the persist plugin to load from localStorage.
+     */
+    async fetchCartItems() {
+      const userStore = useUserStore();
+      if (!userStore.isLoggedIn) return;
 
-      // Create a unique ID for this specific cart item (e.g., "productID-variantID")
-      alert(`Adding to cart: ${product.id} - ${Number(selectedVariant.id)}`);
-      const cartId = `${product.id}-${Number(selectedVariant.id)}`;
+      this.isLoading = true;
+      try {
+        const dbItems = await $fetch<CartItemInterface[]>('/api/prisma/cart/get-cart-items');
 
-      const existingItem = this.cartItems.find(item => String(item.id) === cartId);
-
-      if (existingItem) {
-        // If it already exists, just increase the quantity, respecting stock limits
-        const newQuantity = existingItem.quantity + quantity;
-        if (newQuantity <= selectedVariant.stock) {
-            existingItem.quantity = newQuantity;
-        } else {
-            // Optionally notify the user that they can't add more than what's in stock
-            console.warn('Cannot add more items than available in stock.');
-        }
-      } else {
-        // Otherwise, add the new item to the cart
-        this.cartItems.push({
-          id: cartId,
-          product: product,
-          variant: selectedVariant,
-          quantity: quantity,
-        });
+        // Map the database response to the frontend CartItemInterface
+        this.cartItems = dbItems.map((item: any) => ({
+            id: `${item.variant.product.id}-${item.variant.id}`,
+            product: item.variant.product,
+            variant: item.variant,
+            quantity: item.quantity,
+        }));
+      } catch (error) {
+        console.error("Failed to fetch cart from DB:", error);
+        notify({ type: 'error', text: 'Could not load your cart.' });
+      } finally {
+        this.isLoading = false;
       }
     },
 
-    // removeFromCart now uses the unique cartId, which is much more reliable
-    removeFromCart(cartId: string) {
-      this.cartItems = this.cartItems.filter(item => String(item.id) !== cartId);
+    /**
+     * Adds a specific product variant to the cart.
+     * Updates the UI optimistically, then syncs with the database.
+     */
+    async addToCart(product: ProductInterface, variant: ProductVariantInterface, quantity = 1) {
+      const userStore = useUserStore();
+      const cartId = `${product.id}-${variant.id}`;
+      const existingItem = this.cartItems.find(item => item.id === cartId);
+
+      // Optimistic UI update for a snappy experience
+      if (existingItem) {
+        existingItem.quantity += quantity;
+      } else {
+        this.cartItems.push({ id: cartId, product, variant, quantity });
+      }
+
+      // Sync the change with the database if the user is logged in
+      if (userStore.isLoggedIn) {
+        try {
+          await $fetch('/api/prisma/cart/create-cart-item', {
+            method: 'POST',
+            body: { variantId: variant.id, quantity },
+          });
+        } catch (error) {
+          console.error("Failed to sync cart addition with DB:", error);
+          // Optional: Revert the change in the UI if the API call fails
+          notify({ type: 'error', text: 'Could not save item to cart.' });
+        }
+      }
     },
 
-    // updateCartItem also uses the unique cartId
-    updateCartItem(updatedItem: CartItemInterface) {
+    /**
+     * Removes an item from the cart using its unique cartId.
+     */
+    async removeFromCart(cartId: string) {
+      const userStore = useUserStore();
+      const itemIndex = this.cartItems.findIndex(item => item.id === cartId);
+      if (itemIndex === -1) return;
+      
+      const variantId = this.cartItems[itemIndex].variant.id;
+      
+      // Optimistic UI update
+      this.cartItems.splice(itemIndex, 1);
+
+      if (userStore.isLoggedIn) {
+        try {
+          await $fetch('/api/prisma/cart', {
+            method: 'DELETE',
+            body: { variantId },
+          });
+        } catch (error) {
+          console.error("Failed to sync cart removal with DB:", error);
+          notify({ type: 'error', text: 'Could not remove item from cart.' });
+        }
+      }
+    },
+
+    /**
+     * Updates the quantity of a specific item in the cart.
+     */
+    async updateCartItem(updatedItem: CartItemInterface) {
+      const userStore = useUserStore();
       const index = this.cartItems.findIndex(item => item.id === updatedItem.id);
       if (index !== -1) {
-        this.cartItems[index] = updatedItem;
-      } else {
-        console.warn(`Item with id ${updatedItem.id} not found in cart.`);
+        this.cartItems[index].quantity = updatedItem.quantity;
+        
+        if (userStore.isLoggedIn) {
+            try {
+                await $fetch('/api/prisma/cart', {
+                    method: 'PATCH', // Or PUT, depending on your API design
+                    body: { 
+                        variantId: updatedItem.variant.id, 
+                        quantity: updatedItem.quantity 
+                    },
+                });
+            } catch (error) {
+                console.error("Failed to sync quantity update with DB:", error);
+                notify({ type: 'error', text: 'Could not update item quantity.' });
+            }
+        }
       }
     },
   },
+  
+  // This enables localStorage caching, which is perfect for guest users.
+  persist: true,
 });

@@ -13,7 +13,7 @@
       <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C42B78]"></div>
     </div>
 
-    <div v-else-if="error" class="bg-[#f8f0f0] text-[#C42B78] p-4 rounded-lg">{{ error }}</div>
+    <div v-else-if="error" class="bg-[#f8f0f0] text-brand-dark p-4 rounded-lg">{{ error }}</div>
 
     <div v-else>
       <nav
@@ -28,8 +28,8 @@
           @keydown="handleKeyDown($event, section.id)"
           class="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium rounded-t-md transition-all duration-250"
           :class="{
-            'bg-[#C42B78] text-white': activeSection === section.id,
-            'text-gray-600 hover:bg-[#C42B78]/10 hover:text-[#C42B78]': activeSection !== section.id
+            'bg-brand text-white': activeSection === section.id,
+            'text-gray-600 hover:bg-brand/10 hover:text-brand-dark': activeSection !== section.id
           }"
           :aria-selected="activeSection === section.id"
           :aria-label="`View ${section.label} section`"
@@ -55,7 +55,7 @@
             <h2 class="text-lg sm:text-xl font-bold text-gray-800">
               {{ seller?.store_name || 'Anonymous Seller' }}
             </h2>
-            <p v-if="seller?.is_verified" class="text-[#C42B78] font-medium">Verified Seller</p>
+            <p v-if="seller?.is_verified" class="text-brand-dark font-medium">Verified Seller</p>
             <p class="text-gray-600 text-sm sm:text-base">{{ seller?.store_phone }}</p>
           </div>
         </div>
@@ -71,19 +71,19 @@
             <p class="text-sm sm:text-base"><strong>Contact:</strong> {{ seller?.store_phone }}</p>
             <p v-if="seller?.store_website" class="text-sm sm:text-base">
               <strong>Website:</strong>
-              <a :href="seller?.store_website" class="text-[#C42B78] hover:underline" target="_blank">{{ seller?.store_website }}</a>
+              <a :href="seller?.store_website" class="text-brand-dark hover:underline" target="_blank">{{ seller?.store_website }}</a>
             </p>
           </div>
 
           <div v-if="seller?.store_socials" class="flex space-x-4">
-            <a v-for="(link, key) in seller.store_socials" :key="key" :href="link" target="_blank" class="text-[#C42B78] hover:text-[#d81b46] transition-all duration-250">
+            <a v-for="(link, key) in seller.store_socials" :key="key" :href="link" target="_blank" class="text-brand-dark hover:text-[#d81b46] transition-all duration-250">
               <Icon :name="`mdi:${key}`" size="20" />
             </a>
           </div>
 
           <div v-if="seller?.ratings">
             <h3 class="text-base sm:text-lg font-semibold text-gray-800">Ratings</h3>
-            <p class="text-[#C42B78] text-base sm:text-lg">
+            <p class="text-brand-dark text-base sm:text-lg">
               {{ seller?.ratings.average.toFixed(1) }} ★ ({{ seller?.ratings.count }} reviews)
             </p>
           </div>
@@ -108,10 +108,10 @@
             />
             <h3 class="text-base sm:text-lg font-medium text-gray-800">{{ product.title }}</h3>
             <p class="text-gray-600 text-sm sm:text-base line-clamp-2">{{ product.description }}</p>
-            <p class="text-[#C42B78] font-semibold mt-2 text-sm sm:text-base">${{ product.price.toFixed(2) }}</p>
+            <p class="text-brand-dark font-semibold mt-2 text-sm sm:text-base">${{ product.price.toFixed(2) }}</p>
             <NuxtLink
               :to="`/product/${product.slug}`"
-              class="mt-4 inline-block px-3 py-2 sm:px-4 sm:py-2 bg-[#C42B78] text-white rounded-md hover:bg-[#d81b46] transition-all duration-250 text-sm sm:text-base"
+              class="mt-4 inline-block px-3 py-2 sm:px-4 sm:py-2 bg-brand text-white rounded-md hover:bg-[#d81b46] transition-all duration-250 text-sm sm:text-base"
             >
               View Product
             </NuxtLink>
@@ -130,7 +130,7 @@
             class="border-b pb-4"
           >
             <div class="flex items-center space-x-2">
-              <p class="text-[#C42B78] text-sm sm:text-base">
+              <p class="text-brand-dark text-sm sm:text-base">
                 {{ '★'.repeat(review.rating) }}{{ '☆'.repeat(5 - review.rating) }}
               </p>
               <p class="text-gray-500 text-xs sm:text-sm">{{ new Date(review.created_at).toLocaleDateString() }}</p>

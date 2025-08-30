@@ -50,12 +50,12 @@
             <button
               v-if="index !== mainMediaIndex"
               @click.stop="setMainMedia(index)"
-              class="text-white hover:text-[#C42B78] transition-colors"
+              class="text-white hover:text-brand-dark transition-colors"
               aria-label="Set as main media"
             >
               <Icon name="mdi:star-outline" size="20" />
             </button>
-            <span v-else class="text-[#C42B78]">
+            <span v-else class="text-brand-dark">
               <Icon name="mdi:star" size="20" />
             </span>
 

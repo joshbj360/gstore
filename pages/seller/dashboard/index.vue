@@ -4,7 +4,7 @@
       <div class="container mx-auto px-4 py-3 flex items-center justify-between">
         <button 
           @click="navigateHome"
-          class="flex items-center text-gray-700 hover:text-[#C42B78] transition-colors"
+          class="flex items-center text-gray-700 hover:text-brand-dark transition-colors"
         >
           <Icon name="mdi:arrow-left" size="24" />
           <span class="font-medium text-sm ml-2 hidden sm:inline">Back to Home</span>
@@ -25,7 +25,7 @@
               aria-label="Notifications"
             >
               <Icon name="mdi:bell-outline" size="22" />
-              <span v-if="unreadNotifications" class="absolute top-1 right-1 bg-[#C42B78] text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center border-2 border-white">
+              <span v-if="unreadNotifications" class="absolute top-1 right-1 bg-brand text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center border-2 border-white">
                 {{ unreadNotifications }}
               </span>
             </button>
@@ -74,8 +74,8 @@
               @click="activeSection = section.id"
               class="px-4 py-3 text-sm font-medium flex items-center whitespace-nowrap"
               :class="{
-                'text-[#C42B78] border-b-2 border-[#C42B78]': activeSection === section.id,
-                'text-gray-500 hover:text-[#C42B78] hover:bg-gray-50': activeSection !== section.id
+                'text-brand-dark border-b-2 border-[#C42B78]': activeSection === section.id,
+                'text-gray-500 hover:text-brand-dark hover:bg-gray-50': activeSection !== section.id
               }"
             >
               <Icon :name="section.icon" size="18" class="mr-2" />

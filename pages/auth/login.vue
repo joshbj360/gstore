@@ -12,7 +12,7 @@
         <h2 class="text-center text-2xl sm:text-3xl font-bold text-gray-800">
           {{ isRegister ? 'Create Your Account' : 'Sign In' }}
         </h2>
-        <div v-if="error" class="text-[#C42B78] text-sm text-center bg-[#f8f0f0] p-3 rounded-lg">
+        <div v-if="error" class="text-brand-dark text-sm text-center bg-[#f8f0f0] p-3 rounded-lg">
           {{ error }}
         </div>
         <!-- Email/Password Form -->
@@ -47,7 +47,7 @@
           />
           <button
             type="submit"
-            class="w-full py-2.5 px-4 text-white bg-[#C42B78] rounded-lg hover:bg-[#d81b36] transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            class="w-full py-2.5 px-4 text-white bg-brand rounded-lg hover:bg-[#d81b36] transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50 disabled:bg-gray-400 disabled:cursor-not-allowed"
             :disabled="loading"
             aria-label="Submit form"
           >
@@ -80,7 +80,7 @@
           {{ isRegister ? 'Already have an account?' : 'Need an account?' }}
           <button
             @click="toggleRegister"
-            class="text-[#C42B78] hover:underline focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50"
+            class="text-brand-dark hover:underline focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50"
             aria-label="Toggle between sign in and sign up"
           >
             {{ isRegister ? 'Sign In' : 'Sign Up' }}

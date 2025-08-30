@@ -8,7 +8,7 @@
       </div>
       <form @submit.prevent="sendReply" class="mt-4">
         <input v-model="reply" class="w-full p-2 border rounded-lg" placeholder="Reply to customer..." />
-        <button class="mt-2 bg-[#C42B78] text-white px-4 py-2 rounded-lg hover:bg-[#C42B78]/80">
+        <button class="mt-2 bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand/80">
           Send
         </button>
       </form>

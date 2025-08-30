@@ -43,7 +43,7 @@
     <div v-else class="text-center py-20">
         <h2 class="text-xl font-semibold">Product not found</h2>
         <p class="text-gray-500 mt-2">The product you are trying to edit does not exist.</p>
-        <NuxtLink to="/seller/dashboard" class="mt-4 inline-block text-[#C42B78] hover:underline">
+        <NuxtLink to="/seller/dashboard" class="mt-4 inline-block text-brand-dark hover:underline">
             Return to Dashboard
         </NuxtLink>
     </div>
