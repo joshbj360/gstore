@@ -8,11 +8,13 @@
         Save Settings
       </button>
     </div>
+    <SocialMediaConnection class="mt-6" />
   </div>
 </template>
 
 <script setup lang="ts">
 import TextInput from '~/components/shared/TextInput.vue';
+import SocialMediaConnection from './SocialMediaConnection.vue';
 import { ref } from 'vue';
 
 const storeName = ref('');

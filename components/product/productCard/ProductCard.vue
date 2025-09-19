@@ -1,12 +1,19 @@
 <template>
   <div id="product-card"
     class="relative bg-white rounded-lg shadow-sm overflow-hidden group transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-    <!-- Edit button (if owner) -->
-    <NuxtLink v-if="isOwner" :to="`/edit/${product.id}`"
-      class="absolute top-2 right-2 z-20 h-8 w-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-700 hover:bg-brand hover:text-white transition-all opacity-0 group-hover:opacity-100"
-      aria-label="Edit Product">
-      <Icon name="mdi:pencil-outline" size="18" />
-    </NuxtLink>
+    <!-- Action buttons (if owner) -->
+    <div v-if="isOwner" class="absolute top-2 right-2 z-20 flex space-x-2">
+      <NuxtLink :to="`/edit/${product.id}`"
+        class="h-8 w-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-700 hover:bg-brand hover:text-white transition-all opacity-0 group-hover:opacity-100"
+        aria-label="Edit Product">
+        <Icon name="mdi:pencil-outline" size="18" />
+      </NuxtLink>
+      <button @click.stop="$emit('share', product)"
+        class="h-8 w-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-700 hover:bg-blue-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+        aria-label="Share Product">
+        <Icon name="mdi:share-variant-outline" size="18" />
+      </button>
+    </div>
 
     <!-- DISCOUNT BADGE -->
     <div v-if="showDiscount"

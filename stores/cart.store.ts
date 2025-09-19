@@ -9,6 +9,8 @@ export const useCartStore = defineStore('cart', {
     cartItems: [] as CartItemInterface[],
     checkout: [] as CartItemInterface[],
     isLoading: false,
+    shippingAddress: null,
+    shippingCost: 0,
   }),
 
   getters: {
@@ -19,9 +21,18 @@ export const useCartStore = defineStore('cart', {
         return total + (price * item.quantity);
       }, 0);
     },
+    totalPrice: (state) => {
+      return state.cartTotal + state.shippingCost;
+    }
   },
 
   actions: {
+    setShippingAddress(address: any) {
+      this.shippingAddress = address;
+    },
+    setShippingCost(cost: number) {
+      this.shippingCost = cost;
+    },
     /**
      * Fetches the user's cart from the database if they are logged in.
      * For guests, this does nothing, allowing the persist plugin to load from localStorage.
