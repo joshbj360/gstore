@@ -1,78 +1,56 @@
 <template>
-  <div class="relative w-full h-full">
-    <!-- Video Player - Full width on mobile -->
-    <template v-if="productMedia?.type === MediaType.VIDEO">
-      <video
-        ref="videoRef"
-        :src="productMedia.url"
-        autoplay
-        :muted="muteVideo"
-        loop
-        playsinline
-        class="w-full h-full object-cover rounded-lg"
-        @error="handleError"
-        @click="togglePlay"
-        aria-label="Product video"
-      />
-      <div class="absolute top-1 right-1 flex gap-1">
-        <button
-          @click.stop="togglePlay"
-          class="bg-white/90 p-1 rounded-full shadow-sm hover:bg-[#f02c56] hover:text-white transition-all"
-          :aria-label="isPlaying ? 'Pause video' : 'Play video'"
-        >
-          <Icon :name="isPlaying ? 'mdi:pause' : 'mdi:play'" size="14" />
-        </button>
-        <button
-          @click.stop="toggleMute"
-          class="bg-white/90 p-1 rounded-full shadow-sm hover:bg-[#f02c56] hover:text-white transition-all"
-          :aria-label="muteVideo ? 'Unmute video' : 'Mute video'"
-        >
-          <Icon :name="muteVideo ? 'mdi:volume-off' : 'mdi:volume-high'" size="14" />
-        </button>
-      </div>
-    </template>
+  <div class="relative w-full h-full bg-black">
+    <div 
+      class="blurry-background" 
+      :style="{ backgroundImage: `url(${productMedia?.url || ''})` }" 
+      v-if="productMedia?.type === 'IMAGE'">
+    </div>
+    <div 
+      class="absolute inset-0 w-full h-full bg-black" 
+      v-if="productMedia?.type === 'VIDEO'">
+    </div>
 
-    <!-- Image - Full width on mobile -->
-    <template v-else-if="productMedia?.type === MediaType.IMAGE">
-      <img
-        :src="productMedia.url"
-        :alt="`Product image ${productMedia.id || ''}`"
-        class="w-full h-full object-cover rounded-lg"
-        :loading="loading"
-        @error="handleError"
-      />
-    </template>
-
-    <!-- Placeholder - Full width on mobile -->
-    <template v-else>
-      <img
-        src="https://picsum.photos/id/1000/800/800"
-        alt="Placeholder image"
-        class="w-full h-full object-cover rounded-lg"
-      />
-    </template>
-
-    <!-- Error State -->
-    <div
-      v-if="error"
-      class="absolute inset-0 flex items-center justify-center bg-gray-200/80 text-gray-600 text-xs sm:text-sm rounded-lg flex-col p-2"
+    <div 
+      class="relative w-full h-full flex items-center justify-center"
+      @mouseenter="handleFocus"
+      @mouseleave="handleBlur"
+      @focus="handleFocus"
+      @blur="handleBlur"
+      tabindex="0"
     >
-      <span class="text-center">Media unavailable</span>
-      <button
-        @click="retryLoad"
-        class="mt-1 text-[#f02c56] hover:underline focus:outline-none"
-        aria-label="Retry loading media"
-      >
-        Retry
-      </button>
+      <template v-if="productMedia?.type === 'VIDEO'">
+        <video
+          ref="videoRef"
+          :src="productMedia.url"
+          muted
+          loop
+          playsinline
+          class="media-content"
+          @error="handleError"
+          aria-label="Product video"
+        />
+        <div class="absolute top-4 right-4 flex gap-2 z-20">
+          </div>
+      </template>
+
+      <template v-else-if="productMedia?.type === 'IMAGE'">
+        <img :src="productMedia.url" :alt="`Product image ${productMedia.id || ''}`" class="media-content" :loading="loading" @error="handleError" />
+      </template>
+
+      <template v-else>
+        <img src="https://picsum.photos/id/1000/800/800" alt="Placeholder image" class="media-content" />
+      </template>
+
+      <div v-if="error" class="absolute inset-0 flex items-center justify-center bg-gray-200/80 z-20">
+        </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import type { PropType } from 'vue';
-import { MediaType, type MediaInterface } from '~/models/interface/products/media.interface';
+import { ref, watch, computed } from "vue";
+import type { PropType } from "vue";
+import { MediaType, type MediaInterface } from "~/models/interface/products/media.interface";
 
 const props = defineProps({
   productMedia: {
@@ -80,72 +58,63 @@ const props = defineProps({
     default: null,
   },
   loading: {
-    type: String as PropType<'eager' | 'lazy'>,
-    default: 'eager',
+    type: String as PropType<"eager" | "lazy">,
+    default: "eager",
+  },
+  isPlaying: {
+    type: Boolean,
+    default: false,
   },
 });
 
-const emit = defineEmits<{
-  (e: 'update:muteVideo', mute: boolean): void;
-}>();
-
-const muteVideo = ref(true);
 const error = ref(false);
-const isPlaying = ref(true);
 const videoRef = ref<HTMLVideoElement | null>(null);
 
-const toggleMute = () => {
-  muteVideo.value = !muteVideo.value;
-  emit('update:muteVideo', muteVideo.value);
+// NEW: Local state to track hover/focus
+const isHoveredOrFocused = ref(false);
+
+// NEW: Handlers for the events
+const handleFocus = () => {
+    isHoveredOrFocused.value = true;
+};
+const handleBlur = () => {
+    isHoveredOrFocused.value = false;
 };
 
-const togglePlay = () => {
-  if (videoRef.value) {
-    if (isPlaying.value) {
-      videoRef.value.pause();
-    } else {
-      videoRef.value.play().catch(() => {
-        error.value = true;
-      });
+// NEW: A computed property to decide if the video should play
+const shouldBePlaying = computed(() => {
+    return props.isPlaying && isHoveredOrFocused.value;
+});
+
+// MODIFIED: The watcher now uses the computed property
+watch(shouldBePlaying, (play) => {
+    if (videoRef.value) {
+        if (play) {
+            videoRef.value.play().catch(e => { /* Browser may prevent play, which is fine */ });
+        } else {
+            videoRef.value.pause();
+        }
     }
-    isPlaying.value = !isPlaying.value;
-  }
-};
+});
 
-const handleError = () => {
-  error.value = true;
-};
-
-const retryLoad = () => {
-  error.value = false;
-  if (videoRef.value && props.productMedia?.type === MediaType.VIDEO) {
-    videoRef.value.load();
-    videoRef.value.play().catch(() => {
-      error.value = true;
-    });
-    isPlaying.value = true;
-  }
-};
+const handleError = () => { error.value = true; };
 </script>
 
-<style scoped>
-/* Mobile-specific optimizations */
-@media (max-width: 640px) {
-  video, img {
-    min-height: 100%;
-    min-width: 100%;
-  }
-
-  .absolute.top-1.right-1 {
-    top: 0.25rem;
-    right: 0.25rem;
-  }
+<style>
+.blurry-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(1.5rem);
+  transform: scale(1.1);
 }
-
-/* Desktop hover effects */
-@media (min-width: 768px) {
-  button:hover {
-    transform: scale(1.1);
-  }
+.media-content {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 10;
 }
 </style>

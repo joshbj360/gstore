@@ -4,7 +4,7 @@
     <div class="bg-white p-6 rounded-lg shadow-sm space-y-4">
       <TextInput v-model:input="storeName" label="Store Name" placeholder="Your store name" />
       <TextInput v-model:input="storeEmail" label="Store Email" type="email" placeholder="store@example.com" />
-      <button class="bg-[#f02c56] text-white px-4 py-2 rounded-lg hover:bg-[#f02c56]/80">
+      <button class="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand/80">
         Save Settings
       </button>
     </div>

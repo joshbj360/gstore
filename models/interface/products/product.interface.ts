@@ -5,16 +5,15 @@ import type { MediaInterface } from "./media.interface";
 import type { TagInterface } from "./tag.interface";  
 
 export interface ProductInterface {
-    id?: number;
+    readonly id: number;
     title: string;
     description?: string 
     price: number;
     category?: CategoryInterface
     measurement?: MeasurementInterface
-    sizes?: string[] 
     tags?: TagInterface[];
     media: MediaInterface[];
-    stock: number | 0
+    variants: ProductVariantInterface[]
     slug: string
     discount?: number ;
     created_at?: Date | null
@@ -22,8 +21,20 @@ export interface ProductInterface {
     sellerId?: string | undefined
     store_name: string
     socialMedia?: SocialMediaInterface
-      rating?: number;
+    rating?: number;
   reviewCount?: number;
+  likeCount?: number;
+ soldCount?: number;
+ shippingZoneId?: string
+}
+
+export interface ProductVariantInterface {
+    id?: number
+    size: string
+    stock: number
+    price?: number
+
+    productID?: number
 }
 
 export interface ProductFileInterface {
@@ -36,11 +47,18 @@ export const defaultProduct: ProductInterface = {
     id: 0,
     title: '',
     description: '',
-    stock: 0,
+    variants: [
+        {
+            id: 0,
+            size: '',
+            stock: 0,
+            price: 0,
+            productID: 0
+        }
+    ],
     price: 0,
     slug: '',
     measurement: defaultMeasurement,
-    sizes: [],
     tags: [],
     media: [],
     store_name: "GrandeurStore"

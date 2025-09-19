@@ -1,385 +1,262 @@
 <template>
-  <div>
-    <!-- Loader -->
-    <LoadingSpinner v-if="productStore.isLoading && !initialLoadComplete" />
-
-    <!-- Error Message -->
-    <div v-else-if="error" class="flex justify-center items-center h-screen">
-      <p class="bg-[#f8f0f0] text-[#f02c56] p-4 rounded-lg">{{ error }}</p>
+    <div v-if="isLoading && !products.length" class="fixed inset-0 flex items-center justify-center bg-white z-50">
+        <LoadingSpinner />
     </div>
 
-    <!-- Product Page -->
-    <div
-      v-else-if="productStore.currentProduct"
-      id="ProductPage"
-      class="fixed lg:flex justify-between z-50 top-0 left-0 w-full h-full bg-black lg:overflow-hidden overflow-auto"
-      role="region"
-      aria-label="Product Viewer"
-      @touchstart.passive="handleTouchStart"
-      @touchmove.passive="handleTouchMove"
-      @touchend.passive="handleTouchEnd"
-      @mousedown="handleMouseDown"
-      @keydown.left.prevent="showPreviousProduct"
-      @keydown.right.prevent="showNextProduct"
-    >
-      <ProductImagesSection
-        :product="productStore.currentProduct"
-        :current-image-index="currentImageIndex"
-        :active-view="activeView"
-        @set-current-image="setCurrentImage"
-        @show-previous="showPreviousProduct"
-        @show-next="showNextProduct"
-        @delete-product="deleteProduct"
-      />
-
-      <ProductDetailsSection
-        :product="productStore.currentProduct"
-        :active-tab="activeTab"
-        :active-view="activeView"
-        :is-in-cart="isInCart"
-        :seller-store="sellerStore"
-        :similar-products="similarProducts"
-        @set-active-tab="activeTab = $event"
-        :loading="loading"
-      />
-
-      <ProductNavigationControls
-        :active-view="activeView"
-        @toggle-view="toggleView"
-        @show-previous="showPreviousProduct"
-        @show-next="showNextProduct"
-      />
-
-      <SwipeHintOverlay v-if="showSwipeHint" @close="showSwipeHint = false" />
+    <div v-else-if="error" class="fixed inset-0 flex items-center justify-center bg-gray-50 p-4">
+        <div class="text-center">
+            <p class="text-red-500 mb-4">{{ error }}</p>
+            <NuxtLink to="/" class="bg-brand text-white px-4 py-2 rounded-md hover:bg-[#df4949]">
+                Go to Homepage
+            </NuxtLink>
+        </div>
     </div>
 
-    <!-- Fallback for no product -->
-    <div v-else-if="!productStore.isLoading" class="flex justify-center items-center h-screen">
-      <p class="text-gray-500 text-lg">Product not found</p>
+    <div v-else class="relative min-h-screen bg-gray-900">
+        <NuxtLink to="/"
+            class="absolute top-4 left-4 z-40 flex items-center bg-white/80 p-2 rounded-full shadow-md hover:bg-brand hover:text-white transition-all"
+            aria-label="Back to Homepage">
+            <Icon name="mdi:arrow-left" size="20" />
+        </NuxtLink>
+
+        <div ref="swipeContainer" class="h-screen w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory">
+            <div v-for="(product, index) in products" :key="product.id"
+                class="h-screen w-full flex items-center justify-center snap-start relative product-slide"
+                :data-index="index">
+                <div class="w-full h-full relative flex flex-col">
+                    <Carousel v-if="product.media?.length" :items-to-show="1" :wrap-around="true" class="w-full h-full">
+                        <Slide v-for="(media, mIndex) in product.media" :key="media.url">
+                            <div class="w-full h-full flex items-center justify-center relative">
+                                <!-- Media index badge -->
+                                <div
+                                    class="absolute top-4 left-1/2 -translate-x-1/2 bg-black/40 text-white text-xs px-2 py-1 rounded-full z-20">
+                                    {{ mIndex + 1 }} / {{ product.media.length }}
+                                </div>
+
+                                <!-- MediaDisplay with corrected sizing -->
+                                <MediaDisplay :product-media="media" :is-playing="product.id === currentProduct?.id"
+                                    class="w-full h-full" />
+                            </div>
+                        </Slide>
+
+                        <!-- Carousel navigation + pagination -->
+                        <template #addons>
+                            <Navigation>
+                                <template #prev>
+                                    <button
+                                        class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-brand hover:text-white transition-all opacity-0 group-hover:opacity-100">
+                                        <Icon name="mdi:chevron-left" size="24" />
+                                    </button>
+                                </template>
+                                <template #next>
+                                    <button
+                                        class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-brand hover:text-white transition-all opacity-0 group-hover:opacity-100">
+                                        <Icon name="mdi:chevron-right" size="24" />
+                                    </button>
+                                </template>
+                            </Navigation>
+                            <Pagination class="absolute bottom-24" />
+                        </template>
+                    </Carousel>
+
+                    <!-- Product footer -->
+                    <div @click="openDetailsPanel(product)"
+                        class="absolute bottom-0 left-0 right-0 text-white z-30 p-6 bg-gradient-to-t from-black/70 to-transparent rounded-b-lg cursor-pointer">
+                        <h3 class="text-lg sm:text-xl font-semibold truncate">
+                            {{ product.title || 'Untitled' }}
+                        </h3>
+                        <p class="text-md sm:text-lg font-bold">
+                            {{ formatPrice(product.price) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="isLoadingMore" class="h-24 flex items-center justify-center">
+                <LoadingSpinner />
+            </div>
+        </div>
+
+        <FloatingSidePanel :product="currentProduct" @toggle-details="openDetailsPanel(currentProduct)"
+            @toggle-chat="openChatModal(currentProduct)" />
+
+        <ProductDetailsSidePanel v-if="panelProduct" :is-open="isDetailsPanelOpen" :product="panelProduct"
+            @close="isDetailsPanelOpen = false" />
+
+        <ProductChatModal v-if="panelProduct" :is-open="isChatModalOpen" @close="isChatModalOpen = false" />
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeMount, onBeforeUnmount, watch } from 'vue'
-import { useDebounceFn } from '@vueuse/core'
+import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue';
+import { useProductStore } from '~/stores/product.store';
 import { useRoute, useRouter } from 'vue-router';
-import { useProductStore, useCartStore, useCoreStore, useUserStore } from '#build/imports';
-import ProductImagesSection from '~/components/product/productDetails/mediaSection/ProductImagesSection.vue';
-import ProductDetailsSection from '~/components/product/productDetails/productDetails/ProductDetailSection.vue';
-import ProductNavigationControls from '@/components/product/ProductNavigationControls.vue';
-import SwipeHintOverlay from '~/components/product/productDetails/SwipeHintOverlay.vue';
-import LoadingSpinner from '@/components/shared/Loading.vue';
-import { defaultSellerProfile, type SellerStoreInterface } from '~/models/interface/auth/user.interface';
-import { defaultProduct, type ProductInterface } from '~/models/interface/products/product.interface';
-import { notify } from '@kyvg/vue3-notification'
+import { useDebounceFn } from '@vueuse/core';
 
+// Component Imports
+import LoadingSpinner from '~/components/shared/Loading.vue';
+import FloatingSidePanel from '~/components/product/ProductSidePanel.vue';
+import MediaDisplay from '~/components/product/productDetails/mediaSection/MediaDisplay.vue';
+import ProductChatModal from '~/components/chat/ProductChatModal.vue';
+import ProductDetailsSidePanel from '~/components/product/productDetails/ProductDetailSidePanel.vue';
+import 'vue3-carousel/dist/carousel.css';
+import type { ProductInterface } from '~/models/interface/products/product.interface';
 
-// Stores
 const productStore = useProductStore();
-const cartStore = useCartStore();
-const coreStore = useCoreStore();
-const userStore = useUserStore();
-const categoryStore = useCategoryStore()
-
-// Router
 const route = useRoute();
 const router = useRouter();
-const productId = ref(Number(route.params.id) || null) 
-const similarProducts = ref<ProductInterface[]>([])
 
 // State
-const initialLoadComplete = ref(false);
+const products = ref<ProductInterface[]>([]);
+const currentProductIndex = ref(-1);
+const isLoading = ref(true);
+const isLoadingMore = ref(false);
 const error = ref<string | null>(null);
-const activeView = ref<'product' | 'details'>('product');
-const activeTab = ref<'details' | 'similar'>('details');
-const currentImageIndex = ref(0);
-const showSwipeHint = ref(false);
-const touchState = ref({
-  isActive: false,
-  startX: 0,
-  startY: 0,
-  startTime: 0,
+const swipeContainer = ref<HTMLElement | null>(null);
+const observer = ref<IntersectionObserver | null>(null);
+
+// Modal/Panel State
+const isDetailsPanelOpen = ref(false);
+const isChatModalOpen = ref(false);
+const panelProduct = ref<ProductInterface | null>(null);
+
+const currentProduct = computed(() => {
+    return currentProductIndex.value > -1 ? products.value[currentProductIndex.value] : null;
 });
-const clickState = ref({
-  isActive: false,
-  startX: 0,
-  startY: 0,
-});
-const sellerStore = ref<SellerStoreInterface>(defaultSellerProfile);
-const isNavigating = ref(false);
 
-// Constants
-const loading = ref(false)
-const SWIPE_THRESHOLD = 50;
-const SWIPE_TIME_THRESHOLD = 300;
-const CLICK_MOVE_THRESHOLD = 5;
-const SWIPE_HINT_DURATION = 2000;
-const NAVIGATION_DEBOUNCE = 300; // ms to debounce navigation
-// Computed
-const isInCart = computed(() => cartStore.cartItems.some((cartProduct) => cartProduct.id === productId.value));
-
-// Methods
-const loadSellerProfile = async () => {
-  if (!productStore.currentProduct?.store_name) return;
-  // alert( productStore.currentProduct?.store_name);
-  try {
-    const success = await userStore.fetchSellerStoreByStoreName(productStore.currentProduct.store_name );
-    if (success) {
-      sellerStore.value = userStore.seller as SellerStoreInterface;
-    } else {
-      notify({ title: 'Error', text: userStore.error || 'Failed to load seller profile', type: 'error' });
-      // error.value = userStore.error || 'Failed to load seller profile';
-    }
-  } catch (err) {
-    notify({ title: 'Error', text: 'Failed to load seller information', type: 'error' });
-    console.error('Seller profile error:', err);
-  }
-};
-
-// Debounced navigation function
-const debouncedNavigate = useDebounceFn((direction: -1 | 1) => {
-  if (isNavigating.value) return;
-  
-  isNavigating.value = true;
-  const targetId = getAdjacentProductId(direction);
-  if (targetId) {
-    navigateToProduct(targetId).finally(() => {
-      isNavigating.value = false;
-    });
-  } else {
-    isNavigating.value = false;
-  }
-}, NAVIGATION_DEBOUNCE);
-
-
-// Touch handlers
-const handleTouchStart = (e: TouchEvent) => {
-  touchState.value = {
-    isActive: true,
-    startX: e.touches[0].clientX,
-    startY: e.touches[0].clientY,
-    startTime: Date.now(),
-  };
-};;
-
-const handleTouchMove = (e: TouchEvent) => {
-  if (!touchState.value.isActive) return;
-  
-  // Only prevent default if we detect a significant horizontal movement
-  if (Math.abs(e.touches[0].clientX - touchState.value.startX) > 10) {
-    e.preventDefault();
-  }
-};
-const handleTouchEnd = (e: TouchEvent) => {
-  if (!touchState.value.isActive || isNavigating.value) return;
-
-  const { startX, startY, startTime } = touchState.value;
-  const endX = e.changedTouches[0].clientX;
-  const endY = e.changedTouches[0].clientY;
-  const deltaX = startX - endX;
-  const deltaY = startY - endY;
-  const elapsed = Date.now() - startTime;
-
-  // Reset touch state
-  touchState.value.isActive = false;
-
-  // Check if it's a valid swipe
-  if (elapsed < SWIPE_TIME_THRESHOLD && 
-      (Math.abs(deltaX) > SWIPE_THRESHOLD || Math.abs(deltaY) > SWIPE_THRESHOLD)) {
-    
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      // Horizontal swipe - toggle view
-      activeView.value = deltaX > 0 ? 'product' : 'details';
-    } else {
-      // Vertical swipe - navigate products
-      if (deltaY > 0) debouncedNavigate(-1); // Swipe down - previous
-      else debouncedNavigate(1); // Swipe up - next
-    }
-  }
-};
-
-// Click handlers
-const handleMouseDown = (e: MouseEvent) => {
-  clickState.value = {
-    isActive: true,
-    startX: e.clientX,
-    startY: e.clientY,
-  };
-};
-
-const handleClick = (e: MouseEvent) => {
-  if (!clickState.value.isActive || isNavigating.value) return;
-
-  const { startX, startY } = clickState.value;
-  const moveX = Math.abs(e.clientX - startX);
-  const moveY = Math.abs(e.clientY - startY);
-
-  // Reset click state
-  clickState.value.isActive = false;
-
-  // Ignore if movement exceeds threshold
-  if (moveX > CLICK_MOVE_THRESHOLD || moveY > CLICK_MOVE_THRESHOLD) return;
-
-  // Only handle side clicks on desktop
-  if (window.innerWidth >= 1024) {
-    const target = e.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const thirdWidth = rect.width / 3;
-
-    if (clickX < thirdWidth) debouncedNavigate(-1); // Left side - previous
-    else if (clickX > thirdWidth * 2) debouncedNavigate(1); // Right side - next
-  }
-};
-
-const showPreviousProduct = () => {
-  const prevId = getAdjacentProductId(-1);
-  if (prevId) navigateToProduct(prevId);
-};
-
-const showNextProduct = () => {
-  const nextId = getAdjacentProductId(1);
-  if (nextId) navigateToProduct(nextId);
-};
-
-const getAdjacentProductId = (direction: -1 | 1): number | null => {
-  const products = productStore.getProductsByCategory(productStore.currentCategory);
-  if (!products.length) return null;
-  
-  const currentIndex = products.findIndex((p) => p.id === productId.value);
-  if (currentIndex === -1) return null;
-  
-  const newIndex = currentIndex + direction;
-  if (newIndex < 0 || newIndex >= products.length) return null;
-  
-  return products[newIndex].id  || null
-};
-
-
-// Navigation functions
-const navigateToProduct = async (id: number) => {
-  await router.push(`/product/${id}`);
-  currentImageIndex.value = 0;
-  window.scrollTo(0, 0); // Ensure we're at the top of the page
-};
-
-const loadProduct = async () => {
-  try {
-    error.value = null;
-    if (productId.value)     await productStore.getProductById(productId.value);
-    console.log(productStore.currentProduct)
-    if (!productStore.currentProduct) {
-      notify({ title: 'Error', text: 'Product not found', type: 'error' });
-    }
-
-  } catch (err) {
-    notify({ title: 'Error', text: 'Failed to load product details', type: 'error' });
-    console.error('Product load error:', err);
-  }
-};
-
-const deleteProduct = async () => {
-  if (!userStore.isLoggedIn || !userStore.isSeller || 
-      userStore.userProfile?.id !== productStore.currentProduct?.sellerId) {
-    error.value = 'You do not have permission to delete this product';
-    return;
-  }
-
-  if (confirm('Are you sure you want to permanently delete this product?')) {
+const loadInitialData = async () => {
+    isLoading.value = true;
+    const productId = Number(route.params.id);
     try {
-      error.value = null;
-      await $fetch(`/api/prisma/products/delete-product/${productId.value}`, { 
-        method: 'DELETE' 
-      });
-      router.push('/');
+        const isOrphanLink = productStore.products.length === 0;
+        let feed: ProductInterface[] = [];
+
+        if (isOrphanLink) {
+            const mainProduct = await productStore.getProductById(productId);
+            if (!mainProduct) { error.value = "Product not found."; return; }
+            let relatedProducts = await productStore.getSimilarProducts(productId) as ProductInterface[];
+            if (!relatedProducts || relatedProducts.length === 0) {
+                relatedProducts = await productStore.getProductsByStoreName(mainProduct.store_name);
+            }
+            feed = [mainProduct, ...relatedProducts.filter(p => p.id !== mainProduct.id)];
+        } else {
+            feed = [...productStore.products];
+        }
+
+        products.value = feed;
+        const foundIndex = feed.findIndex(p => p.id === productId);
+        currentProductIndex.value = foundIndex > -1 ? foundIndex : 0;
+
+        await nextTick();
+        setupIntersectionObserver();
+
+    } catch (e) {
+        error.value = "Failed to load product data.";
+        console.error(e);
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const loadMoreProducts = async () => {
+    if (isLoadingMore.value || !productStore.hasMoreProducts) return;
+    isLoadingMore.value = true;
+    try {
+        await productStore.fetchMoreProducts();
+        products.value = [...productStore.products];
+        await nextTick();
+        observeNewSlides();
     } catch (err) {
-      error.value = 'Failed to delete product';
-      console.error('Delete error:', err);
+        console.error("Failed to load more products", err);
+    } finally {
+        isLoadingMore.value = false;
     }
-  }
 };
 
-const setCurrentImage = (index: number) => {
-  currentImageIndex.value = index;
+const setupIntersectionObserver = () => {
+    if (observer.value) observer.value.disconnect();
+
+    const options = {
+        root: null,
+        threshold: 0.7,
+    };
+
+    observer.value = new IntersectionObserver((entries) => {
+        const intersectingEntry = entries.find(entry => entry.isIntersecting);
+        if (intersectingEntry) {
+            const index = Number((intersectingEntry.target as HTMLElement).dataset.index);
+            if (index !== currentProductIndex.value) {
+                currentProductIndex.value = index;
+                router.replace({ params: { id: products.value[index].id } });
+            }
+            if (index === products.value.length - 1) {
+                loadMoreProducts();
+            }
+        }
+    }, options);
+
+    observeNewSlides();
+
+    const initialSlide = swipeContainer.value?.querySelector(`[data-index='${currentProductIndex.value}']`);
+    initialSlide?.scrollIntoView();
 };
 
-const toggleView = () => {
-  activeView.value = activeView.value === 'product' ? 'details' : 'product';
+const observeNewSlides = () => {
+    const slides = document.querySelectorAll('.product-slide');
+    slides.forEach(slide => observer.value?.observe(slide));
 };
 
-// Lifecycle
-onMounted(() => {
-  if (coreStore.isFirstMount) {
-    showSwipeHint.value = true;
-    setTimeout(() => {
-      showSwipeHint.value = false;
-      coreStore.isFirstMount = false;
-    }, SWIPE_HINT_DURATION);
-  }
-  
-  // Prevent background scrolling when modal is open
-  document.body.style.overflow = 'hidden';
-  document.body.style.touchAction = 'none';
+const openDetailsPanel = (product: ProductInterface | null) => {
+    if (!product) return;
+    panelProduct.value = product;
+    isDetailsPanelOpen.value = true;
+};
 
+const openChatModal = (product: ProductInterface | null) => {
+    if (!product) return;
+    panelProduct.value = product;
+    isChatModalOpen.value = true;
+};
+
+const formatPrice = (price: number) => {
+    if (isNaN(price)) return 'N/A';
+    return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(price / 100);
+};
+
+onMounted(loadInitialData);
+
+onUnmounted(() => {
+    observer.value?.disconnect();
 });
-
-onBeforeMount(async () => {
-  await Promise.all([
-    loadProduct(),
-    
-  ]);
-  // await loadSellerProfile();
-  initialLoadComplete.value = true;
-});
-
-onBeforeUnmount(() => {
-  // Restore scrolling
-  document.body.style.overflow = '';
-  document.body.style.touchAction = '';
-});
-
-// Watchers
-watch(
-  () => route.params.id,
-  useDebounceFn(async (newId) => {
-    productId.value = Number(newId);
-    await Promise.all([
-      loadProduct(),
-    ]);
-    await loadSellerProfile();
-    currentImageIndex.value = 0;
-  }, 300)
-);
-
-watch(
-  () => productStore.currentProduct,
-  (newProduct) => {
-    if (newProduct) {
-      loadSellerProfile();
-    }
-  }
-);
-
 </script>
 
-<style scoped>
-#ProductPage {
-  touch-action: pan-y;
+<style>
+.snap-y {
+    scroll-snap-type: y mandatory;
 }
 
-@media (min-width: 1024px) {
-  #ProductPage {
-    cursor: default;
-  }
+.snap-start {
+    scroll-snap-align: start;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
+.carousel__pagination-button--active {
+    background-color: #C42B78 !important;
 }
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+
+.carousel__pagination-button {
+    background-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.snap-y::-webkit-scrollbar {
+    display: none;
+}
+
+.snap-y {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.product-slide {
+    scroll-snap-align: start;
 }
 </style>

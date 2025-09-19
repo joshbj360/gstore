@@ -1,7 +1,7 @@
 <template>
   <div>
     <button
-      class="mt-2 px-6 py-2.5 text-white text-[15px] bg-[#F02C56] rounded-lg hover:bg-[#df4949] transition flex items-center justify-center gap-2"
+      class="mt-2 px-6 py-2.5 text-white text-[15px] bg-brand rounded-lg hover:bg-[#df4949] transition flex items-center justify-center gap-2"
       @click="openCloudinaryWidget"
       :disabled="isLoading"
     >
@@ -69,6 +69,10 @@ const props = defineProps({
     type: String,
     default: 'image/*,video/*',
   },
+  sellerId: {
+    type: String,
+    required: true  
+  }
 })
 
 const emit = defineEmits<{
@@ -120,21 +124,21 @@ const initializeWidget = () => {
     uploadPreset,
     multiple: props.allowMultiple,
     maxFiles: props.maxFiles,
-    folder: props.folder,
+    folder: `${props.folder}/seller/0 ${props.sellerId}`,
     buttonCaption: props.mediaLabel,
     showAlreadyUploaded: true,
     styles: {
       palette: {
         window: '#F8F8F8',
         sourceBg: '#FFFFFF',
-        windowBorder: '#F02C56',
-        tabIcon: '#F02C56',
+        windowBorder: '#C42B78',
+        tabIcon: '#C42B78',
         inactiveTabIcon: '#555555',
-        menuIcons: '#F02C56',
-        link: '#F02C56',
-        action: '#F02C56',
-        inProgress: '#F02C56',
-        complete: '#F02C56',
+        menuIcons: '#C42B78',
+        link: '#C42B78',
+        action: '#C42B78',
+        inProgress: '#C42B78',
+        complete: '#C42B78',
         error: '#FF0000',
         textDark: '#000000',
         textLight: '#FFFFFF',
@@ -165,10 +169,12 @@ const handleUploadSuccess = (result: CloudinaryResult) => {
     type: mediaType,
     format: result.info.format,
     caption: '',
-    dimensions: result.info.width && result.info.height 
-      ? { width: result.info.width, height: result.info.height }
-      : undefined,
+    focalPoint: {
+      x: result.info.width || 0,
+      y: result.info.height || 0
+    },
     size: result.info.bytes,
+    sellerId: props.sellerId
   };
 
   emit('upload-complete', [media,]);

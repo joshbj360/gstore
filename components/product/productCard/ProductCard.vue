@@ -1,153 +1,155 @@
 <template>
-  <div class="relative bg-white rounded-md shadow-xs overflow-hidden transition-transform active:scale-[0.98] w-full">
-    <!-- Verification Badge - Top Left -->
-    <button
-      v-if="true"
-      @click="showSellerTooltip = !showSellerTooltip"
-      @mouseenter="showSellerTooltip = true"
-      @mouseleave="showSellerTooltip = false"
-      class="absolute top-1.5 left-1.5 z-10 h-5 w-5 rounded-full bg-[#f07d96] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-    >
-      <Icon name="mdi:check-decagram" class="h-3.5 w-3.5 text-white" />
-      <span class="sr-only">Verified Seller</span>
-    </button>
-
-    <!-- Seller Tooltip -->
-    <transition
-      enter-active-class="transition-opacity duration-150 ease-out"
-      leave-active-class="transition-opacity duration-150 ease-in"
-      enter-from-class="opacity-0"
-      leave-to-class="opacity-0"
-    >
-      <div 
-        v-if="showSellerTooltip"
-        class="absolute top-8 left-1.5 z-20 bg-white text-xs font-medium text-gray-800 px-2 py-1 rounded shadow-md whitespace-nowrap"
-      >
-        {{ product.store_name }}
-      </div>
-    </transition>
-
-    <!-- Discount Badge - Top Right -->
-    <div 
-      v-if="showDiscount"
-      class="absolute top-1.5 right-1.5 z-10 bg-[#f02c56] text-white text-[11px] font-bold px-1.5 py-0.5 rounded"
-    >
-      {{ discountPercentage }}% OFF
-    </div>
-
-    <!-- Product Image -->
-    <NuxtLink 
-      :to="`/product/${product.id}`"
-      class="block w-full aspect-square relative overflow-hidden"
-      aria-label="View product details"
-    >
-      <ProductMedia 
-        :product-media="product.media?.[0]"
-        class="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-      />
+  <div id="product-card"
+    class="relative bg-white rounded-lg shadow-sm overflow-hidden group transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+    <!-- Edit button (if owner) -->
+    <NuxtLink v-if="isOwner" :to="`/edit/${product.id}`"
+      class="absolute top-2 right-2 z-20 h-8 w-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-700 hover:bg-brand hover:text-white transition-all opacity-0 group-hover:opacity-100"
+      aria-label="Edit Product">
+      <Icon name="mdi:pencil-outline" size="18" />
     </NuxtLink>
 
-    <!-- Product Info -->
-    <div class="p-2">
-      <!-- Title (2 lines max) -->
-      <h3 class="text-[13px] font-medium text-gray-900 line-clamp-2 leading-tight ">
-        {{ product.title || 'Untitled' }}
-      </h3>
+    <!-- DISCOUNT BADGE -->
+    <div v-if="showDiscount"
+      class="absolute top-2 right-2 z-10 bg-brand text-white text-[10px] font-bold px-2 py-1 rounded-full">
+      -{{ discountPercentage.value }}%
+    </div>
+    
+    <!-- Seller label -->
+    <NuxtLink v-if="product.store_name" :to="`/seller/profile/${product.store_name}`" class="absolute top-2 left-2 z-10 px-2 py-1 rounded-full flex items-center gap-1
+         font-semibold backdrop-blur-sm text-xs sm:text-[10px]" :class="product.isVerified
+          ? 'bg-brand/90 text-white'
+          : 'bg-white/80 text-gray-800'" :title="`Sold by ${product.store_name}`">
 
-      <!-- Price & Cart Button -->
-      <div class="flex justify-between items-center mt-0.5">
-        <div>
-          <p class="text-[13px] font-bold text-[#f02c56] leading-none">
+      <Icon name="mdi:store-outline" size="12" aria-hidden="true" />
+      <span>{{ product.store_name }}</span>
+      <Icon v-if="product.isVerified" name="mdi:check-decagram" class="h-3 w-3 text-white" aria-hidden="true" />
+    </NuxtLink>
+
+    <!-- Product image -->
+    <NuxtLink :to="`/product/${product.id}`" class="block w-full aspect-square relative overflow-hidden">
+      <MediaDisplayCard :product-media="product.media?.[0]"
+        class="w-full h-full transition-transform duration-300 group-hover:scale-105" />
+    </NuxtLink>
+
+    <!-- Product details -->
+    <div class="p-2">
+      <!-- Price + Cart -->
+      <div class="flex justify-between items-center mt-1">
+        
+          <p class="text-base font-bold text-gray-800">
             {{ formatPrice(discountedPrice) }}
           </p>
-          <p 
-            v-if="showDiscount"
-            class="text-[11px] text-gray-500 line-through mt-0.5"
-          >
+          <p v-if="showDiscount" class="text-xs text-gray-400 line-through -mt-1 pt-1">
             {{ formatPrice(product.price) }}
           </p>
-        </div>
         
-        <button
-          @click.stop="handleAddToCart"
-          :disabled="isInCart || isOutOfStock"
-          class="h-7 w-7 flex items-center justify-center rounded-full bg-[#f02c56] text-white shadow-xs transition-colors disabled:bg-gray-200"
-          :class="{ 'bg-emerald-500': isInCart }"
-          aria-label="Add to cart"
-        >
-          <Icon 
-            :name="cartButtonIcon"
-            class="h-4 w-4"
-          />
+
+        <button @click.stop="handleAddToCart" :disabled="isInCart"
+          class="h-8 w-8 flex items-center justify-center rounded-full bg-brand/10 text-brand-dark hover:bg-brand hover:text-white transition-colors disabled:bg-gray-200 disabled:text-gray-400"
+          :class="{ 'bg-emerald-500 !text-white': isInCart }" aria-label="Add to cart">
+          <Icon :name="isInCart ? 'mdi:cart-check' : 'mdi:cart-plus'" class="h-5 w-5" />
         </button>
       </div>
-    </div>
+      <!-- Title -->
+<h4 class="text-sm font-semibold text-gray-600 line-clamp-2 leading-snug">
+  {{ product.title || 'Untitled Product' }}
+</h4>
 
-    <!-- Rating & Likes (Bottom) -->
-    <div class="px-2 pb-2 pt-1 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
-      <div class="flex items-center gap-1.5">
-        <Icon name="mdi:star" class="h-3.5 w-3.5 text-yellow-400" />
-        <span>{{ product.rating?.toFixed(1) || '4.5' }}</span>
-      </div>
-      <div class="flex items-center gap-1.5">
-        <Icon name="mdi:heart" class="h-3.5 w-3.5 text-rose-400" />
-        <span>{{ likeCountFormatted }}</span>
-      </div>
+<!-- Show Metrics only if both are > 10 -->
+<div v-if="product.likeCount && product.productSoldCount ? product.likeCount > 10 && product.productSoldCount > 10 : false"
+  class="mt-2 pt-1 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+  
+  <!-- Likes -->
+  <div class="flex items-center gap-1.5">
+    <Icon name="mdi:heart-outline" class="h-4 w-4 text-rose-400" />
+    <span>{{ likeCountFormatted }} Likes</span>
+  </div>
+
+  <!-- Number Sold -->
+  <div class="flex items-center gap-1.5">
+    <Icon name="mdi:package-variant-closed" class="h-4 w-4 text-gray-400" />
+    <span>{{ numberSoldFormatted }} Sold</span>
+  </div>
+</div>
+
+<!-- Show Description if not enough likes/sold -->
+<!-- <p v-else  v-html="product.description || 'No description available.'" class="mt-2 text-xs text-gray-500 line-clamp-1">
+</p> -->
+
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useCartStore } from '~/stores/cart.store';
+import { computed } from 'vue';
+import { useCartStore, useUserStore } from '~/stores';
 import type { ProductInterface } from '~/models/interface/products/product.interface';
-import ProductMedia from '~/components/product/productDetails/mediaSection/MediaDisplay.vue'
+import MediaDisplayCard from './MediaDisplayCard.vue';
+import { notify } from "@kyvg/vue3-notification";
+import { useRouter } from 'vue-router';
 
 const props = defineProps<{
   product: ProductInterface & {
-    sellerVerified?: boolean;
     likeCount?: number;
-    rating?: number;
+    numberSold?: number;
+    isVerified?: boolean; // 👈 new flag for verified seller
   };
 }>();
 
-const { product } = toRefs(props);
 const cartStore = useCartStore();
-const showSellerTooltip = ref(false);
+const userStore = useUserStore();
+const router = useRouter();
 
-// Computed properties
-const cartButtonIcon = computed(() => {
-  if (isOutOfStock.value) return 'mdi:cart-off';
-  return isInCart.value ? 'mdi:cart-check' : 'mdi:cart-plus';
+const isOwner = computed(() => {
+  return userStore.isLoggedIn && userStore.user?.id === props.product.sellerId;
 });
 
-const likeCountFormatted = computed(() => {
-  const count = product.value.likeCount || 0;
-  return count > 999 ? `${(count/1000).toFixed(1)}k` : count;
-});
-
-const isInCart = computed(() => cartStore.cartItems.some(item => item.id === product.value.id));
-const isOutOfStock = computed(() => product.value.stock <= 0);
-const showDiscount = computed(() => product.value.discount && product.value.discount > 0);
-const discountPercentage = computed(() => Math.round((product.value.discount || 0) * 100));
-const discountedPrice = computed(() => product.value.discount 
-  ? product.value.price * (1 - product.value.discount) 
-  : product.value.price
+const isInCart = computed(() =>
+  cartStore.cartItems.some(item => item.product.id === props.product.id)
 );
 
+const likeCountFormatted = computed(() => {
+  const count = props.product.likeCount || 0;
+  return count > 999 ? `${(count / 1000).toFixed(1)}k` : count;
+});
+
+const numberSoldFormatted = computed(() => {
+  const count = props.product.numberSold || 0;
+  if (count > 999) return `${(count / 1000).toFixed(1)}k+`;
+  if (count > 0) return `${count}`;
+  return '0';
+});
+
+// Computed properties for handling discounts
+const showDiscount = computed(() => props.product.discount && props.product.discount > 0);
+const discountPercentage = computed(() => {
+  return {
+    value: props.product.price > 0 ? Math.round((props.product.discount || 0) / props.product.price * 100) : 0
+  }
+});
+const discountedPrice = computed(() => {
+  return props.product.discount ? props.product.price - props.product.discount : props.product.price;
+});
+
 const handleAddToCart = () => {
-  if (isOutOfStock.value) return;
-  cartStore.addToCart({
-    ...product.value,
-    quantity: 1
-  } as ProductInterface & { quantity: number });
+  const variants = props.product.variants;
+
+  if (variants && variants.length > 1) {
+    notify({ type: 'info', text: 'Please open the details panel to select a size.' });
+    router.push(`/product/${props.product.id}`);
+  } else if (variants && variants.length === 1) {
+    cartStore.addToCart(props.product, variants[0]);
+    notify({ type: 'success', text: `${props.product.title} added to cart!` });
+  } else {
+    notify({ type: 'error', text: 'This product is currently unavailable.' });
+  }
 };
 
 const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('en-US', {
+  if (isNaN(price)) return '₦0';
+  return new Intl.NumberFormat('en-NG', {
     style: 'currency',
     currency: 'NGN',
-    currencyDisplay: 'narrowSymbol'
   }).format(price / 100);
 };
 </script>

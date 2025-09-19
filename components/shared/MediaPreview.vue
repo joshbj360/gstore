@@ -13,8 +13,8 @@
       <div
         v-for="(item, index) in media"
         :key="index"
-        class="relative group h-48 rounded-lg overflow-hidden border border-gray-200 hover:border-[#F02C56] transition-colors"
-        :class="{ 'ring-2 ring-[#F02C56]': index === mainMediaIndex }"
+        class="relative group h-48 rounded-lg overflow-hidden border border-gray-200 hover:border-[#C42B78] transition-colors"
+        :class="{ 'ring-2 ring-[#C42B78]': index === mainMediaIndex }"
       >
         <!-- Image Preview -->
         <img
@@ -50,12 +50,12 @@
             <button
               v-if="index !== mainMediaIndex"
               @click.stop="setMainMedia(index)"
-              class="text-white hover:text-[#F02C56] transition-colors"
+              class="text-white hover:text-brand-dark transition-colors"
               aria-label="Set as main media"
             >
               <Icon name="mdi:star-outline" size="20" />
             </button>
-            <span v-else class="text-[#F02C56]">
+            <span v-else class="text-brand-dark">
               <Icon name="mdi:star" size="20" />
             </span>
 

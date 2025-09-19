@@ -1,13 +1,14 @@
 <template>
   <MainLayout>
-    <div class="pt-[100px] md:pt-[80px] w-full md:w-[calc(100%-90px)] max-w-[750px]">
-      <ProductLayout />
-    </div>
+    <!-- The ProductLayout component contains the grid of products -->
+    <!-- It will automatically fill the main content area of the MainLayout -->
+    <ProductLayout />
   </MainLayout>
 </template>
 
 <script lang="ts" setup>
-import MainLayout from '@/layouts/MainLayout.vue'
-import ProductLayout from '@/layouts/ProductLayout.vue'
+import MainLayout from '@/layouts/MainLayout.vue';
+import ProductLayout from '@/layouts/ProductLayout.vue';
 
+// No page-specific script is needed here, keeping the component clean.
 </script>

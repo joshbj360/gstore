@@ -12,7 +12,7 @@
         <h2 class="text-center text-2xl sm:text-3xl font-bold text-gray-800">
           {{ isRegister ? 'Create Your Account' : 'Sign In' }}
         </h2>
-        <div v-if="error" class="text-[#f02c56] text-sm text-center bg-[#f8f0f0] p-3 rounded-lg">
+        <div v-if="error" class="text-brand-dark text-sm text-center bg-[#f8f0f0] p-3 rounded-lg">
           {{ error }}
         </div>
         <!-- Email/Password Form -->
@@ -47,7 +47,7 @@
           />
           <button
             type="submit"
-            class="w-full py-2.5 px-4 text-white bg-[#f02c56] rounded-lg hover:bg-[#d81b36] transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#f02c56]/50 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            class="w-full py-2.5 px-4 text-white bg-brand rounded-lg hover:bg-[#d81b36] transition-all duration-250 focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50 disabled:bg-gray-400 disabled:cursor-not-allowed"
             :disabled="loading"
             aria-label="Submit form"
           >
@@ -59,7 +59,7 @@
           <button
             @click="socialLogin('google')"
             :disabled="loading"
-            class="flex items-center justify-center gap-3 p-2.5 w-full border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-250 text-base font-medium disabled:bg-gray-200 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#f02c56]/50"
+            class="flex items-center justify-center gap-3 p-2.5 w-full border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-250 text-base font-medium disabled:bg-gray-200 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50"
             aria-label="Sign in with Google"
           >
             <img class="w-6 h-6" src="~/assets/images/google-logo.png" alt="Google Logo" loading="lazy" />
@@ -68,7 +68,7 @@
           <button
             @click="socialLogin('github')"
             :disabled="loading"
-            class="flex items-center justify-center gap-3 p-2.5 w-full border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-250 text-base font-medium disabled:bg-gray-200 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#f02c56]/50"
+            class="flex items-center justify-center gap-3 p-2.5 w-full border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-250 text-base font-medium disabled:bg-gray-200 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50"
             aria-label="Sign in with GitHub"
           >
             <img class="w-6 h-6" src="~/assets/images/github-logo.png" alt="GitHub Logo" loading="lazy" />
@@ -80,7 +80,7 @@
           {{ isRegister ? 'Already have an account?' : 'Need an account?' }}
           <button
             @click="toggleRegister"
-            class="text-[#f02c56] hover:underline focus:outline-none focus:ring-2 focus:ring-[#f02c56]/50"
+            class="text-brand-dark hover:underline focus:outline-none focus:ring-2 focus:ring-[#C42B78]/50"
             aria-label="Toggle between sign in and sign up"
           >
             {{ isRegister ? 'Sign In' : 'Sign Up' }}

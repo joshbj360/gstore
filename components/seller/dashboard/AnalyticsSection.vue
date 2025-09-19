@@ -4,15 +4,15 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <div class="bg-white p-6 rounded-lg shadow-sm">
         <h3 class="text-sm font-medium text-gray-600">Total Sales</h3>
-        <p class="text-2xl font-bold text-[#f02c56]">${{ sales }}</p>
+        <p class="text-2xl font-bold text-brand-dark">${{ sales }}</p>
       </div>
       <div class="bg-white p-6 rounded-lg shadow-sm">
         <h3 class="text-sm font-medium text-gray-600">Product Views</h3>
-        <p class="text-2xl font-bold text-[#f02c56]">{{ views }}</p>
+        <p class="text-2xl font-bold text-brand-dark">{{ views }}</p>
       </div>
       <div class="bg-white p-6 rounded-lg shadow-sm">
         <h3 class="text-sm font-medium text-gray-600">Conversion Rate</h3>
-        <p class="text-2xl font-bold text-[#f02c56]">{{ conversion }}%</p>
+        <p class="text-2xl font-bold text-brand-dark">{{ conversion }}%</p>
       </div>
     </div>
   </div>

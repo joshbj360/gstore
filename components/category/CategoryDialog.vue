@@ -65,7 +65,7 @@
           </button>
           <button
             type="submit"
-            class="px-4 py-2 bg-[#F02C56] text-white rounded-md text-sm font-medium hover:bg-[#df4949]"
+            class="px-4 py-2 bg-brand text-white rounded-md text-sm font-medium hover:bg-[#df4949]"
             :disabled="!name || !thumbnailCatUrl"
           >
             Add Category
@@ -79,7 +79,7 @@
 <script setup lang="ts">
 import type { MediaInterface } from '~/models/interface/products/media.interface';
 import TextInput from '../shared/TextInput.vue';
-import UploadWidget from '../shared/UploadWidget.vue';
+import UploadWidget from '../upload/UploadWidget.vue';
 
 const emit = defineEmits(['submit', 'close']);
 

@@ -2,7 +2,7 @@
   <div class="w-full max-w-6xl mx-auto px-1 sm:px-0" id="ProductLayout">
     <!-- Loader -->
     <div v-if="productStore.isLoading && !initialLoadComplete" class="fixed inset-0 z-50 flex items-center justify-center bg-white/80">
-      <Loading class="h-12 w-12 text-[#f02c56]" />
+      <Loading class="h-12 w-12 text-brand-dark" />
     </div>
 
     <!-- Error Message -->
@@ -11,7 +11,7 @@
     </div>
 
     <!-- Product Grid -->
-    <div v-if="!emptyState" id="product-grid" class="grid grid-cols-2 gap-1 sm:gap-2 p-1">
+    <div v-if="!emptyState" id="product-grid" class="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-1 sm:gap-2 p-1">
       <div 
         v-for="product in displayedProducts" 
         :key="product.id"
@@ -27,7 +27,7 @@
       <p class="text-gray-600 font-medium text-sm">{{ emptyStateMessage }}</p>
       <button
         @click="initializeData"
-        class="mt-3 text-[#f02c56] text-sm hover:underline"
+        class="mt-3 text-brand-dark text-sm hover:underline"
       >
         Try Again
       </button>
@@ -38,7 +38,7 @@
       <button
         @click="loadMore"
         :disabled="productStore.isLoading"
-        class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-full shadow-sm text-white bg-[#f02c56] hover:bg-[#df4949] focus:outline-none disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
+        class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-full shadow-sm text-white bg-brand hover:bg-[#df4949] focus:outline-none disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
       >
         <span v-if="!productStore.isLoading">Load More</span>
         <span v-else class="flex items-center">
@@ -49,11 +49,12 @@
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
-import { useCoreStore, useProductStore } from '#build/imports';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useProductStore } from '#build/imports';
 import ProductCard from '~/components/product/productCard/ProductCard.vue';
-import Loading from '~/components/shared/Loading.vue'
+import Loading from '~/components/shared/Loading.vue';
+import { useRoute } from 'vue-router';
 
 const productStore = useProductStore();
 const route = useRoute();
@@ -81,45 +82,42 @@ const emptyStateMessage = computed(() => {
     : 'No products found';
 });
 
-// Initial Load
-onMounted(async () => {
-  await initializeData();
-  initialLoadComplete.value = true;
-});
-
-// Server-side initialization
-if (process.server) {
-  await initializeData();
-}
-
-async function initializeData() {
-  try {
-    error.value = null;
-    await productStore.initialize();
-    
-    if (route.query.category) {
-      await productStore.filterByCategory(route.query.category as string);
-    }
-  } catch (err) {
-    error.value = 'Failed to load products. Please try again.';
-    console.error('Initialization error:', err);
-  }
-}
-
-// Watch for category changes
+// Watch for category changes in the URL
 watch(
   () => route.query.category,
   async (newCategory) => {
+    const categoryName = newCategory as string | null;
     try {
       error.value = null;
-      await productStore.filterByCategory(newCategory as string | null);
+      if (categoryName) {
+        // If there's a category in the URL, apply the filter
+        await productStore.filterByCategory(categoryName);
+      } else {
+        // If there's NO category in the URL, clear the filter
+        productStore.clearCategoryFilter();
+      }
     } catch (err) {
       error.value = 'Failed to filter products by category.';
       console.error('Category filter error:', err);
     }
   },
-  { immediate: true }
+  { immediate: true } // immediate: true ensures this runs on initial load
 );
+
+
+// Initial data load function
+async function initializeData() {
+  try {
+    error.value = null;
+    // Initialize will fetch all products if the store is empty
+    await productStore.initialize();
+  } catch (err) {
+    error.value = 'Failed to load products. Please try again.';
+    console.error('Initialization error:', err);
+  } finally {
+    initialLoadComplete.value = true;
+  }
+}
 
 // Load More
 const loadMore = async () => {
@@ -131,7 +129,17 @@ const loadMore = async () => {
     console.error('Load more error:', err);
   }
 };
-</script>
+
+// Only run initializeData on mount if the products aren't already loaded.
+// The watcher will handle the category filtering.
+onMounted(() => {
+    if (productStore.products.length === 0) {
+        initializeData();
+    } else {
+        initialLoadComplete.value = true;
+    }
+});
+</script>>
 
 <style>
 /* Animation for grid items */
@@ -161,9 +169,30 @@ const loadMore = async () => {
 }
 
 /* Tablet adjustments */
-@media (min-width: 413px) and (max-width: 768px) {
+@media (max-width: 400px) {
   #product-grid {
-    gap: 0.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.25rem; /* tighter spacing for small screens */
+  }}
+
+    /* Card adjustments */
+  .product-card {
+    padding: 0.25rem;       /* less padding */
   }
-}
+
+  .product-card h3 {
+    font-size: 0.75rem;     /* ~12px for titles */
+    line-height: 1rem;
+  }
+
+  .product-card p,
+  .product-card span {
+    font-size: 0.7rem;      /* ~11px for secondary text */
+    line-height: 0.9rem;
+  }
+
+  .product-card .price {
+    font-size: 0.8rem;      /* slightly bigger for emphasis */
+    font-weight: 600;
+  }
 </style>

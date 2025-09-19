@@ -15,7 +15,7 @@
       
       <div class="w-full bg-gray-200 rounded-full h-2.5">
         <div 
-          class="bg-[#F02C56] h-2.5 rounded-full" 
+          class="bg-brand h-2.5 rounded-full" 
           :style="`width: ${progress}%`"
         ></div>
       </div>

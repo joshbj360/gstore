@@ -29,6 +29,7 @@ export default defineEventHandler(async (event) => {
           },
         },
         measurement: true,
+        variants: true, // Include the variants for each product
       },
     });
     console.log('this are products by seller ', products, 'source: [server/products/store_name.ts}')

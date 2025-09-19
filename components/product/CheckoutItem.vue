@@ -1,51 +1,40 @@
 <template>
-  <div class="flex justify-start my-2" id="CheckoutItem" role="listitem">
-    <img
-      :src="item.product.media[0]?.url || 'https://picsum.photos/id/1000/150/150'"
-      alt="Product image"
-      class="rounded-md md:w-[150px] w-[90px] h-auto object-cover"
-      loading="lazy"
-      width="150"
-      height="150"
-      @error="handleError"
-    />
-    <div class="overflow-hidden pl-2 flex-1">
-      <div class="flex items-center">
-        <span
-          v-if="showWelcomeDeal"
-          class="bg-[#f02c56] text-white text-[9px] font-semibold px-2 py-0.5 rounded-md"
-        >
-          Welcome Deal
-        </span>
-        <div class="truncate pl-2 flex-1">{{ item.product.title }}</div>
+  <div class="flex py-4" role="listitem">
+    <div class="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+        <img
+            :src="item.product.media[0]?.url || '/default-product.png'"
+            :alt="item.product.title"
+            class="w-full h-full object-cover"
+        />
+    </div>
+    <div class="ml-4 flex-1 flex flex-col justify-center">
+      <div>
+        <h3 class="font-semibold text-gray-800 line-clamp-2 leading-tight">
+          {{ item.product.title }}
+        </h3>
+        <p v-if="item.variant.size" class="text-sm text-gray-500 mt-1">
+          Size: {{ item.variant.size }}
+        </p>
       </div>
-      <div class="text-lg font-semibold mt-2">
-        $ <span class="font-bold">{{ (item.product.price / 100).toFixed(2) }}</span>
-        <span v-if="item.quantity && item.quantity > 1" class="text-sm text-gray-500 ml-2">
-          (x{{ item.quantity }})
-        </span>
+      <div class="flex justify-between items-baseline mt-2">
+        <span class="text-sm text-gray-500">Qty: {{ item.quantity }}</span>
+        <span class="font-semibold text-gray-900">{{ formatPrice(item.variant.price || item.product.price) }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import type { CartInterface } from '~/models/interface/cart/cart.interface';
-
+import type { CartItemInterface } from '~/models/interface/cart/cart.interface';
 
 const props = defineProps<{
-  item: CartInterface;
-  showWelcomeDeal?: boolean;
+  item: CartItemInterface;
 }>();
 
-const { item } = toRefs(props);
-const error = ref(false);
-
-const handleError = () => {
-  error.value = true;
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+  }).format(price / 100);
 };
 </script>
-
-<style scoped>
-/* No additional styles needed; Tailwind handles responsiveness */
-</style>

@@ -8,7 +8,7 @@
       <div 
         class="p-3 rounded-full"
         :class="{
-          'bg-[#f02c56]/10': trend === 'up',
+          'bg-brand/10': trend === 'up',
           'bg-yellow-100': trend === 'down',
           'bg-gray-100': trend === 'neutral'
         }"
@@ -17,7 +17,7 @@
           :name="icon" 
           size="20" 
           :class="{
-            'text-[#f02c56]': trend === 'up',
+            'text-brand-dark': trend === 'up',
             'text-yellow-500': trend === 'down',
             'text-gray-500': trend === 'neutral'
           }" 

@@ -1,77 +1,77 @@
 <template>
   <div
     id="side-nav-main"
-    class="fixed z-20 bg-white pt-[70px] h-full w-[75px] lg:w-64 overflow-auto lg:border-r border-r"
+    class="fixed z-20 bg-white pt-[70px] h-full lg:w-72 w-60 overflow-y-auto border-r"
   >
-    <!-- Error Message -->
-    <div v-if="error" class="bg-red-100 text-red-700 p-4 rounded mb-4 text-center text-sm">
-      {{ error }}
-    </div>
-
-    <div class="w-[55px] lg:w-full mx-auto">
-      <NuxtLink to="/">
-        <MenuItem iconString="Home" colorString="#f02c56" sizeString="28" />
-      </NuxtLink>
-      <MenuItem iconString="Trending" colorString="#161718" sizeString="26" />
-      <MenuItem iconString="Grandeur Collections" colorString="#161718" sizeString="26" />
-      <MenuItem iconString="Following" colorString="#161718" sizeString="26" />
-      <MenuItem iconString="Live shopping" colorString="#161718" sizeString="26" />
-
-      <div class="border-b lg:ml-2 mt-2" />
-
-      <div class="lg:block hidden text-sm font-semibold text-gray-600 pt-4 pb-2 px-2">
-        Categories
-      </div>
-      <div class="pt-3">
-        <div v-for="category in categories.slice(0, 10)" :key="category.id" class="cursor-pointer">
-          <CategoryItem
-            :category="category.name"
-            :img-uri="category.thumbnailUrl ?? 'https://picsum.photos/id/1005/32'"
-            :alt-icon="category.name"
-            @click="getProductsByCategory(category.name)"
-            :disabled="productStore.isLoading"
-          />
+    <div class="px-4 py-6">
+      <!-- Main Navigation Links -->
+      <div class="space-y-2 mb-8">
+        <div v-for="item in mainNavLinks" :key="item.text">
+          <NuxtLink :to="item.path">
+            <MenuItem 
+              :icon="item.icon" 
+              :color="isActive(item.path) ? '#C42B78' : '#161718'" 
+              :size="item.size" 
+              :text="item.text" 
+            />
+          </NuxtLink>
         </div>
-        <button class="lg:block hidden text-[#f02c56] pt-1.5 pl-2 text-sm font-semibold hover:underline">
-          View All
-        </button>
+      </div>
+
+      <div class="border-b" />
+
+      <!-- Categories Section -->
+      <div class="mt-8">
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider px-2 mb-3">
+          Top Categories
+        </h3>
+        <div v-if="categoryStore.categories.length" class="space-y-1">
+          <!-- Use NuxtLink for proper navigation -->
+          <NuxtLink
+            v-for="category in categoryStore.categories.slice(0, 8)"
+            :key="category.id"
+            :to="`/category/${category.slug}`"
+            class="block"
+          >
+            <CategoryItem
+              :category="category.name"
+              :img-uri="category.thumbnailCatUrl || 'https://picsum.photos/id/1005/32'"
+            />
+          </NuxtLink>
+        </div>
+        <p v-else class="text-sm text-gray-400 px-2">Loading categories...</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { useCategoryStore, useProductStore } from '@/stores';
+import { useCategoryStore } from '@/stores';
 import MenuItem from './MenuItem.vue';
 import CategoryItem from '@/layouts/children/CategoryItem.vue';
-import type { CategoryInterface } from '~/models/interface/products/category.interface';
 
-const route = useRoute();
 const categoryStore = useCategoryStore();
-const productStore = useProductStore();
+const route = useRoute();
 
-const categories = ref<CategoryInterface[]>([]);
-const error = ref<string | null>(null);
+// Structured data for main navigation links
+const mainNavLinks = ref([
+  { path: '/', icon: 'mdi:home-outline', text: 'Home', size: '24' },
+  { path: '/discover', icon: 'mdi:compass-outline', text: 'Discover', size: '24' },
+  { path: '/trending', icon: 'mdi:fire', text: 'Trending', size: '24' },
+]);
 
-const loadCategories = async () => {
-  try {
-    await categoryStore.fetchCategories();
-    categories.value = categoryStore.categories;
-  } catch (err) {
-    error.value = 'Failed to load categories.';
-  }
+// Function to check if a link is active
+const isActive = (path: string) => {
+  if (path === '/') return route.path === '/';
+  return route.path.startsWith(path);
 };
 
-const getProductsByCategory = async (categoryName: string) => {
-  try {
-    error.value = null;
-    await productStore.filterByCategory(categoryName);
-  } catch (err) {
-    error.value = 'Failed to filter products by category.';
+// Fetch categories only if they aren't already in the store
+onMounted(() => {
+  if (categoryStore.categories.length === 0) {
+    categoryStore.fetchCategories();
   }
-};
-
-loadCategories();
+});
 </script>
