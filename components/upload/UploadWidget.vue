@@ -76,7 +76,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits<{
-  (e: 'upload-complete', media: [{}]): void;
+  (e: 'upload-complete', media: IMedia[]): void;
   (e: 'upload-error', error: string): void;
 }>();
 const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'dcci05bzj';
@@ -164,11 +164,15 @@ const initializeWidget = () => {
 const handleUploadSuccess = (result: CloudinaryResult) => {
   const mediaType = result.info.resource_type.toUpperCase() as EMediaType;
 
-  const media = {
+  const media: IMedia = {
     url: result.info.secure_url,
     type: mediaType,
     sellerId: props.sellerId,
-
+    created_at: new Date(),
+    metadata: null,
+    id: 0,
+    productId: null,
+    altText: null
   };
 
   emit('upload-complete', [media]);

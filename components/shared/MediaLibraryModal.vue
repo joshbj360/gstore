@@ -35,7 +35,7 @@
 
         <div v-if="activeTab === 'upload'" class="p-8 flex flex-col items-center justify-center h-full bg-gray-50">
           <p class="text-gray-600 mb-4">Upload new images or videos for your products.</p>
-          <UploadWidget v-if="userStore.seller" :seller-id="userStore.seller?.profile_id" @upload-complete="handleUpload" />
+          <UploadWidget v-if="userStore.sellerProfile" :seller-id="userStore.sellerProfile?.profileId" @upload-complete="handleUpload" />
         </div>
       </div>
 
@@ -55,7 +55,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '~/stores';
-import type { MediaInterface } from '~/models/interface/products/media.interface';
+import type { IMedia } from '~/models';
 import UploadWidget from '@/components/upload/UploadWidget.vue';
 import { notify } from "@kyvg/vue3-notification";
 
@@ -64,8 +64,8 @@ const emit = defineEmits(['close', 'select']);
 const userStore = useUserStore();
 
 const activeTab = ref('library');
-const mediaItems = ref<MediaInterface[]>([]);
-const selectedMedia = ref<MediaInterface[]>([]);
+const mediaItems = ref<IMedia[]>([]);
+const selectedMedia = ref<IMedia[]>([]);
 const loading = ref(true);
 
 const fetchLibrary = async () => {
@@ -84,7 +84,7 @@ const fetchLibrary = async () => {
     }
 };
 
-const handleUpload = (uploadedMedia: MediaInterface[]) => {
+const handleUpload = (uploadedMedia: IMedia[]) => {
     // This is where you would call your API to save the media reference to your DB
     // await $fetch('/api/prisma/media/save', { method: 'POST', body: uploadedMedia[0] });
     
@@ -94,7 +94,7 @@ const handleUpload = (uploadedMedia: MediaInterface[]) => {
     activeTab.value = 'library';
 };
 
-const toggleSelection = (media: MediaInterface) => {
+const toggleSelection = (media: IMedia) => {
     const index = selectedMedia.value.findIndex(m => m.url === media.url);
     if (index > -1) {
         selectedMedia.value.splice(index, 1);
@@ -103,7 +103,7 @@ const toggleSelection = (media: MediaInterface) => {
     }
 };
 
-const isSelected = (media: MediaInterface) => selectedMedia.value.some(m => m.url === media.url);
+const isSelected = (media: IMedia) => selectedMedia.value.some(m => m.url === media.url);
 
 const selectMedia = () => {
     emit('select', [...selectedMedia.value]);

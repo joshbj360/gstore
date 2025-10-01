@@ -1,4 +1,4 @@
-<template>
+<!-- <!-- <template>
   <div class="mt-6">
     <h3 class="text-lg font-semibold mb-4">Media Preview</h3>
     <div v-if="mediaData.length" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -14,7 +14,7 @@
             <video v-else autoplay loop muted class="w-full h-full object-cover cursor-pointer"
                 :src="file.url" @click="setMainDisplay(index)" />
         </div>
-    </div>
+    </div> -->
 
     <!-- <label v-if="!fileDisplay" for="fileInput" @drop.prevent="onDrop" @dragover.prevent="" class="
                       md:mx-0
@@ -97,14 +97,14 @@
 </template>
 
 <script lang="ts" setup>
-import  {type MediaInterface, MediaType } from '~/models/interface/products/media.interface';
+import  {type IMedia, EMediaType } from '~/models';
 
 interface Window {
   cloudinary?: any;
 }
 declare var window: Window;
 
-const mediaData = ref<MediaInterface[]>([])
+const mediaData = ref<IMedia[]>([])
 const cloudinaryUrls = ref<string[]>([])
 const file = ref<HTMLInputElement | null>(null)
 const fileDisplay = ref<string | null>(null)
@@ -164,9 +164,10 @@ onMounted(() => {
   mediaData.value = fileData.value.map((file, index) => ({
     id: index.toString(),
     url: URL.createObjectURL(file),
-    type: file.type.startsWith(MediaType.VIDEO) ? MediaType.VIDEO : MediaType.IMAGE,
+    type: file.type.startsWith(EMediaType.VIDEO) ? EMediaType.VIDEO : EMediaType.IMAGE,
     format: file.name.substring(file.name.lastIndexOf('.') + 1),
-    updatedAt: (new Date(file.lastModified))
+    updatedAt: (new Date(file.lastModified)),
+    sellerId:
   }))
   if (fileData.value.length > 0) setMainDisplay(0)
 }
@@ -181,7 +182,7 @@ const onDrop = (e: DragEvent) => {
   mediaData.value = droppedFiles.map((file, index) => ({
     id: index.toString(),
     url: URL.createObjectURL(file),
-    type: file.type.startsWith(MediaType.VIDEO) ? MediaType.VIDEO : MediaType.IMAGE,
+    type: file.type.startsWith(EMediaType.VIDEO) ? EMediaType.VIDEO : EMediaType.IMAGE,
     format: file.name.substring(file.name.lastIndexOf('.') + 1),
     updatedAt: (new Date(file.lastModified))
   }))

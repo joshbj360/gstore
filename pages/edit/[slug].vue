@@ -32,6 +32,8 @@
             <ProductForm 
               :media-data="mediaData"
               :existing-product="productToEdit"
+              :categories="categoryStore.categories"
+              :seller-shipping-zones="shippingStore.shippingZones"
               @submit="saveProduct"
               @discard="router.back()"
             />
@@ -63,17 +65,18 @@ import ProductForm from '~/components/upload/ProductForm.vue';
 import MediaPreview from '~/components/shared/MediaPreview.vue';
 import UploadWidget from '~/components/upload/UploadWidget.vue';
 
-import type { MediaInterface } from '~/models/interface/products/media.interface';
-import type { IProduct } from '~/models/interface/products/product.interface';
+import type { IMedia, IProduct } from '~/models';
 
 const route = useRoute();
 const router = useRouter();
 const productStore = useProductStore();
 const userStore = useUserStore();
+const categoryStore = useCategoryStore();
+const shippingStore = useShippingStore();
 
 const isLoading = ref(true);
 const productToEdit = ref<IProduct | null>(null);
-const mediaData = ref<MediaInterface[]>([]);
+const mediaData = ref<IMedia[]>([]);
 
 onMounted(async () => {
   const productId = Number(route.params.id);
@@ -104,7 +107,7 @@ onMounted(async () => {
   }
 });
 
-const handleMediaUpload = (uploadedMedia: MediaInterface[]) => {
+const handleMediaUpload = (uploadedMedia: IMedia[]) => {
   mediaData.value.push(...uploadedMedia);
 };
 

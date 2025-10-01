@@ -18,7 +18,7 @@
            class="h-screen w-full flex items-center justify-center snap-start relative"
            :class="{ 'hidden': index !== currentIndex }">
         <!-- Cloudinary Video Player -->
-        <div v-if="product.media?.[0]?.type === MediaType.VIDEO" class="w-full h-full relative">
+        <div v-if="product.media?.[0]?.type === EMediaType.VIDEO" class="w-full h-full relative">
           <video
             :id="`video-player-${product.id}`"
             class="w-full h-full object-cover"
@@ -98,13 +98,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useProductStore } from '~/stores/product.store';
-import { MediaType } from '~/models/interface/products/media.interface';
+import { EMediaType } from '~/models';
 import LoadingSpinner from '~/components/shared/Loading.vue';
 import SwipeHintOverlay from '~/components/product/productDetails/SwipeHintOverlay.vue';
 import { Cloudinary } from '@cloudinary/url-gen';
 import { auto } from '@cloudinary/url-gen/qualifiers/format';
 import { Quality } from '@cloudinary/url-gen/qualifiers/quality';
-import type { IProduct } from '~/models/interface/products/product.interface';
+import type { IProduct } from '~/models';
 
 // Initialize Cloudinary
 const cld = new Cloudinary({ cloud: { cloudName: 'dcci05bzj' } }); // Use your Cloudinary cloud name
@@ -133,7 +133,7 @@ const socialPlatforms = [
 // Computed properties
 const productsWithVideoComputed = computed(() => {
   return productStore.products.filter(product => 
-    product.media?.some(media => media.type === MediaType.VIDEO)
+    product.media?.some(media => media.type === EMediaType.VIDEO)
   );
 });
 
