@@ -1,5 +1,5 @@
-import type { MediaInterface } from '~/models/interface/products/media.interface';
-import type { ProductInterface } from '~/models/interface/products/product.interface';
+import type { IMedia } from '@/models/interface/';
+import type { IProduct } from '@/models/interface/'
 import { serverSupabaseUser } from '#supabase/server';
 
 import prisma from '~/server/prisma/prismaClient'
@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, message: 'Unauthorized' });
   }
 
-  const body = await readBody<ProductInterface & { variants?: { size: string, stock: number }[] }>(event);
+  const body = await readBody<IProduct & { variants?: { size: string, stock: number }[] }>(event);
 
   // --- UPDATED VALIDATION ---
   if (!body.title?.trim() || !body.price) {
@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
         price: body.price,
         slug: body.slug?.trim() || body.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''), // Auto-generate slug if not provided
         sellerId: user.id,
-        store_name: body.store_name,
+        store_name: body.store_slug,
         discount: body.discount || 0,
         
         // --- NEW: Create variants instead of a single stock ---
@@ -36,6 +36,7 @@ export default defineEventHandler(async (event) => {
           create: body.variants.map(variant => ({
             size: variant.size,
             stock: variant.stock,
+            price: variant.price || body.price, // Use variant price or fallback to product price 
           })),
         },
 
@@ -48,10 +49,10 @@ export default defineEventHandler(async (event) => {
           create: [{
             category: {
               connectOrCreate: {
-                where: { name: body.category.name.trim() },
+                where: { name: body.category[0].category.name.trim() },
                 create: {
-                  name: body.category.name.trim(),
-                  thumbnailCatUrl: body.category.thumbnailCatUrl ?? null,
+                  name: body.category[0].category.name.trim(),
+                  thumbnailCatUrl: body.category[0].category.thumbnailCatUrl ?? null,
                 },
               },
             },
@@ -63,8 +64,8 @@ export default defineEventHandler(async (event) => {
           create: body.tags.map(tag => ({
             tag: {
               connectOrCreate: {
-                where: { name: tag.name.trim() },
-                create: { name: tag.name.trim() },
+                where: { name: tag.tag.name.trim() },
+                create: { name: tag.tag.name.trim() },
               },
             },
           })),
@@ -72,7 +73,7 @@ export default defineEventHandler(async (event) => {
 
         // Media handling remains the same
         media: body.media ? {
-          create: body.media.map((mediaItem: MediaInterface) => ({
+          create: body.media.map((mediaItem: IMedia) => ({
             url: mediaItem.url,
             type: mediaItem.type,
             sellerId: mediaItem.sellerId || user.id, // Use sellerId from media or fallback to user id

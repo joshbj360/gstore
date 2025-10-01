@@ -78,11 +78,11 @@ import { useRouter } from '#imports';
 import { useUserStore } from '~/stores/user.store';
 import ProductMedia from '~/components/product/productDetails/mediaSection/MediaDisplay.vue';
 import ProductMedia2 from '~/components/product/productDetails/mediaSection/MediaDisplay.vue';
-import type { ProductInterface } from '~/models/interface/products/product.interface';
+import type { IProduct } from '~/models';
 
 const props = defineProps({
   product: {
-    type: Object as PropType<ProductInterface>,
+    type: Object as PropType<IProduct>,
     required: true,
   },
   currentImageIndex: {
@@ -115,7 +115,7 @@ const navigateToHome = () => {
 };
 
 const navigateToEdit = () => {
-  router.push(`/upload?edit=${props.product.id}`);
+  router.push(`/edit/${props.product.slug}`);
 };
 
 const handleImageClick = (e: MouseEvent) => {

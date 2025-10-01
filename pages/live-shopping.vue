@@ -104,14 +104,14 @@ import SwipeHintOverlay from '~/components/product/productDetails/SwipeHintOverl
 import { Cloudinary } from '@cloudinary/url-gen';
 import { auto } from '@cloudinary/url-gen/qualifiers/format';
 import { Quality } from '@cloudinary/url-gen/qualifiers/quality';
-import type { ProductInterface } from '~/models/interface/products/product.interface';
+import type { IProduct } from '~/models/interface/products/product.interface';
 
 // Initialize Cloudinary
 const cld = new Cloudinary({ cloud: { cloudName: 'dcci05bzj' } }); // Use your Cloudinary cloud name
 
 // Store and state
 const productStore = useProductStore();
-const productsWithVideo = ref<ProductInterface[]>([]);
+const productsWithVideo = ref<IProduct[]>([]);
 const currentIndex = ref(0);
 const isPlaying = ref<boolean[]>([]);
 const muteVideo = ref(true);

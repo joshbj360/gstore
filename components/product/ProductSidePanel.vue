@@ -4,7 +4,7 @@
       
       <button
         v-if="product"
-        @click="emit('toggle-details')"
+        @click="emit('toggle-details', product)"
         class="action-button"
         aria-label="View product details"
       >
@@ -90,28 +90,33 @@
 import { ref, computed } from "vue";
 import { useCartStore } from "~/stores/cart.store";
 import { useUserStore } from "~/stores/user.store";
-import type { ProductInterface } from "~/models/interface/products/product.interface";
+import type { IProduct } from "~/models";
 import { notify } from "@kyvg/vue3-notification";
 
 const props = defineProps<{
-  product: ProductInterface | null;
+  product: IProduct | null;
 }>();
 
-const emit = defineEmits(["toggle-details", "toggle-chat"]);
+const emit = defineEmits<{
+  (e: "toggle-details", product: IProduct ): void;
+  (e: "toggle-chat"): void;
+}>();
 
 const cartStore = useCartStore();
 const userStore = useUserStore();
 const isShareModalOpen = ref(false);
 
-const shareUrl = computed(() => props.product ? `${window.location.origin}/product/${props.product.id}`: "");
-const isLiked = computed(() => false);
+const shareUrl = computed(() => props.product ? `${window.location.origin}/product/${props.product.slug}`: "");
+const isLiked = computed(() => {
+  if (!props.product?.likes) return false;
+  return props.product.likes.some((like: any) => like.userId === userStore.user?.id);
+});
+
 const likeCountFormatted = computed(() => {
-  const count = props.product?.likeCount || 0;
+  const count = props.product?.likes?.length || 0;
   return count > 999 ? `${(count / 1000).toFixed(1)}k` : count;
 });
-const cartTotal = computed(() => {
-  return cartStore.cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
-});
+const cartTotal = cartStore.cartTotal
 
 const formatCompactPrice = (priceInKobo: number) => {
     if (isNaN(priceInKobo)) return 'N/A';
@@ -125,9 +130,10 @@ const handleAddToCart = () => {
     if (props.product) {
         if (props.product.variants && props.product.variants.length > 0) {
             notify({ type: 'info', text: 'Please open the details panel to select a size.' });
-            emit('toggle-details');
+            emit('toggle-details', props.product);
         } else {
-            cartStore.addToCart(props.product, props.product.variants[0]);
+          if (props.product.variants && props.product.variants.length > 0)
+            cartStore.addToCart(props.product.id, props.product.variants[0], 1, props.product);
             notify({ type: 'success', text: `${props.product.title} added to cart!` });
         }
     }

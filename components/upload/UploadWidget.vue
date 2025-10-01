@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { MediaInterface, MediaType } from '~/models/interface/products/media.interface';
+import type { IMedia, EMediaType } from '~/models';
 
 interface CloudinaryResult {
   event: string;
@@ -76,12 +76,12 @@ const props = defineProps({
 })
 
 const emit = defineEmits<{
-  (e: 'upload-complete', media: MediaInterface[]): void;
+  (e: 'upload-complete', media: [{}]): void;
   (e: 'upload-error', error: string): void;
 }>();
 const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'dcci05bzj';
 const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET || 'ml_default';
-// const mediaArray: MediaInterface[] = [];
+// const mediaArray: IMedia[] = [];
 
 const isLoading = ref(false);
 const error = ref<string | null>(null);
@@ -162,22 +162,16 @@ const initializeWidget = () => {
   );
 };
 const handleUploadSuccess = (result: CloudinaryResult) => {
-  const mediaType = result.info.resource_type.toUpperCase() as MediaType;
-  
-  const media: MediaInterface = {
+  const mediaType = result.info.resource_type.toUpperCase() as EMediaType;
+
+  const media = {
     url: result.info.secure_url,
     type: mediaType,
-    format: result.info.format,
-    caption: '',
-    focalPoint: {
-      x: result.info.width || 0,
-      y: result.info.height || 0
-    },
-    size: result.info.bytes,
-    sellerId: props.sellerId
+    sellerId: props.sellerId,
+
   };
 
-  emit('upload-complete', [media,]);
+  emit('upload-complete', [media]);
 };
 const handleUploadError = (err: CloudinaryError) => {
   error.value = `Upload failed: ${err.message}`;

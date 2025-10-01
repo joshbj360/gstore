@@ -7,10 +7,11 @@
         @change="toggleSelection"
         class="h-5 w-5 rounded border-gray-300 text-brand-dark focus:ring-[#C42B78]/50"
       >
-      <NuxtLink :to="`/product/${item.product.id}`" class="block mt-4">
+      <NuxtLink :to="`/product/${item.product.slug}`" class="block mt-4">
         <div class="w-24 h-24 rounded-lg overflow-hidden bg-gray-100">
           <img
-            :src="item.product.media[0]?.url || '/default-product.png'"
+            v-if="item.product.media && item.product.media.length"
+            :src="item.product.media[0].url || '~/assets/images/men.png'"
             :alt="item.product.title"
             class="w-full h-full object-cover"
             loading="lazy"
@@ -21,7 +22,7 @@
 
     <div class="flex-1 min-w-0">
       <h3 class="font-semibold text-gray-800 line-clamp-2">
-        <NuxtLink :to="`/product/${item.product.id}`">{{ item.product.title }}</NuxtLink>
+        <NuxtLink :to="`/product/${item.product.slug}`">{{ item.product.title }}</NuxtLink>
       </h3>
       
       <p v-if="item.variant.size" class="text-sm text-gray-500 mt-1">
@@ -29,7 +30,7 @@
       </p>
 
       <p class="font-bold text-lg text-brand-dark mt-2">
-        {{ formatPrice(item.variant.price || item.product.price) }}
+        {{ formatPrice(item.variant.price) }}
       </p>
       
       <p v-if="isOutOfStock" class="text-sm font-semibold text-red-500 mt-2">
@@ -65,18 +66,18 @@
 import { ref, watch, computed } from 'vue';
 import { useCartStore } from '~/stores/cart.store';
 // FIX: Use the correct, updated interface
-import type { CartItemInterface } from '~/models/interface/cart/cart.interface';
+import type { ICartItem, IProduct } from '~/models';
 import { notify } from "@kyvg/vue3-notification";
 
 const props = defineProps<{
   // FIX: Use the correct, updated interface
-  item: CartItemInterface,
+  item: ICartItem 
   selected: boolean,
 }>();
 
 const emit = defineEmits<{
-  (e: 'selected', value: { item: CartItemInterface; selected: boolean }): void,
-  (e: 'save-for-later', item: CartItemInterface): void,
+  (e: 'selected', value: { item: ICartItem; selected: boolean }): void,
+  (e: 'save-for-later', item: ICartItem): void,
 }>();
 
 const cartStore = useCartStore();

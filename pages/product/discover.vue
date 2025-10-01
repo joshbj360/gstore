@@ -33,10 +33,10 @@ import { useProductStore } from '~/stores/product.store';
 import MainLayout from '~/layouts/MainLayout.vue';
 import MediaDisplay from '~/components/product/productDetails/mediaSection/MediaDisplay.vue';
 import LoadingSpinner from '~/components/shared/Loading.vue';
-import type { ProductInterface } from '~/models/interface/products/product.interface';
+import type { IProduct } from '~/models/interface/products/product.interface';
 
 const productStore = useProductStore();
-const products = ref<ProductInterface[]>([]);
+const products = ref<IProduct[]>([]);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const swipeContainer = ref<HTMLElement | null>(null);

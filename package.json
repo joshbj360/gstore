@@ -17,24 +17,27 @@
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@paystack/inline-js": "^2.22.7",
     "@pinia/nuxt": "^0.11.2",
-    "@prisma/client": "^6.14.0",
+    "@prisma/client": "^6.15.0",
     "@vueuse/nuxt": "^13.5.0",
+    "country-state-city": "^3.2.1",
     "csv-parse": "^6.1.0",
     "nuxt": "^3.17.7",
     "nuxt-lodash": "^2.5.3",
     "nuxt-tiptap-editor": "^2.3.1",
     "papaparse": "^5.5.3",
+    "paystack-sdk": "^3.0.0",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.4.1",
-    "prisma": "^6.14.0",
     "slugify": "^1.6.6",
     "tailwindcss": "^3.4.17",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1",
-    "vue3-carousel-nuxt": "^1.1.6"
+    "vue3-carousel-nuxt": "^1.1.6",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "@iconify-json/mdi": "^1.2.3",
-    "@types/papaparse": "^5.3.16"
+    "@types/papaparse": "^5.3.16",
+    "prisma": "^6.15.0"
   }
 }

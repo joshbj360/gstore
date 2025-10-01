@@ -1,198 +1,83 @@
 <template>
-  <div class="w-full max-w-6xl mx-auto px-1 sm:px-0" id="ProductLayout">
-    <!-- Loader -->
-    <div v-if="productStore.isLoading && !initialLoadComplete" class="fixed inset-0 z-50 flex items-center justify-center bg-white/80">
-      <Loading class="h-12 w-12 text-brand-dark" />
-    </div>
-
-    <!-- Error Message -->
-    <div v-if="error" class="p-2 mx-1 mb-2 bg-red-50 text-red-600 rounded-lg text-sm">
-      {{ error }}
-    </div>
-
-    <!-- Product Grid -->
-    <div v-if="!emptyState" id="product-grid" class="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-1 sm:gap-2 p-1">
+  <div class="w-full" id="ProductLayout">
+    <!-- The grid now gets its data directly from the store's reactive getter -->
+    <div v-if="displayedProducts.length > 0" id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4">
       <div 
         v-for="product in displayedProducts" 
-        :key="product.id"
+        :key="product.slug"
         class="animate-fade-in"
       >
         <ProductCard :product="product" class="h-full" />
       </div>
     </div>
 
-    <!-- Empty State -->
-    <div v-if="emptyState" class="flex flex-col items-center justify-center py-8 px-2 text-center">
-      <Icon name="mdi:package-variant-remove" class="h-10 w-10 text-gray-400 mb-2" />
-      <p class="text-gray-600 font-medium text-sm">{{ emptyStateMessage }}</p>
-      <button
-        @click="initializeData"
-        class="mt-3 text-brand-dark text-sm hover:underline"
-      >
-        Try Again
-      </button>
+    <!-- Empty State (only shows if the list is truly empty after loading) -->
+    <div v-else-if="!productStore.isLoading" class="flex flex-col items-center justify-center py-20 text-center">
+      <Icon name="mdi:package-variant-remove" class="h-12 w-12 text-gray-400 mb-4" />
+      <p class="text-gray-600 font-medium">{{ emptyStateMessage }}</p>
     </div>
 
-    <!-- Load More Button -->
-    <div v-if="showLoadMore" class="mt-4 mb-6 text-center px-1">
-      <button
-        @click="loadMore"
-        :disabled="productStore.isLoading"
-        class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-full shadow-sm text-white bg-brand hover:bg-[#df4949] focus:outline-none disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
-      >
-        <span v-if="!productStore.isLoading">Load More</span>
-        <span v-else class="flex items-center">
-          <Loading class="h-3 w-3 mr-1 sm:mr-2 sm:h-4 sm:w-4" />
-          Loading...
-        </span>
-      </button>
+    <!-- Infinite Scroll Trigger -->
+    <div ref="loadMoreTrigger" class="h-1 w-full mt-8"></div>
+    <div v-if="productStore.isLoading && displayedProducts.length > 0" class="flex justify-center py-8">
+        <Loading class="h-8 w-8 text-[#f02c56]" />
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
-import { useProductStore } from '#build/imports';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useProductStore } from '~/stores';
 import ProductCard from '~/components/product/productCard/ProductCard.vue';
 import Loading from '~/components/shared/Loading.vue';
-import { useRoute } from 'vue-router';
+import { LazySkeletonsProductGridSkeleton } from '#components';
 
 const productStore = useProductStore();
-const route = useRoute();
 
-// State
-const initialLoadComplete = ref(false);
-const error = ref<string | null>(null);
+const loadMoreTrigger = ref<HTMLElement | null>(null);
+const observer = ref<IntersectionObserver | null>(null);
 
-// Computed
-const displayedProducts = computed(() => {
-  return productStore.getProductsByCategory(productStore.currentCategory) || [];
-});
-
-const showLoadMore = computed(() => {
-  return displayedProducts.value.length > 0 && !error.value && productStore.hasMoreProducts;
-});
-
-const emptyState = computed(() => {
-  return !productStore.isLoading && displayedProducts.value.length === 0;
-});
+// This component is now "dumb". It just reads the active product list from the store.
+const displayedProducts = computed(() => productStore.activeProductList);
 
 const emptyStateMessage = computed(() => {
-  return productStore.currentCategory 
-    ? `No products found in ${productStore.currentCategory} category`
-    : 'No products found';
+  return productStore.currentCategorySlug
+    ? `No products found in this category.`
+    : 'No products available at the moment.';
 });
 
-// Watch for category changes in the URL
-watch(
-  () => route.query.category,
-  async (newCategory) => {
-    const categoryName = newCategory as string | null;
-    try {
-      error.value = null;
-      if (categoryName) {
-        // If there's a category in the URL, apply the filter
-        await productStore.filterByCategory(categoryName);
-      } else {
-        // If there's NO category in the URL, clear the filter
-        productStore.clearCategoryFilter();
-      }
-    } catch (err) {
-      error.value = 'Failed to filter products by category.';
-      console.error('Category filter error:', err);
-    }
-  },
-  { immediate: true } // immediate: true ensures this runs on initial load
-);
-
-
-// Initial data load function
-async function initializeData() {
-  try {
-    error.value = null;
-    // Initialize will fetch all products if the store is empty
-    await productStore.initialize();
-  } catch (err) {
-    error.value = 'Failed to load products. Please try again.';
-    console.error('Initialization error:', err);
-  } finally {
-    initialLoadComplete.value = true;
-  }
-}
-
-// Load More
 const loadMore = async () => {
-  try {
-    error.value = null;
-    await productStore.fetchMoreProducts();
-  } catch (err) {
-    error.value = 'Failed to load more products.';
-    console.error('Load more error:', err);
-  }
+  if (productStore.isLoading || !productStore.hasMoreProducts) return;
+  await productStore.fetchMoreProducts();
 };
 
-// Only run initializeData on mount if the products aren't already loaded.
-// The watcher will handle the category filtering.
+// Set up the IntersectionObserver for infinite scroll
 onMounted(() => {
-    if (productStore.products.length === 0) {
-        initializeData();
-    } else {
-        initialLoadComplete.value = true;
+    const options = { root: null, rootMargin: '200px', threshold: 0.1 };
+    observer.value = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+            loadMore();
+        }
+    }, options);
+    
+    if (loadMoreTrigger.value) {
+        observer.value.observe(loadMoreTrigger.value);
     }
 });
-</script>>
+
+onUnmounted(() => {
+    if(observer.value) {
+        observer.value.disconnect();
+    }
+});
+</script>
 
 <style>
-/* Animation for grid items */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+ from { opacity: 0; transform: translateY(10px); }
+ to { opacity: 1; transform: translateY(0); }
 }
-
 .animate-fade-in {
-  animation: fadeIn 0.25s ease-out forwards;
+ animation: fadeIn 0.3s ease-out forwards;
 }
-
-/* Mobile-specific adjustments */
-@media (max-width: 412px) {
-  #product-grid {
-    gap: 0.25rem;
-  }
-  
-  #ProductLayout {
-    padding-left: 0.25rem;
-    padding-right: 0.25rem;
-  }
-  
-  .animate-fade-in {
-    animation-duration: 0.2s;
-  }
-}
-
-/* Tablet adjustments */
-@media (max-width: 400px) {
-  #product-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.25rem; /* tighter spacing for small screens */
-  }}
-
-    /* Card adjustments */
-  .product-card {
-    padding: 0.25rem;       /* less padding */
-  }
-
-  .product-card h3 {
-    font-size: 0.75rem;     /* ~12px for titles */
-    line-height: 1rem;
-  }
-
-  .product-card p,
-  .product-card span {
-    font-size: 0.7rem;      /* ~11px for secondary text */
-    line-height: 0.9rem;
-  }
-
-  .product-card .price {
-    font-size: 0.8rem;      /* slightly bigger for emphasis */
-    font-weight: 600;
-  }
 </style>

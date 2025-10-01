@@ -1,47 +1,61 @@
 import { PrismaClient } from "@prisma/client";
 import { generateUniqueSlug } from "../utils/slugify";
 
-// This function creates the extension logic
-const slugExtension = {
-  model: {
-    $allModels: {
-      async create(args: any) {
-        const modelName = (this as any)._meta.name;
-        
-        if (modelName === 'Products' && args.data.title) {
-          args.data.slug = await generateUniqueSlug('products', args.data.title);
-        }
-        if (modelName === 'Category' && args.data.name) {
-          args.data.slug = await generateUniqueSlug('category', args.data.name);
-        }
-        if (modelName === 'SellerProfile' && args.data.store_name) {
-          args.data.store_name = await generateUniqueSlug('sellerProfile', args.data.store_name);
-        }
-        
-        // @ts-ignore
-        return (this as any).create(args);
+// This function creates the refined extension logic
+const getSlugExtension = () => {
+  return {
+    model: {
+      // THE FIX: We now target each model individually instead of using `$allModels`.
+      // This ensures the logic only runs where it's needed.
+      products: {
+        async create(args: any) {
+          if (args.data.title) {
+            args.data.slug = await generateUniqueSlug('products', args.data.title);
+          }
+          return (prisma.products as any).create(args);
+        },
+        async update(args: any) {
+          if (args.data.title) {
+            const id = args.where?.id;
+            args.data.slug = await generateUniqueSlug('products', args.data.title, id);
+          }
+          return (prisma.products as any).update(args);
+        },
       },
-      async update(args: any) {
-        const modelName = (this as any)._meta.name;
-        const id = args.where?.id;
-
-        if (modelName === 'Products' && args.data.title) {
-          args.data.slug = await generateUniqueSlug('products', args.data.title, id);
-        }
-        if (modelName === 'Category' && args.data.name) {
-          args.data.slug = await generateUniqueSlug('category', args.data.name, id);
-        }
-        if (modelName === 'SellerProfile' && args.data.store_name) {
-          args.data.store_name = await generateUniqueSlug('sellerProfile', args.data.store_name, id);
-        }
-
-        // @ts-ignore
-        return (this as any).update(args);
+      category: {
+        async create(args: any) {
+          if (args.data.name) {
+            args.data.slug = await generateUniqueSlug('category', args.data.name);
+          }
+          return (prisma.category as any).create(args);
+        },
+        async update(args: any) {
+          if (args.data.name) {
+            const id = args.where?.id;
+            args.data.slug = await generateUniqueSlug('category', args.data.name, id);
+          }
+          return (prisma.category as any).update(args);
+        },
+      },
+      sellerProfile: {
+        async create(args: any) {
+          if (args.data.store_name) {
+            // Note: Your schema uses store_slug, so we'll generate that.
+            args.data.store_slug = await generateUniqueSlug('sellerProfile', args.data.store_name);
+          }
+          return (prisma.sellerProfile as any).create(args);
+        },
+        async update(args: any) {
+          if (args.data.store_name) {
+            const id = args.where?.id;
+            args.data.store_slug = await generateUniqueSlug('sellerProfile', args.data.store_name, id);
+          }
+          return (prisma.sellerProfile as any).update(args);
+        },
       },
     },
-  },
+  };
 };
-
 
 // Declare the client instance once
 let prisma: PrismaClient;
@@ -60,8 +74,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // Apply the extension to the instance
-const extendedPrisma = prisma.$extends(slugExtension);
+const extendedPrisma = prisma.$extends(getSlugExtension());
 
 // Export the single, configured instance
 export default extendedPrisma;
-

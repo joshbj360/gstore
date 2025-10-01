@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts" setup>
-import  { type TagInterface, defaultTag } from '~/models/interface/products/tag.interface';
+import  { type ITag, defaultTag } from '~/models';
 
 
 const inputValue = ref<string>(''); // Local state for the input value

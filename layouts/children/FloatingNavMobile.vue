@@ -17,7 +17,7 @@
         </div>
       </NuxtLink>
 
-      <NuxtLink to="/cart" class="relative nav-item">
+      <NuxtLink to="/buyer/cart" class="relative nav-item">
         <Icon name="mdi:cart-outline" size="24" />
         <span class="text-xs mt-1">Cart</span>
         <span v-if="cartStore.cartCount" class="absolute -top-1 right-1.5 bg-brand text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
