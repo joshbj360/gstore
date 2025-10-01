@@ -108,7 +108,7 @@ import { useRouter } from 'vue-router';
 import { useUserStore } from '~/stores/user.store';
 import { useCartStore } from '~/stores/cart.store';
 import { useDebounceFn } from '@vueuse/core';
-import type { ProductInterface } from '~/models/interface/products/product.interface';
+import type { IProduct } from '~/models';
 
 // Custom directive to detect clicks outside an element
 const vClickOutside = {
@@ -133,7 +133,7 @@ const showMenu = ref(false);
 const searchItem = ref('');
 const isSearching = ref(false);
 const isSearchFocused = ref(false);
-const searchResults = ref<ProductInterface[]>([]);
+const searchResults = ref<IProduct[]>([]);
 const isMobile = ref(false);
 const isExtraSmallScreen = ref(false);
 
@@ -150,7 +150,7 @@ const performSearch = useDebounceFn(async () => {
   }
   isSearching.value = true;
   try {
-    const { data } = await useFetch<ProductInterface[]>(`/api/prisma/search/search-by-name/${encodeURIComponent(searchItem.value)}`);
+    const { data } = await useFetch<IProduct[]>(`/api/prisma/search/search-by-name/${encodeURIComponent(searchItem.value)}`);
     searchResults.value = data.value || [];
   } catch (err) {
     console.error('Search error:', err);
@@ -171,10 +171,10 @@ const formatPrice = (price: number) => {
 };
 
 onMounted(async () => {
-  if (userStore.isLoggedIn) {
-    await userStore.fetchUserAndProfile();
-    await cartStore.fetchCartItems(); // Fetch cart items for logged-in users
-  }
+  // if (userStore.isLoggedIn) {
+  //   await userStore.fetchUserAndProfile();
+  //   await cartStore.fetchCartItems(); // Fetch cart items for logged-in users
+  // }
   checkScreenSize();
   window.addEventListener('resize', checkScreenSize);
 });

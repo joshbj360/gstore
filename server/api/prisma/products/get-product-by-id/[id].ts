@@ -1,0 +1,51 @@
+import prisma from '~/server/prisma/prismaClient'
+
+export default defineEventHandler(async (event) => {
+  const params = event.context.params;
+  if (!params || typeof params.id == 'string') {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Missing or invalid product ID',
+    });
+  }
+  const { id } = params;
+
+  try {
+    const product = await prisma.products.findUnique({
+      where: { id },
+      include: {
+        category: true, // Include the associated category
+        tags: {
+          include: {
+            tag: true, // Include the associated tags
+          },
+        },
+        media: true, // Include the associated media
+        measurement: true, // Include the measurement details
+        variants: true, // Include the associated variants
+      },
+    });
+
+    if (!product) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: 'Product not found',
+      });
+    }
+
+    // Format the response to include tags and media
+    const response = {
+      ...product,
+      tags: product.tags.map((productTag) => productTag.tag), // Extract tag details
+      media: product.media, // Include media details
+    };
+
+    return response;
+  } catch (error) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Failed to fetch product',
+      data: error,
+    });
+  }
+});

@@ -2,7 +2,8 @@
   <div class="flex py-4" role="listitem">
     <div class="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 shrink-0">
         <img
-            :src="item.product.media[0]?.url || '/default-product.png'"
+        v-if="item.product.media && item.product.media.length"
+            :src="item.product.media[0].url || '/default-product.png'"
             :alt="item.product.title"
             class="w-full h-full object-cover"
         />
@@ -18,17 +19,17 @@
       </div>
       <div class="flex justify-between items-baseline mt-2">
         <span class="text-sm text-gray-500">Qty: {{ item.quantity }}</span>
-        <span class="font-semibold text-gray-900">{{ formatPrice(item.variant.price || item.product.price) }}</span>
+        <span class="font-semibold text-gray-900">{{ formatPrice(item.variant.price) }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import type { CartItemInterface } from '~/models/interface/cart/cart.interface';
+import type { ICartItem, IProduct } from '~/models';
 
 const props = defineProps<{
-  item: CartItemInterface;
+  item: ICartItem 
 }>();
 
 const formatPrice = (price: number) => {

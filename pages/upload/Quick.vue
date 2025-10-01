@@ -54,13 +54,12 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useProductStore, useUserStore, useCategoryStore } from '~/stores';
 import { notify } from "@kyvg/vue3-notification";
-import  {type MediaInterface, MediaType } from '~/models/interface/products/media.interface';
+import type  {IMedia, IProduct,ICategory } from '~/models';
+import {EMediaType,  defaultProduct, defaultCategory } from '~/models';
 import TextInput from '~/components/shared/TextInput.vue';
 import CurrencyInput from '~/components/shared/CurrencyInput.vue';
 import SelectInput from '~/components/category/SelectInput.vue';
 import CategoryDialog from '~/components/category/CategoryDialog.vue';
-import { type ProductInterface, defaultProduct } from '~/models/interface/products/product.interface';
-import { type CategoryInterface, defaultCategory } from '~/models/interface/products/category.interface';
 
 definePageMeta({ layout: false }); // Use a custom, minimal layout
 
@@ -70,10 +69,10 @@ const productStore = useProductStore();
 const categoryStore = useCategoryStore();
 
 const isUploading = ref(false);
-const mediaData = ref<MediaInterface[]>([]);
-const product = ref<Partial<ProductInterface>>({ ...defaultProduct });
-const selectedCategory = ref<CategoryInterface>(defaultCategory);
-const categories = ref<CategoryInterface[]>([]);
+const mediaData = ref<IMedia[]>([]);
+const product = ref<Partial<IProduct>>({ ...defaultProduct });
+const selectedCategory = ref<ICategory>(defaultCategory);
+const categories = ref<ICategory[]>([]);
 const showCategoryDialog = ref(false);
 
 const canPost = computed(() => {
@@ -81,7 +80,7 @@ const canPost = computed(() => {
 });
 
 // This simulates uploading the file and getting a URL back
-const uploadFile = async (file: File): Promise<MediaInterface> => {
+const uploadFile = async (file: File): Promise<IMedia> => {
     // In a real app, this would call your Cloudinary upload function
     // For this demo, we'll use a FileReader to get a local URL for preview
     return new Promise((resolve) => {
@@ -89,7 +88,7 @@ const uploadFile = async (file: File): Promise<MediaInterface> => {
         reader.onload = (e) => {
             resolve({
                 url: e.target?.result as string,
-                type: file.type.startsWith('video') ? MediaType.VIDEO : MediaType.IMAGE,
+                type: file.type.startsWith('video') ? EMediaType.VIDEO : EMediaType.IMAGE,
                 format: file.type.split('/')[1],
             });
         };
@@ -117,22 +116,22 @@ const postProduct = async () => {
     if (!canPost.value) return;
     isUploading.value = true;
     try {
-        const completeProduct = {
+        const completeProduct: IProduct = {
             ...defaultProduct,
             title: product.value.title!,
             price: product.value.price!,
             category: selectedCategory.value,
             media: mediaData.value,
-            sellerId: userStore.user?.id,
-            store_name: userStore.seller?.store_name ?? '',
+            sellerId: userStore.sellerProfile?.id ?? '',
+            store_slug: userStore.sellerProfile?.store_slug ?? '',
             // Quick-add products can have a simple slug and a default variant
             slug: product.value.title!.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-            variants: [{ size: 'One Size', stock: 1 }],
+            variants: [{ size: 'One Size', stock: 1, price: product.value.price! }],
         };
         const createdProduct = await productStore.createProduct(completeProduct);
         if (createdProduct) {
             notify({ type: 'success', text: 'Product posted successfully!' });
-            router.push(`/product/${createdProduct.id}`);
+            router.push(`/product/${createdProduct.slug}`); // Navigate to the new product page
         }
     } catch (err: any) {
         notify({ type: 'error', text: err.message || 'Failed to post product.' });
@@ -141,7 +140,7 @@ const postProduct = async () => {
     }
 };
 
-const addNewCategory = (category: CategoryInterface) => {
+const addNewCategory = (category: ICategory) => {
   categories.value.push(category);
   selectedCategory.value = category;
   showCategoryDialog.value = false;

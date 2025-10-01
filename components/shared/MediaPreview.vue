@@ -72,7 +72,7 @@
         <!-- Caption Input -->
         <input
           v-if="editableCaptions"
-          v-model="item.caption"
+          v-model="item.altText"
           @change="updateCaption(index, $event)"
           type="text"
           placeholder="Add caption"
@@ -84,10 +84,10 @@
 </template>
 
 <script setup lang="ts">
-import type { MediaInterface } from '~/models/interface/products/media.interface';
+import type { IMedia } from '~/models';
 
 interface Props {
-  media: MediaInterface[];
+  media: IMedia[];
   title?: string;
   description?: string;
   mainMediaIndex?: number;

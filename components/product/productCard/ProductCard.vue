@@ -2,7 +2,7 @@
   <div id="product-card"
     class="relative bg-white rounded-lg shadow-sm overflow-hidden group transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
     <!-- Edit button (if owner) -->
-    <NuxtLink v-if="isOwner" :to="`/edit/${product.id}`"
+    <NuxtLink v-if="isOwner" :to="`/edit/${product.slug}`"
       class="absolute top-2 right-2 z-20 h-8 w-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-700 hover:bg-brand hover:text-white transition-all opacity-0 group-hover:opacity-100"
       aria-label="Edit Product">
       <Icon name="mdi:pencil-outline" size="18" />
@@ -15,18 +15,18 @@
     </div>
     
     <!-- Seller label -->
-    <NuxtLink v-if="product.store_name" :to="`/seller/profile/${product.store_name}`" class="absolute top-2 left-2 z-10 px-2 py-1 rounded-full flex items-center gap-1
+    <NuxtLink v-if="product.store_slug" :to="`/seller/profile/${product.store_slug}`" class="absolute top-2 left-2 z-10 px-2 py-1 rounded-full flex items-center gap-1
          font-semibold backdrop-blur-sm text-xs sm:text-[10px]" :class="product.isVerified
           ? 'bg-brand/90 text-white'
-          : 'bg-white/80 text-gray-800'" :title="`Sold by ${product.store_name}`">
+          : 'bg-white/80 text-gray-800'" :title="`Sold by ${product.store_slug}`">
 
       <Icon name="mdi:store-outline" size="12" aria-hidden="true" />
-      <span>{{ product.store_name }}</span>
+      <span>{{ product.store_slug }}</span>
       <Icon v-if="product.isVerified" name="mdi:check-decagram" class="h-3 w-3 text-white" aria-hidden="true" />
     </NuxtLink>
 
     <!-- Product image -->
-    <NuxtLink :to="`/product/${product.id}`" class="block w-full aspect-square relative overflow-hidden">
+    <NuxtLink :to="`/product/${product.slug}`" class="block w-full aspect-square relative overflow-hidden">
       <MediaDisplayCard :product-media="product.media?.[0]"
         class="w-full h-full transition-transform duration-300 group-hover:scale-105" />
     </NuxtLink>
@@ -56,7 +56,7 @@
 </h4>
 
 <!-- Show Metrics only if both are > 10 -->
-<div v-if="product.likeCount && product.productSoldCount ? product.likeCount > 10 && product.productSoldCount > 10 : false"
+<div v-if="product.likes?.length && product.soldCount ? (product.likes?.length || 0) > 10 && (product.soldCount || 0)> 10 : false"
   class="mt-2 pt-1 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
   
   <!-- Likes -->
@@ -83,15 +83,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useCartStore, useUserStore } from '~/stores';
-import type { ProductInterface } from '~/models/interface/products/product.interface';
+import type { IProduct } from '~/models/interface/';
 import MediaDisplayCard from './MediaDisplayCard.vue';
 import { notify } from "@kyvg/vue3-notification";
 import { useRouter } from 'vue-router';
 
 const props = defineProps<{
-  product: ProductInterface & {
-    likeCount?: number;
-    numberSold?: number;
+  product: IProduct & {
     isVerified?: boolean; // 👈 new flag for verified seller
   };
 }>();
@@ -104,17 +102,18 @@ const isOwner = computed(() => {
   return userStore.isLoggedIn && userStore.user?.id === props.product.sellerId;
 });
 
-const isInCart = computed(() =>
-  cartStore.cartItems.some(item => item.product.id === props.product.id)
-);
+const isInCart = computed(() => {
+  const productVariantIds = new Set(props.product.variants?.map(v => v.id))
+  return cartStore.cartItems.some(item => productVariantIds.has(item.variant.id));
+});
 
 const likeCountFormatted = computed(() => {
-  const count = props.product.likeCount || 0;
+  const count = props.product.likes?.length || 0;
   return count > 999 ? `${(count / 1000).toFixed(1)}k` : count;
 });
 
 const numberSoldFormatted = computed(() => {
-  const count = props.product.numberSold || 0;
+  const count = props.product.soldCount || 0;
   if (count > 999) return `${(count / 1000).toFixed(1)}k+`;
   if (count > 0) return `${count}`;
   return '0';
@@ -136,9 +135,9 @@ const handleAddToCart = () => {
 
   if (variants && variants.length > 1) {
     notify({ type: 'info', text: 'Please open the details panel to select a size.' });
-    router.push(`/product/${props.product.id}`);
+    router.push(`/product/${props.product.slug}`);
   } else if (variants && variants.length === 1) {
-    cartStore.addToCart(props.product, variants[0]);
+    cartStore.addToCart(props.product.id, variants[0], 1, props.product);
     notify({ type: 'success', text: `${props.product.title} added to cart!` });
   } else {
     notify({ type: 'error', text: 'This product is currently unavailable.' });

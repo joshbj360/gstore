@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia';
-import type { CategoryInterface } from '~/models/interface/products/category.interface';
+import type { ICategory } from '~/models';
 import { notify } from "@kyvg/vue3-notification";
 
 export const useCategoryStore = defineStore('category', {
   state: () => ({
-    categories: [] as CategoryInterface[],
+    categories: [] as ICategory[],
     isLoading: false,
   }),
   
@@ -26,10 +26,11 @@ export const useCategoryStore = defineStore('category', {
 
       this.isLoading = true;
       try {
-        const data = await $fetch<CategoryInterface[]>('/api/prisma/categories/get-all-categories');
+        const data = await $fetch<ICategory[]>('/api/prisma/categories/get-all-categories');
         if (Array.isArray(data)) {
           this.categories = data;
         }
+        return data;
       } catch (err) {
         console.error('Failed to fetch categories:', err);
         notify({ type: 'error', text: 'Could not load product categories.' });
@@ -46,7 +47,7 @@ export const useCategoryStore = defineStore('category', {
     async addCategory(category: { name: string; thumbnailCatUrl: string }) {
       this.isLoading = true;
       try {
-        const newCategory = await $fetch<CategoryInterface>('/api/prisma/categories/create-category', {
+        const newCategory = await $fetch<ICategory>('/api/prisma/categories/create-category', {
           method: 'POST',
           body: category,
         });

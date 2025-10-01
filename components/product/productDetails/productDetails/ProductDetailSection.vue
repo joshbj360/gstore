@@ -1,13 +1,8 @@
 <template>
-  <div
-    id="InfoSection"
-    class=" relative w-full h-full bg-white overflow-y-auto"
-  >
-    <!-- <ProductQuickNavigation /> -->
-    
-    <ProductTabs
-      @update:active-tab="activeTab = $event"
-    >
+  <div id="InfoSection" class="relative w-full h-full bg-white overflow-y-auto">
+    <ProductTabs @update:active-tab="activeTab = $event">
+      
+      <!-- Details Tab -->
       <template #details>
         <ProductDetails 
           :product="product"
@@ -16,70 +11,123 @@
         />
       </template>
       
+      <!-- Similar Products Tab -->
       <template #similar>
+        <!-- Show a skeleton loader ONLY while this specific tab is loading -->
+        <div v-if="pendingSimilarProducts" class="p-6">
+          <ProductGridSkeleton /> 
+        </div>
+        <div v-else-if="errorSimilarProducts" class="p-8 text-center text-red-500">
+          Could not load similar products.
+        </div>
+        <!-- Render the component only AFTER data is ready, passing it as a prop -->
         <SimilarProducts  
+          v-else
           :active-tab="activeTab"
-          :productId="product.id"
+          :products="similarProducts"
         />
       </template>
+
+      <!-- More From Seller Tab -->
       <template #seller>
-        <MoreSellerProduct  
+        <div v-if="pendingSellerProducts" class="p-6">
+          <ProductGridSkeleton /> 
+        </div>
+        <div v-else-if="errorSellerProducts" class="p-8 text-center text-red-500">
+          Could not load seller's products.
+        </div>
+        <MoreSellerProducts  
+          v-else
           :active-tab="activeTab"
-          :product-id="product.id"
-          :store_name="product.store_name"
+          :store_name="product.store_slug"
+          :products="sellerProducts"
         />
       </template>
+
     </ProductTabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { PropType } from 'vue';
-import type { ProductInterface } from '~/models/interface/products/product.interface';
+import { ref, watch, type PropType } from 'vue';
+import type { IProduct } from '~/models';
+import type { ISellerProfile } from '@/models';
 
-import ProductQuickNavigation from '~/components/product/productDetails/productDetails/children/ProductQuickNavigation.vue';
-import ProductTabs from '~/components/product/productDetails/productDetails/children/ProductTabs.vue';
-import ProductDetails from '~/components/product/productDetails/productDetails/children/ProductDetails.vue';
-import SimilarProducts from '~/components/product/productDetails/productDetails/children/SimilarProducts.vue'
-import MoreSellerProduct from '~/components/product/productDetails/productDetails/children/MoreSellerProducts.vue'
-import seller from '~/middleware/seller';
-import type { SellerStoreInterface } from '~/models/interface/auth/user.interface';
-
+// Import Stores and Components
+import { useProductStore, useCartStore } from '~/stores';
+import ProductTabs from './children/ProductTabs.vue';
+import ProductDetails from './children/ProductDetails.vue';
+import SimilarProducts from './children/SimilarProducts.vue';
+import MoreSellerProducts from './children/MoreSellerProducts.vue';
+import ProductGridSkeleton from '~/components/skeletons/ProductGridSkeleton.vue';
 
 const props = defineProps({
   product: {
-    type: Object as PropType<ProductInterface>,
+    type: Object as PropType<IProduct>,
     required: true
   },
   sellerStore: {
-    type: Object as PropType<SellerStoreInterface>,
+    type: Object as PropType<ISellerProfile>,
     required: true,
-    default: () => ({})
-  },
-  activeTab: {
-    type: String as PropType<'details' | 'similar' | 'seller'>,
-    required: true,
-    default: 'details'
-  },
-  activeView: {
-    type: String as PropType<'product' | 'details'>,
-    required: true
   },
   isInCart: {
     type: Boolean,
     required: true,
-    default: false
   }
 });
 
-const activeTab = ref(props.activeTab);
-const product = ref(props.product)
+const productStore = useProductStore();
+const activeTab = ref<'details' | 'similar' | 'seller'>('details');
 
-watch(activeTab, (newValue) => {
-  console.log(`Active tab has been changed to: ${newValue}`); // TODO remove this line in production
-  console.log(product.value.sellerId)
+// --- State for Similar Products Tab ---
+const similarProducts = ref<IProduct[]>([]);
+const pendingSimilarProducts = ref(false);
+const errorSimilarProducts = ref<string | null>(null);
+
+// --- State for Seller Products Tab ---
+const sellerProducts = ref<IProduct[]>([]);
+const pendingSellerProducts = ref(false);
+const errorSellerProducts = ref<string | null>(null);
+
+// This function fetches data for the "Similar Products" tab
+const loadSimilarProducts = async () => {
+    // Only fetch if the data hasn't been loaded yet
+    if (similarProducts.value.length > 0) return;
+    
+    pendingSimilarProducts.value = true;
+    errorSimilarProducts.value = null;
+    try {
+        const result = await productStore.fetchAndCacheSimilarProducts(props.product.id);
+        similarProducts.value = result;
+    } catch (e) {
+        errorSimilarProducts.value = "Failed to load similar products.";
+    } finally {
+        pendingSimilarProducts.value = false;
+    }
+};
+
+// This function fetches data for the "More from Seller" tab
+const loadSellerProducts = async () => {
+    if (sellerProducts.value.length > 0) return;
+
+    pendingSellerProducts.value = true;
+    errorSellerProducts.value = null;
+    try {
+        const result = await productStore.getProductsByStoreSlug(props.product.store_slug);
+        sellerProducts.value = result;
+    } catch (e) {
+        errorSellerProducts.value = "Failed to load seller's products.";
+    } finally {
+        pendingSellerProducts.value = false;
+    }
+};
+
+// This watcher triggers the data fetching only when a tab is clicked for the first time
+watch(activeTab, (newTab) => {
+    if (newTab === 'similar') {
+        loadSimilarProducts();
+    } else if (newTab === 'seller') {
+        loadSellerProducts();
+    }
 });
-
-
-
 </script>

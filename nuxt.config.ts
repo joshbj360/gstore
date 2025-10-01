@@ -34,4 +34,12 @@ export default defineNuxtConfig({
       exclude: ['/'],
     }
   },
+  runtimeConfig: {
+    paystackSecretKey: process.env.PAYSTACK_SECRET_KEY,
+    public: {
+      baseURL: process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+      paystackPk: process.env.PAYSTACK_PUBLIC_KEY
+
+    }
+  }
 })

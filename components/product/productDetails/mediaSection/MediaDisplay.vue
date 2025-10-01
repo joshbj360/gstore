@@ -3,11 +3,11 @@
     <div 
       class="blurry-background" 
       :style="{ backgroundImage: `url(${productMedia?.url || ''})` }" 
-      v-if="productMedia?.type === 'IMAGE'">
+      v-if="productMedia?.type === EMediaType.IMAGE">
     </div>
     <div 
       class="absolute inset-0 w-full h-full bg-black" 
-      v-if="productMedia?.type === 'VIDEO'">
+      v-if="productMedia?.type === EMediaType.VIDEO">
     </div>
 
     <div 
@@ -18,7 +18,7 @@
       @blur="handleBlur"
       tabindex="0"
     >
-      <template v-if="productMedia?.type === 'VIDEO'">
+      <template v-if="productMedia?.type === EMediaType.VIDEO">
         <video
           ref="videoRef"
           :src="productMedia.url"
@@ -27,14 +27,14 @@
           playsinline
           class="media-content"
           @error="handleError"
-          aria-label="Product video"
+          :aria-label="`Product video ${productMedia.altText || ''}`"
         />
         <div class="absolute top-4 right-4 flex gap-2 z-20">
           </div>
       </template>
 
-      <template v-else-if="productMedia?.type === 'IMAGE'">
-        <img :src="productMedia.url" :alt="`Product image ${productMedia.id || ''}`" class="media-content" :loading="loading" @error="handleError" />
+      <template v-else-if="productMedia?.type === EMediaType.IMAGE">
+        <img :src="productMedia.url" :alt="`Product image ${productMedia.altText || ''}`" class="media-content" :loading="loading" @error="handleError" />
       </template>
 
       <template v-else>
@@ -50,11 +50,11 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
 import type { PropType } from "vue";
-import { MediaType, type MediaInterface } from "~/models/interface/products/media.interface";
+import { EMediaType, type IMedia } from "~/models/interface/";
 
 const props = defineProps({
   productMedia: {
-    type: Object as PropType<MediaInterface>,
+    type: Object as PropType<IMedia>,
     default: null,
   },
   loading: {

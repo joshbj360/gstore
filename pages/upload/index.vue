@@ -56,6 +56,7 @@
                 :key="formKey" 
                 @submit="handleProductSubmit" 
                 @discard="discardUpload" 
+                :seller-shipping-zones= zones
             />
           </div>
         </div>
@@ -75,10 +76,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useProductStore, useUserStore } from '~/stores';
+import { useProductStore, useUserStore, useShippingStore } from '~/stores';
 import { notify } from "@kyvg/vue3-notification";
-import type { MediaInterface } from '~/models/interface/products/media.interface';
-import type { ProductFileInterface, ProductInterface } from '~/models/interface/products/product.interface';
+import type { IMedia, IProduct, IShippingZone } from '~/models';
 
 // Component Imports
 import UploadLayout from '~/layouts/UploadLayout.vue';
@@ -93,6 +93,7 @@ import UploadWidget from '@/components/upload/UploadWidget.vue';
 const router = useRouter();
 const userStore = useUserStore();
 const productStore = useProductStore();
+const shippingStore = useShippingStore();
 
 // --- Authentication Guard ---
 onMounted(() => {
@@ -104,16 +105,25 @@ onMounted(() => {
 
 // State
 const activeTab = ref<'single' | 'bulk'>('single');
-const mediaData = ref<MediaInterface[]>([]);
+const mediaData = ref<IMedia[]>([]);
 const isUploading = ref(false);
 const formKey = ref(0);
 const bulkUploadState = ref({
   active: false,
   progress: 0,
 });
+const zones = ref<IShippingZone[]>([]);
+
+const getShippingZones = async () => {
+  await shippingStore.fetchShippingZones().then(() => {
+    zones.value.push(...shippingStore.shippingZones);
+  })
+
+  return zones;
+}
 
 // Media Handling for Single Upload
-const handleMediaUpload = (uploadedMedia: MediaInterface[]) => {
+const handleMediaUpload = (uploadedMedia: IMedia[]) => {
   mediaData.value.push(...uploadedMedia);
 };
 
@@ -129,7 +139,7 @@ const setMainDisplay = (index: number) => {
 };
 
 // Product Submission for Single Upload
-const handleProductSubmit = async (productData: ProductInterface) => {
+const handleProductSubmit = async (productData: IProduct) => {
   if (mediaData.value.length === 0) {
       notify({ type: 'error', text: 'Please upload at least one image or video.' });
       return;
