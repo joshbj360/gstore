@@ -66,7 +66,7 @@
       <button @click="submitForm" type="button" class="px-6 py-2.5 bg-[#F02C56] text-white rounded-lg text-sm font-semibold hover:bg-[#df4949] transition-colors">Save Product</button>
     </div>
 
-    <CategoryDialog v-if="showCategoryDialog" @submit="addNewCategory" @close="showCategoryDialog = false" />
+    <CategoryDialog v-if="showCategoryDialog && userStore.user?.id" @submit="addNewCategory" @close="showCategoryDialog = false" :seller-id="userStore.user?.id" />
   </div>
 </template>
 

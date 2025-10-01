@@ -31,6 +31,7 @@
             <UploadWidget
               :media-label="'category-thumbnail'"
               :allow-multiple="false"
+              :seller-id="props.sellerId"
               @upload-complete="handleThumbnailUpload"
               class="flex-1"
             />
@@ -77,9 +78,13 @@
 </template>
 
 <script setup lang="ts">
-import type { MediaInterface } from '~/models/interface/products/media.interface';
+import type { IMedia } from '~/models';
 import TextInput from '../shared/TextInput.vue';
 import UploadWidget from '../upload/UploadWidget.vue';
+
+const props = defineProps<{
+  sellerId: string;
+}>();
 
 const emit = defineEmits(['submit', 'close']);
 
@@ -90,7 +95,7 @@ const errors = ref({
   thumbnailCatUrl: ''
 });
 
-const handleThumbnailUpload = (media: MediaInterface[]) => {
+const handleThumbnailUpload = (media: IMedia[]) => {
   if (media.length > 0) {
     thumbnailCatUrl.value = media[0].url;
     errors.value.thumbnailCatUrl = '';

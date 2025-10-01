@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import type { MediaInterface } from "~/models/interface/products/media.interface";
+import type { IMedia } from "~/models";
 
 export const useCoreStore = defineStore("core", {
   state: () => ({
@@ -8,6 +8,6 @@ export const useCoreStore = defineStore("core", {
     playVideoSound: false,
     
     cloudinaryUrls: [] as string[],
-    mediaData: <MediaInterface[]>[],
+    mediaData: <IMedia[]>[],
   })
 });
