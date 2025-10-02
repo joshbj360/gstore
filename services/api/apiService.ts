@@ -91,7 +91,7 @@ class ApiService {
   }
 
   getSellerProfileBySlug(slug: string): Promise<ISellerProfile> {
-    return this.request(`/api/prisma/seller/get-profile-by-slug/${slug}`);
+    return this.request(`/api/prisma/user/seller/get-profile-by-slug/${slug}`);
   }
 
   createSellerProfile(data: Partial<ISellerProfile>): Promise<ISellerProfile> {
