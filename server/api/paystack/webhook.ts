@@ -1,6 +1,6 @@
 import prisma from '~/server/prisma/prismaClient';
-import { Paystack } from 'paystack-sdk';
 import crypto from 'crypto';
+import { NotificationType } from '@prisma/client';
 
 const config = useRuntimeConfig();
 const paystackSecret = config.paystackSecretKey;
@@ -8,13 +8,10 @@ const paystackSecret = config.paystackSecretKey;
 if (!paystackSecret) {
     console.error("FATAL: PAYSTACK_SECRET_KEY is not configured.");
 }
-const paystack = new Paystack(paystackSecret!);
 
-// Define your platform's commission rate (e.g., 10%)
 const PLATFORM_COMMISSION_RATE = 0.10;
 
 export default defineEventHandler(async (event) => {
-  // 1. Verify the webhook signature to ensure it's from Paystack
   const signature = getHeader(event, 'x-paystack-signature');
   const body = await readRawBody(event);
 
@@ -32,19 +29,23 @@ export default defineEventHandler(async (event) => {
     const { reference } = data;
 
     try {
-        // Securely verify the transaction directly with Paystack
-        const verification = await paystack.transaction.verify( reference );
+        // THE DEFINITIVE FIX: Bypass the SDK's verify method and use Nuxt's $fetch directly.
+        // This gives us full control over the request and response, avoiding the SDK's internal bug.
+        const verification = await $fetch<{ status: boolean, message: string, data: any }>(`https://api.paystack.co/transaction/verify/${reference}`, {
+            headers: {
+                'Authorization': `Bearer ${paystackSecret!}`
+            }
+        });
 
         if (!verification.status || verification.data?.status !== 'success') {
-            console.warn(`Paystack verification failed for reference: ${reference}`);
-            return { status: 'success' }; // Acknowledge webhook but do not process
+            console.warn(`Paystack verification failed for reference: ${reference}. Reason: ${verification.message}`);
+            return { status: 'success' }; // Acknowledge the webhook but do not process
         }
 
         const verifiedData = verification.data;
         const verifiedAmount = verifiedData.amount;
 
         await prisma.$transaction(async (tx) => {
-            // Find the order and include all necessary relations for processing
             const order = await tx.orders.findFirst({ 
                 where: { stripeId: reference },
                 include: { 
@@ -53,7 +54,7 @@ export default defineEventHandler(async (event) => {
                             variant: { 
                                 include: { 
                                     product: { 
-                                        select: { sellerId: true } 
+                                        select: { sellerId: true, title: true } 
                                     } 
                                 } 
                             } 
@@ -63,7 +64,6 @@ export default defineEventHandler(async (event) => {
             });
 
             if (!order || order.status === 'COMPLETED') {
-                console.log(`Order for reference ${reference} not found or already completed.`);
                 return;
             }
             
@@ -73,39 +73,33 @@ export default defineEventHandler(async (event) => {
             }
 
             // --- SELLER WALLET & COMMISSION LOGIC ---
-
-            // 1. Group order items by seller to calculate earnings
-            const earningsBySeller: Record<string, number> = {};
+            const earningsBySeller: Record<string, { totalSale: number, items: string[] }> = {};
             for (const item of order.orderItem) {
                 const sellerId = item.variant.product.sellerId;
-                // Use variant-specific price if it exists, otherwise fall back to product price
-                const itemPrice = item.variant.price || 0; 
+                const itemPrice = item.variant.price || 0;
                 if (!earningsBySeller[sellerId]) {
-                    earningsBySeller[sellerId] = 0;
+                    earningsBySeller[sellerId] = { totalSale: 0, items: [] };
                 }
-                earningsBySeller[sellerId] += itemPrice * item.quantity;
+                earningsBySeller[sellerId].totalSale += itemPrice * item.quantity;
+                earningsBySeller[sellerId].items.push(item.variant.product.title);
             }
 
-            // 2. For each seller in the order, calculate commission and credit their wallet
             for (const sellerId in earningsBySeller) {
-                const totalSale = earningsBySeller[sellerId];
+                const { totalSale, items } = earningsBySeller[sellerId];
                 const commission = totalSale * PLATFORM_COMMISSION_RATE;
                 const sellerEarnings = totalSale - commission;
 
-                // Find or create the seller's wallet
                 const sellerWallet = await tx.sellerWallet.upsert({
                     where: { sellerId: sellerId },
                     update: {},
                     create: { sellerId: sellerId }
                 });
                 
-                // Credit the seller's wallet with their earnings
                 await tx.sellerWallet.update({
                     where: { id: sellerWallet.id },
                     data: { balance: { increment: sellerEarnings } }
                 });
                 
-                // Create a transaction record for auditing purposes
                 await tx.transaction.create({
                     data: {
                         walletId: sellerWallet.id,
@@ -115,22 +109,30 @@ export default defineEventHandler(async (event) => {
                         description: `Earnings from Order #${order.id}`
                     }
                 });
+
+                await tx.notification.create({
+                    data: {
+                        userId: sellerId,
+                        type: 'ORDER',
+                        message: `New order received for: ${items.join(', ').substring(0, 100)}...`,
+                        orderId: order.id
+                    }
+                });
             }
             
-            // 3. Update the main order status to COMPLETED
             await tx.orders.update({
                 where: { id: order.id },
                 data: { status: 'COMPLETED' },
             });
         });
         
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error processing webhook for reference ${reference}:`, error);
-      throw createError({ statusCode: 500, message: 'Error updating order' });
+      const errorMessage = error.data?.message || error.message || 'Error updating order';
+      throw createError({ statusCode: 500, message: errorMessage });
     }
   }
 
-  // Acknowledge receipt of the event to Paystack
   return { status: 'success' };
 });
 
