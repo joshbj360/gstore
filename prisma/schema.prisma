@@ -22,6 +22,7 @@ model Profile {
   sellerProfile SellerProfile?    @relation("SellerProfile")
   shares        Share[]           @relation("ProfileShares")
   socialMedia   SocialMediaInfo[] @relation("ProfileSocialMedia")
+  orders        Orders[]          @relation("BuyerOrders")
 }
 
 model SellerProfile {
@@ -213,11 +214,14 @@ model Orders {
   country       String
   totalAmount   Int
   paymentMethod String
+  trackingNumber String?
+  shipper       String?
   status        OrderStatus    @default(PENDING)
   created_at    DateTime       @default(now()) @db.Timestamptz(6)
   updated_at    DateTime       @updatedAt @db.Timestamptz(6)
   notifications Notification[] @relation("NotificationToOrder")
   orderItem     OrderItem[]
+  user          Profile        @relation("BuyerOrders", fields: [userId], references: [id])
 }
 
 model OrderItem {
@@ -356,8 +360,12 @@ enum MediaType {
 
 enum OrderStatus {
   PENDING
-  COMPLETED
+  PAID
   CANCELED
+  COMPLETED
+  SHIPPED
+  DELIVERED
+  RETURNED
 }
 
 enum VerificationStatus {

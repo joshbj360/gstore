@@ -1,6 +1,7 @@
 import prisma from '~/server/prisma/prismaClient';
 import crypto from 'crypto';
 import { NotificationType } from '@prisma/client';
+import { EOrderStatus } from '~/models';
 
 const config = useRuntimeConfig();
 const paystackSecret = config.paystackSecretKey;
@@ -63,7 +64,7 @@ export default defineEventHandler(async (event) => {
                 }
             });
 
-            if (!order || order.status === 'COMPLETED') {
+            if (!order || order.status === EOrderStatus.PAID) {
                 return;
             }
             
@@ -122,7 +123,7 @@ export default defineEventHandler(async (event) => {
             
             await tx.orders.update({
                 where: { id: order.id },
-                data: { status: 'COMPLETED' },
+                data: { status: EOrderStatus.PAID },
             });
         });
         

@@ -1,6 +1,6 @@
 import prisma from '~/server/prisma/prismaClient';
 import { serverSupabaseUser } from '#supabase/server';
-import type { ICartItem } from '~/models';
+import { EOrderStatus, type ICartItem } from '~/models';
 
 export default defineEventHandler(async (event) => {
     const user = await serverSupabaseUser(event);
@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
                     userId: user.id,
                     stripeId: paymentReference, // Using stripeId field for payment reference
                     totalAmount: totalAmount,
-                    status: 'PENDING', // All orders start as PENDING
+                    status: EOrderStatus.PENDING, // All orders start as PENDING
                     // Shipping details
                     name: shippingAddress.name,
                     address: shippingAddress.address,

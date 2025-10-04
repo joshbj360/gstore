@@ -1,5 +1,5 @@
 import { useRuntimeConfig } from '#app';
-import type { IProduct, ICategory, IAddress, IShippingZone, IProfile, ISellerProfile, ICartItem } from '~/models';
+import type { IProduct, ICategory, IAddress, IShippingZone, IProfile, ISellerProfile, ICartItem, IOrders } from '~/models';
 import { ApiError } from './apiError';
 
 // THE FIX: Define a simpler, explicit type for our request options.
@@ -142,6 +142,20 @@ class ApiService {
     return this.request('/api/prisma/orders/create-order', {
       method: 'POST',
       body: payload,
+    });
+  }
+
+  getSellerOrders(): Promise<IOrders[]> {
+    return this.request(`/api/prisma/orders/seller`);
+  }
+  getBuyerOrders(): Promise<IOrders[]> {
+    return this.request('/api/prisma/orders/buyer');
+  }
+
+  markOrderAsShipped(orderId: number, trackingNumber: string, shipper: string): Promise<IOrders> {
+    return this.request('/api/prisma/orders/ship', {
+      method: 'PATCH',
+      body: { orderId, trackingNumber, shipper },
     });
   }
 
