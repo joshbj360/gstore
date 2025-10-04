@@ -97,12 +97,12 @@
             <ProductsSection v-if="activeSection === 'products'" :products="products" @update="refresh" />
             <OrdersSection v-if="activeSection === 'orders'" :orders="orders" @order-updated="refresh" />
             <EarningsSection v-if="activeSection === 'earnings'" :wallet="wallet" @payout-requested="refresh" />
+            <LogisticsSection v-if="activeSection === 'logistics'" :orders="orders" :shippingZoneCount="wallet?.shippingZones?.length || 0" />
             <AnalyticsSection v-if="activeSection === 'analytics'" :sales-data="salesData" />
             <CustomersSection v-if="activeSection === 'customers'" :customers="customers" />
             <InventorySection v-if="activeSection === 'inventory'" :products="products" />
             <MessagesSection v-if="activeSection === 'messages'" :unread-count="0" />
             <AdsSection v-if="activeSection === 'ads'" :products="products" />
-            <LogisticsSection v-if="activeSection === 'logistics'" :orders="orders" :shippingZoneCount="wallet?.shippingZones?.length || 0" />
             <AIEnhancementSection v-if="activeSection === 'ai-enhancement'" :products="products" @update="refresh" />
             <SettingsSection v-if="activeSection === 'settings'" />
           </div>
@@ -113,31 +113,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useProductStore, useUserStore } from '~/stores';
+import { useProductStore, useUserStore} from '~/stores';
 import { useApiService } from '~/services/api/apiService';
+import { useSupabaseClient } from '#imports';
+import { notify } from '@kyvg/vue3-notification';
+import { formatNumber, formatPrice } from '~/utils/formatters';
 import DashboardSkeleton from '~/components/skeletons/DashboardSkeleton.vue';
+// Components
 import DashboardStat from '~/components/seller/dashboard/DashboardStat.vue';
 import ProductsSection from '~/components/seller/dashboard/ProductsSection.vue';
-import OrdersSection from '~/components/seller/dashboard/OrdersSection.vue';
-import EarningsSection from '~/components/seller/dashboard/EarningSection.vue';
-import AnalyticsSection from '~/components/seller/dashboard/AnalyticsSection.vue';
+import AdsSection from '~/components/seller/dashboard/AdsSection.vue';
+import SettingsSection from '~/components/seller/dashboard/SettingsSection.vue';
 import CustomersSection from '~/components/seller/dashboard/CustomersSection.vue';
 import InventorySection from '~/components/seller/dashboard/InventorySection.vue';
-import MessagesSection from '~/components/seller/dashboard/MessagesSection.vue';
-import AdsSection from '~/components/seller/dashboard/AdsSection.vue';
-import LogisticsSection from '~/components/seller/dashboard/LogisticsSection.vue';
 import AIEnhancementSection from '~/components/seller/dashboard/AIEnhancementSection.vue';
-import SettingsSection from '~/components/seller/dashboard/SettingsSection.vue';
-import type { IProduct } from '~/models';
-
-const vClickOutside = { /* ... (click outside directive logic) ... */ };
+import MessagesSection from '~/components/seller/dashboard/MessagesSection.vue';
+import LogisticsSection from '~/components/seller/dashboard/LogisticsSection.vue';
+import OrdersSection from '~/components/seller/dashboard/OrdersSection.vue';
+import AnalyticsSection from '~/components/seller/dashboard/AnalyticsSection.vue';
+import EarningsSection from '~/components/seller/dashboard/EarningSection.vue';
 
 const router = useRouter();
 const productStore = useProductStore();
 const userStore = useUserStore();
+const cartStore = useCartStore();
+const orderStore = useOrderStore();
 const apiService = useApiService();
+const supabase = useSupabaseClient();
 
 const activeSection = ref('products');
 const showNotificationMenu = ref(false);
@@ -155,17 +159,40 @@ const { data: dashboardData, pending, error, refresh } = await useAsyncData('sel
 
   const [products, orders, wallet, customers, notifications] = await Promise.all([
     productStore.getProductsByStoreSlug(storeSlug),
-    Promise.resolve([]), // Replace with your actual order fetching logic
+    orderStore.fetchSellerOrders(userStore.user?.id as string),
     apiService.getSellerWallet(),
-    Promise.resolve([]), // Replace with your actual customer fetching logic
-    Promise.resolve([
-        { id: 1, message: 'New order #1234 received', read: false },
-        { id: 2, message: 'Product is low in stock', read: false },
-    ])
+    Promise.resolve([]), // Replace with your customer fetching logic
+    Promise.resolve([])  // Replace with your notification fetching logic
   ]);
+
+    // orders.push(...orderStore.pendingSellerOrders)
 
   return { products, orders, wallet, customers, notifications };
 });
+
+// --- NEW: REAL-TIME SUBSCRIPTION ---
+let channel: any = null;
+onMounted(() => {
+    // Listen for any changes to the 'Orders' table that match the seller's user ID
+    channel = supabase
+        .channel('public:Orders')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Orders', filter: `userId=eq.${userStore.user?.id}` }, (payload) => {
+            console.log('Order update received!', payload);
+            notify({ type: 'success', text: 'An order has been updated!' });
+            // When an update is received, automatically refresh the dashboard data
+            refresh();
+        })
+        .subscribe();
+});
+
+onUnmounted(() => {
+    // It's crucial to remove the subscription when the component is destroyed to prevent memory leaks
+    if (channel) {
+        supabase.removeChannel(channel);
+    }
+});
+
+// --- END OF NEW LOGIC ---
 
 const products = computed(() => dashboardData.value?.products || []);
 const orders = computed(() => dashboardData.value?.orders || []);
@@ -178,16 +205,14 @@ const stats = computed(() => {
     const totalSales = orders.value.reduce((sum, order) => sum + order.totalAmount, 0);
     return [
         { title: "Total Sales", value: formatPrice(totalSales), icon: "mdi:cash-multiple", trend: "up", change: 15.2 },
-        { title: "Orders", value: orders.value.length.toString(), icon: "mdi:package-variant-closed", trend: "up", change: 8.7 },
-        { title: "Products", value: products.value.length.toString(), icon: "mdi:shopping", trend: "neutral", change: 0 },
+        { title: "Orders", value: formatNumber(orders.value.length), icon: "mdi:package-variant-closed", trend: "up", change: 8.7 },
+        { title: "Products", value: formatNumber(products.value.length), icon: "mdi:shopping", trend: "neutral", change: 0 },
         { title: "Available Payout", value: formatPrice(wallet.value?.balance || 0), icon: "mdi:wallet-outline", trend: "neutral", change: 0 }
     ];
 });
 
-const salesData = computed(() => ({})); // Your sales data logic
-
+const salesData = computed(() => ({}));
 const navigateHome = () => router.push('/');
-const formatPrice = (price: number) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(price / 100);
 
 const sections = [
   { id: 'products', label: 'Products', icon: 'mdi:package-variant' },

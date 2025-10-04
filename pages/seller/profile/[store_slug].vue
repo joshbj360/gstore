@@ -85,7 +85,7 @@ import { useApiService } from '~/services/api/apiService';
 import type { IProduct } from '~/models';
 
 definePageMeta({
-  layout: 'seller-profile-layout',
+  layout: 'profile-layout',
 });
 
 const route = useRoute();

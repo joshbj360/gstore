@@ -19,7 +19,7 @@ export const useShippingStore = defineStore('shipping', {
      * Fetches the current user's address from the API.
      * Crucially, it now RETURNS the address, making it compatible with useAsyncData.
      */
-    async fetchAddress(userId: string): Promise<IAddress | null> {
+    async fetchAddress(): Promise<IAddress | null> {
       // If address is already in state, return it instantly.
       if (this.address) return this.address;
 

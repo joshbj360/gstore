@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
       profile = await prisma.profile.create({
         data: {
           id: user.id,
+          username: user.user_metadata.user_name || user.email?.split('@')[0] || (user.user_metadata.full_name as string) || 'user',
           email: user.email!,
           role: 'user', // Default role
         },

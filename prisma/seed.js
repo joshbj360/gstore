@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
+import { EOrderStatus } from '~/models';
 
 const prisma = new PrismaClient();
 
@@ -100,7 +101,7 @@ async function main() {
       city: 'Lagos',
       country: 'Nigeria',
       totalAmount: 7125, // 7500 - 5%
-      status: 'COMPLETED',
+      status: EOrderStatus.PENDING,
       orderItem: {
         create: {
           productId: product.id,

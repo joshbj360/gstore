@@ -49,6 +49,7 @@
             <Icon name="mdi:login-variant" :size="isExtraSmallScreen ? '22' : '20'" />
             <span v-if="!isExtraSmallScreen" class="ml-2">Login</span>
           </NuxtLink>
+          
         </div>
 
         <!-- Logged-In User Actions (Non-Seller) -->
@@ -57,10 +58,14 @@
             <Icon name="mdi:store-plus-outline" :size="isExtraSmallScreen ? '22' : '20'" />
             <span v-if="!isExtraSmallScreen" class="ml-2">Sell</span>
           </NuxtLink>
+        
           <button @click="logout" class="bg-gray-100 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200 transition-all flex items-center justify-center" :class="isExtraSmallScreen ? 'w-10 h-10' : 'px-4 py-2'">
             <Icon name="mdi:logout-variant" :size="isExtraSmallScreen ? '22' : '20'" />
             <span v-if="!isExtraSmallScreen" class="ml-2">Logout</span>
           </button>
+            <NuxtLink to="/buyer/profile" class="bg-gray-100 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200 transition-all flex items-center justify-center" :class="isExtraSmallScreen ? 'w-10 h-10' : 'px-4 py-2'">
+            <img :src="userStore.userProfile?.avatar || 'https://picsum.photos/id/1005/32'" class="w-9 h-9 rounded-full" />
+          </NuxtLink>
         </div>
 
         <!-- Logged-In Seller Actions -->

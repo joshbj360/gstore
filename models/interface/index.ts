@@ -19,8 +19,11 @@ export enum EProductStatus {
 
 export enum EOrderStatus {
   PENDING = 'PENDING',
-  COMPLETED = 'COMPLETED',
+  PAID = 'PAID',
   CANCELED = 'CANCELED',
+  SHIPPED = 'SHIPPED',
+  DELIVERED = 'DELIVERED',
+  RETURNED = 'RETURNED',
 }
 
 export enum EVerificationStatus {
@@ -55,9 +58,11 @@ export interface IProduct extends Products {
 export interface IOrders extends Orders {
   notifications: INotification[];
   orderItem: IOrderItem[];
+  user?: IProfile;
 }
 
 export interface IProductVariant extends ProductVariant {
+  product?: IProduct
   cartItems?: ICartItem[];
   orderItems?: IOrderItem[];
 }
