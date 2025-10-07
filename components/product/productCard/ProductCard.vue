@@ -15,13 +15,13 @@
     </div>
     
     <!-- Seller label -->
-    <NuxtLink v-if="product.store_slug" :to="`/seller/profile/${product.store_slug}`" class="absolute top-2 left-2 z-10 px-2 py-1 rounded-full flex items-center gap-1
+    <NuxtLink v-if="product.seller?.store_slug" :to="`/seller/profile/${product.seller?.store_slug}`" class="absolute top-2 left-2 z-10 px-2 py-1 rounded-full flex items-center gap-1
          font-semibold backdrop-blur-sm text-xs sm:text-[10px]" :class="product.isVerified
           ? 'bg-brand/90 text-white'
-          : 'bg-white/80 text-gray-800'" :title="`Sold by ${product.store_slug}`">
+          : 'bg-white/80 text-gray-800'" :title="`Sold by ${product.seller?.store_slug}`">
 
       <Icon name="mdi:store-outline" size="12" aria-hidden="true" />
-      <span>{{ product.store_slug }}</span>
+      <span>{{ product.seller?.store_slug }}</span>
       <Icon v-if="product.isVerified" name="mdi:check-decagram" class="h-3 w-3 text-white" aria-hidden="true" />
     </NuxtLink>
 

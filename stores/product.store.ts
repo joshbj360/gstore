@@ -45,8 +45,8 @@ export const useProductStore = defineStore('product', {
     currentSellerProfile(state): ISellerProfile | null {
       const userStore = useUserStore();
       const product = this.currentProduct;
-      if (!product || !product.store_slug) return null;
-      return userStore.sellerCache.get(product.store_slug) || null;
+      if (!product || !product.seller?.store_slug) return null;
+      return userStore.sellerCache.get(product.seller?.store_slug) || null;
     },
     activeProductList: (state) => {
       if (state.currentCategorySlug) {
@@ -232,7 +232,7 @@ export const useProductStore = defineStore('product', {
       const apiService = useApiService();
       this.isLoading = true;
       try {
-        const product = await apiService.getProductFeedById(id);
+        const product = await apiService.getProductById(id);
         this._cacheProducts([product]);
         return product;
       } catch (error) {

@@ -16,7 +16,15 @@ export default defineEventHandler(async (event) => {
                 },
                 media: true,
                 measurement: true,
-                variants: true
+                variants: true,
+                seller: {
+          select: {
+            store_slug: true,
+            store_logo: true,
+            is_verified: true,
+            followers_count: true,
+          }
+        }
             },
             skip: offset,
             take: limit,

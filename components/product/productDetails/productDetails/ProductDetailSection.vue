@@ -39,7 +39,7 @@
         <MoreSellerProducts  
           v-else
           :active-tab="activeTab"
-          :store_name="product.store_slug"
+          :store_name="product.seller?.store_slug"
           :products="sellerProducts"
         />
       </template>
@@ -113,8 +113,11 @@ const loadSellerProducts = async () => {
     pendingSellerProducts.value = true;
     errorSellerProducts.value = null;
     try {
-        const result = await productStore.getProductsByStoreSlug(props.product.store_slug);
+      if (props.product?.seller?.store_slug) {
+        const result = await productStore.getProductsByStoreSlug(props.product?.seller?.store_slug);
         sellerProducts.value = result;
+      }
+        
     } catch (e) {
         errorSellerProducts.value = "Failed to load seller's products.";
     } finally {

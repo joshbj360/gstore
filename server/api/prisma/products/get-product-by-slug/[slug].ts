@@ -23,6 +23,14 @@ export default defineEventHandler(async (event) => {
         media: true, // Include the associated media
         measurement: true, // Include the measurement details
         variants: true, // Include the associated variants
+        seller: {
+          select: {
+            store_slug: true,
+            store_logo: true,
+            is_verified: true,
+            followers_count: true,
+          }
+        }
       },
     });
 

@@ -13,12 +13,14 @@ export default defineEventHandler(async (event) => {
 
     // Auto-create a profile if one doesn't exist for the logged-in user
     if (!profile) {
+      const username=user.user_metadata.user_name || user.email?.split('@')[0] || (user.user_metadata.full_name as string) || 'user';
       profile = await prisma.profile.create({
         data: {
           id: user.id,
-          username: user.user_metadata.user_name || user.email?.split('@')[0] || (user.user_metadata.full_name as string) || 'user',
+          username: username,
           email: user.email!,
           role: 'user', // Default role
+          avatar: `https://avatar.iran.liara.run/public/boy?username=${username}`
         },
         include: { sellerProfile: true },
       });

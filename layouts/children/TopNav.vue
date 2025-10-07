@@ -64,7 +64,7 @@
             <span v-if="!isExtraSmallScreen" class="ml-2">Logout</span>
           </button>
             <NuxtLink to="/buyer/profile" class="bg-gray-100 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200 transition-all flex items-center justify-center" :class="isExtraSmallScreen ? 'w-10 h-10' : 'px-4 py-2'">
-            <img :src="userStore.userProfile?.avatar || 'https://picsum.photos/id/1005/32'" class="w-9 h-9 rounded-full" />
+            <img :src="userStore.userProfile?.avatar || `https://avatar.iran.liara.run/public/boy?username=${userStore.userProfile?.username}`" class="w-9 h-9 rounded-full" />
           </NuxtLink>
         </div>
 
@@ -76,7 +76,7 @@
           </NuxtLink>
           <div v-click-outside="() => showMenu = false" class="relative">
             <button @click="showMenu = !showMenu" class="p-1 rounded-full hover:bg-gray-100" aria-label="Toggle user menu">
-              <img :src="userStore.userProfile?.avatar || 'https://picsum.photos/id/1005/32'" class="w-9 h-9 rounded-full" />
+              <img :src="userStore.userProfile?.avatar || `https://avatar.iran.liara.run/public/boy?username=${userStore.userProfile?.username}`" class="w-9 h-9 rounded-full" />
             </button>
             <transition enter-active-class="transition-all duration-200 ease-out" leave-active-class="transition-all duration-200 ease-in" enter-from-class="opacity-0 scale-95" leave-to-class="opacity-0 scale-95">
               <div v-if="showMenu" class="absolute bg-white rounded-lg py-2 w-56 shadow-lg border top-12 right-0 z-50">
