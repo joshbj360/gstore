@@ -36,6 +36,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     paystackSecretKey: process.env.PAYSTACK_SECRET_KEY,
+    platformCommissionRate: process.env.PLATFORM_COMMISSION_RATE,
     public: {
       baseURL: process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:3000',
       paystackPk: process.env.PAYSTACK_PUBLIC_KEY

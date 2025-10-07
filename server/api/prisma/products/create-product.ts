@@ -28,7 +28,6 @@ export default defineEventHandler(async (event) => {
         price: body.price,
         slug: body.slug?.trim() || body.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''), // Auto-generate slug if not provided
         sellerId: user.id,
-        store_name: body.store_slug,
         discount: body.discount || 0,
         
         // --- NEW: Create variants instead of a single stock ---

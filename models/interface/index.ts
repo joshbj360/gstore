@@ -2,7 +2,8 @@
 import type { 
   Products, Orders, ProductVariant, CartItem, Media, OrderItem, Addresses, Like,
   Share, SocialMediaInfo, Tag, Category, Measurement, ZoneRate, ShippingZone,
-  VerificationDocument, Review, SellerProfile, Profile, Notification
+  VerificationDocument, Comment, SellerProfile, Profile, Notification,
+  CommentLike
 } from '@prisma/client';
 
 export enum EMediaType {
@@ -47,10 +48,9 @@ export interface IProduct extends Products {
   variants?: IProductVariant[];
   likes?: ILike[];
   notifications?: INotification[];
-  seller?: IProfile;
-  sellerProfile?: ISellerProfile | null;
-  reviews?: IReview[];
-  share?: IShare[];
+  seller?: ISellerProfile | null;
+  comments?: IComment[];
+  shares?: IShare[];
   socialMedia?: ISocialMediaInfo[];
   shippingZone?: IShippingZone | null;
 }
@@ -103,12 +103,24 @@ export interface IShare extends Share {
   profile: IProfile;
 }
 
-export interface IReview extends Review {
+export interface IComment extends Comment {
+  author: IProfile;
   product: IProduct;
-  sellerProfile: ISellerProfile;
-  user: IProfile;
-  notifications: INotification[];
+  parent?: IComment | null;
+  replies?: IComment[];
+  likes?: ICommentLike[];
+  _count?: {
+    replies: number;
+    likes: number;
+  };
+  notifications?: INotification[];
 }
+
+export interface ICommentLike extends CommentLike {
+  user: IProfile;
+  comment: IComment;
+}
+
 
 export interface IVerificationDocument extends VerificationDocument {
   sellerProfile: ISellerProfile;
@@ -122,7 +134,7 @@ export interface ISocialMediaInfo extends SocialMediaInfo {
 export interface INotification extends Notification {
   order?: IOrders | null;
   product?: IProduct | null;
-  review?: IReview | null;
+  comment?: IComment | null;
   profile: IProfile;
 }
 
@@ -151,7 +163,7 @@ export interface IShippingZone extends ShippingZone {
 export interface ISellerProfile extends SellerProfile {
   profile: IProfile;
   media?: IMedia[];
-  reviews?: IReview[];
+  comments?: IComment[];
   verificationDocuments?: IVerificationDocument[];
   shippingZones?: IShippingZone[];
   products?: IProduct[];
@@ -161,7 +173,7 @@ export interface IProfile extends Profile {
   likes: ILike[];
   notifications: INotification[];
   products: IProduct[];
-  reviews: IReview[];
+  comments: IComment[];
   sellerProfile?: ISellerProfile | null;
   shares: IShare[];
   socialMedia: ISocialMediaInfo[];
@@ -213,7 +225,8 @@ export const defaultProduct: IProduct = {
   variants: [],
   measurement: null,
   shippingZone: null,
-  store_slug: '',
   soldCount: 0,
-  shippingZoneId: ''
+  shippingZoneId: '',
+  averageRating: 0,
+  totalReviews: 0,
 };

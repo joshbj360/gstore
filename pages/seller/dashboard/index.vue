@@ -159,7 +159,7 @@ const { data: dashboardData, pending, error, refresh } = await useAsyncData('sel
 
   const [products, orders, wallet, customers, notifications] = await Promise.all([
     productStore.getProductsByStoreSlug(storeSlug),
-    orderStore.fetchSellerOrders(userStore.user?.id as string),
+    orderStore.fetchSellerOrders(),
     apiService.getSellerWallet(),
     Promise.resolve([]), // Replace with your customer fetching logic
     Promise.resolve([])  // Replace with your notification fetching logic

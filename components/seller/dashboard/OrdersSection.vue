@@ -42,7 +42,7 @@
                             <td class="table-cell">
                                 <span class="status-badge" :class="getStatusClass(order.status)">{{ order.status }}</span>
                             </td>
-                            <td class="table-cell  font-semibold text-green-600">{{ formatPrice(order.totalAmount) }}</td>
+                            <td class="table-cell  font-semibold text-green-600">{{ formatPrice(order.payoutAmount || 0) }}</td>
                             <td class="table-cell text-center">
                                 <button 
                                     v-if="order.status === EOrderStatus.PAID" 
@@ -91,6 +91,7 @@ import { EOrderStatus, type IOrders } from '~/models';
 import { formatPrice } from '~/utils/formatters';
 import ShipOrderModal from '~/components/shipping/ShipOrderModal.vue';
 
+const config = useRuntimeConfig()
 const props = defineProps<{
     orders: IOrders[];
 }>();
@@ -121,11 +122,11 @@ const getStatusClass = (status: string) => {
     return 'bg-gray-100 text-gray-800';
 };
 
-// const calculatePayout = (order: IOrders) => {
-//     // This is a simplified calculation. A real implementation would be more robust.
-//     const commission = 0.05; // 5%
-//     return order.totalAmount * (1 - commission);
-// };
+const calculatePayout = (order: IOrders) => {
+    // This is a simplified calculation. A real implementation would be more robust.
+    const commission: number = Number(config.platformCommissionRate)
+    return order.totalAmount * (1 - commission);
+};
 </script>
 
 <style scoped>

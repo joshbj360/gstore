@@ -1,8 +1,8 @@
 import { useRuntimeConfig } from '#app';
-import type { IProduct, ICategory, IAddress, IShippingZone, IProfile, ISellerProfile, ICartItem, IOrders } from '~/models';
+import type { IProduct, ICategory, IAddress, IShippingZone, IProfile, ISellerProfile, ICartItem, IOrders, IComment } from '~/models';
 import { ApiError } from './apiError';
 
-// THE FIX: Define a simpler, explicit type for our request options.
+//#region === API SERVICE INTERFACE ===.
 // This prevents the "Excessive stack depth" error by being more direct.
 interface ApiServiceOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -10,6 +10,7 @@ interface ApiServiceOptions {
   params?: Record<string, any>;
   headers?: Record<string, string>;
 }
+//#endregion
 
 /**
  * @name ApiService
@@ -51,10 +52,13 @@ class ApiService {
     }
   }
 
-  // === PRODUCT METHODS ===
+  //#region === PRODUCT METHODS ===
 
   getAllProducts(params: { page?: number, limit?: number } = {}): Promise<IProduct[]> {
     return this.request('/api/prisma/products/get-all-products', { params });
+  }
+getProductById(id: number): Promise<IProduct> {
+    return this.request(`/api/prisma/products/get-product-by-id/${id}`);
   }
 
   getProductBySlug(slug: string): Promise<IProduct> {
@@ -83,8 +87,9 @@ class ApiService {
       body: productData,
     });
   }
-  
-  // === USER & SELLER METHODS ===
+  //#endregion
+
+  //#region === USER & SELLER METHODS ===
 
   getUserProfile(): Promise<IProfile> {
     return this.request('/api/prisma/user/profile');
@@ -100,8 +105,9 @@ class ApiService {
       body: data
     });
   }
-
-  // === CART METHODS ===
+  //#endregion
+  
+  //#region === CART METHODS ===
 
   getCartItems(): Promise<ICartItem[]> {
     return this.request('/api/prisma/cart');
@@ -127,8 +133,9 @@ class ApiService {
       body: { variantId },
     });
   }
+  //#endregion
 
-  // === ORDER & PAYMENT METHODS ===
+  //#region === ORDER & PAYMENT METHODS ===
 
   initializePayment(amount: {amount: number}): Promise<{ authorization_url: string; reference: string; }> {
     return this.request('/api/prisma/orders/initialize-payment', {
@@ -158,8 +165,9 @@ class ApiService {
       body: { orderId, trackingNumber, shipper },
     });
   }
+  //#endregion
 
-  // === WALLET & PAYOUT METHODS ===
+  //#region === WALLET & PAYOUT METHODS ===
 
   getSellerWallet(): Promise<any> {
     return this.request('/api/prisma/wallet');
@@ -171,8 +179,9 @@ class ApiService {
       body: payoutDetails,
     });
   }
+  //#endregion
 
-  // === SHIPPING ADDRESS METHODS ===
+  //#region === SHIPPING ADDRESS METHODS ===
 
   getAddress(): Promise<IAddress | null> {
     return this.request('/api/prisma/address');
@@ -184,8 +193,9 @@ class ApiService {
       body: addressData
     });
   }
+  //#endregion
 
-  // === SHIPPING ZONE METHODS ===
+  //#region === SHIPPING ZONE METHODS ===
 
   getShippingZones(): Promise<IShippingZone[]> {
     return this.request('/api/prisma/shipping/zones');
@@ -211,6 +221,47 @@ class ApiService {
         body: { id: zoneId }
       });
   }
+  //#endregion
+
+  //#region === COMMENT METHODS ===
+
+  getProductComments(id: number): Promise<IComment[]> {
+    return this.request(`/api/prisma/comments/get-by-product-id/${id}`);
+  }
+
+  createComment(payload: { productId: number; text: string; parentId?: string | null }): Promise<IComment> {
+    return this.request('/api/prisma/comments/create-comment', {
+      method: 'POST',
+      body: payload,
+    });
+  }
+
+  /**
+   * NEW METHOD: Encapsulates the EventSource connection logic.
+   * @param productId The ID of the product to listen for comments on.
+   * @param onUpdate A callback function that the store will provide to handle new messages.
+   * @returns The EventSource instance so it can be managed (closed) by the store.
+   */
+  subscribeToCommentUpdates(id: number, onUpdate: (data: any) => void): EventSource {
+     const url = new URL(`${this.baseURL}/api/prisma/comments/subscribe-by-product-id/${id}`);
+    const eventSource = new EventSource(url.toString());
+    
+    eventSource.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'UPDATE') {
+                // When a message is received, call the provided callback function.
+                onUpdate(data.payload);
+            }
+        } catch (e) {
+            console.error("Failed to parse SSE message:", e);
+        }
+    };
+    
+    return eventSource;
+  }
+  //#endregion
+
 }
 
 let apiServiceInstance: ApiService | null = null;

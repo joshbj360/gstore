@@ -1,46 +1,48 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from '~/server/prisma/prismaClient'; // Use our singleton prisma client
 
 export default defineEventHandler(async (event) => {
-  const slug = event.context.params?.slug
-  console.log(slug)
+  const slug = event.context.params?.slug;
 
   if (!slug) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Store name is required",
+      statusMessage: "Store slug is required",
     });
   }
 
-  // try {
+  try {
     const products = await prisma.products.findMany({
-      where: { store_slug: slug },
+      where: {
+        // THE FIX: This is the correct way to query through a relation.
+        // It finds products where the related 'seller' model's 'store_slug' matches.
+        seller: {
+          store_slug: slug,
+        },
+        // It's also good practice to only show published products on a public store page
+        status: 'PUBLISHED',
+      },
       include: {
         media: true,
-        category: {
-          include: {
-            category: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-        measurement: true,
-        variants: true, // Include the variants for each product
+        variants: true,
+        // You can include other relations if needed for your ProductCard
       },
+      orderBy: {
+          created_at: 'desc'
+      }
     });
-    console.log('this are products by seller ', products, 'source: [server/products/store_name.ts}')
+
+    if (!products) {
+        // Even if the seller exists but has no products, return an empty array
+        return [];
+    }
+
     return products;
-  // } catch (error) {
-  //   console.error("Error fetching products by seller ID:", error);
-  //   throw createError({
-  //     statusCode: 500,
-  //     statusMessage: "Internal Server Error",
-  //   });
-  // }
+
+  } catch (error) {
+    console.error(`Error fetching products for store slug "${slug}":`, error);
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Internal Server Error",
+    });
+  }
 });
-
-

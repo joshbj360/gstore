@@ -47,9 +47,9 @@
                             <!-- Info Overlay (shrink-0 prevents it from growing) -->
                             <div class="p-4 flex items-end gap-4 z-10 bg-black/50 shrink-0">
                                 <div class="flex-1 min-w-0">
-                                    <NuxtLink :to="`/seller/profile/${product.store_slug}`" class="flex items-center gap-2 mb-2">
-                                        <img :src="product.seller?.sellerProfile?.store_logo || '/default-store-logo.png'" class="w-8 h-8 rounded-full border border-white/50">
-                                        <span class="font-semibold text-sm">{{ product.store_slug }}</span>
+                                    <NuxtLink :to="`/seller/profile/${product.seller?.store_slug}`" class="flex items-center gap-2 mb-2">
+                                        <img :src="product.seller?.store_logo || '/default-store-logo.png'" class="w-8 h-8 rounded-full border border-white/50">
+                                        <span class="font-semibold text-sm">{{ product.seller?.store_slug }}</span>
                                     </NuxtLink>
                                     <h1 class="text-base font-bold line-clamp-2">{{ product.title }}</h1>
                                     <p class="text-xl font-bold mt-1">{{ formatPrice(product.price) }}</p>
@@ -99,7 +99,7 @@
 
             <!-- Modals (shared between layouts) -->
             <ProductDetailsSidePanel v-if="panelProduct" :is-open="isDetailsPanelOpen" :product="panelProduct" :sellerStore="currentSellerProfile" @close="isDetailsPanelOpen = false" />
-            <ProductChatModal v-if="panelProduct" :is-open="isChatModalOpen" @close="isChatModalOpen = false" />
+            <ProductChatModal v-if="panelProduct"   :product="panelProduct" :is-open="isChatModalOpen" @close="isChatModalOpen = false" />
         </div>
     </div>
 </template>
@@ -145,8 +145,9 @@ watch(products, (newProducts) => {
 }, { immediate: true });
 
 watch(currentProduct, (newProduct) => {
-    console.log('Current product changed:', newProduct); // Debugging line
-    if (newProduct?.store_slug) userStore.ensureSellerProfileLoaded(newProduct.store_slug);
+    console.log('Current product changed:', newProduct?.seller?.store_slug); // Debugging line
+    const sellerProfile = newProduct?.seller?.store_slug ? userStore.ensureSellerProfileLoaded(newProduct.seller.store_slug) : null;
+    console.log('Loaded seller profile:', Promise.resolve(sellerProfile)); // Debugging line
 }, { immediate: true });
 
 const setupIntersectionObserver = () => {

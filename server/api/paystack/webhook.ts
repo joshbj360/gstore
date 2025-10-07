@@ -10,7 +10,7 @@ if (!paystackSecret) {
     console.error("FATAL: PAYSTACK_SECRET_KEY is not configured.");
 }
 
-const PLATFORM_COMMISSION_RATE = 0.10;
+const PLATFORM_COMMISSION_RATE: number = Number(config.platformCommissionRate)
 
 export default defineEventHandler(async (event) => {
   const signature = getHeader(event, 'x-paystack-signature');
@@ -119,12 +119,15 @@ export default defineEventHandler(async (event) => {
                         orderId: order.id
                     }
                 });
-            }
-            
-            await tx.orders.update({
+
+                await tx.orders.update({
                 where: { id: order.id },
-                data: { status: EOrderStatus.PAID },
+                data: { 
+                    status: EOrderStatus.PAID,
+                    payoutAmount: sellerEarnings
+                },
             });
+            }
         });
         
     } catch (error: any) {

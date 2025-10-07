@@ -22,11 +22,15 @@ export default defineEventHandler(async (event) => {
 
     // If a user is authenticated but has no profile row yet, create one.
     if (!profile) {
+      const username=user.user_metadata.user_name || user.email?.split('@')[0] || (user.user_metadata.full_name as string) || 'user';
       profile = await prisma.profile.create({
         data: {
           id: user.id,
           email: user.email!,
+          username: username,
           role: 'user', // All new profiles start as a standard user
+          avatar: `https://avatar.iran.liara.run/public/boy?username=${username}`
+
         },
         include: { 
           sellerProfile: true 

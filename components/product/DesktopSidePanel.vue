@@ -27,10 +27,7 @@
                 <div v-else class="p-8 text-center text-gray-500">Loading seller info...</div>
             </div>
             <div v-if="activeTab === 'chat'">
-                <div class="p-6 text-center">
-                    <p class="text-gray-600">Chat with {{ sellerStore?.store_name || 'the seller' }}.</p>
-                    <p class="text-xs text-gray-400 mt-2">(Chat functionality coming soon)</p>
-                </div>
+                <ProductComment :product="product" />
             </div>
         </div>
     </div>
@@ -44,6 +41,7 @@
 import { ref } from 'vue';
 import type { IProduct, ISellerProfile } from '~/models';
 import ProductDetails from '~/components/product/productDetails/productDetails/children/ProductDetails.vue';
+import ProductComment from '~/components/chat/ProductComment.vue';
 
 const props = defineProps<{
   product: IProduct | null;
