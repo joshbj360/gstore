@@ -9,7 +9,7 @@
 
         <main class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
             <div class="text-right mb-4">
-                <button @click="openZoneModal()" class="bg-[#f02c56] text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#d81b36] transition-transform hover:scale-105">
+                <button @click="openZoneModal()" class="bg-brand text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#d81b36] transition-transform hover:scale-105">
                     Create New Profile
                 </button>
             </div>
@@ -28,8 +28,8 @@
                                 <p class="text-sm text-gray-500 mt-1">{{ generateZoneDescription(zone) }}</p>
                             </div>
                             <div class="flex gap-2">
-                                <button @click="openZoneModal(zone)" class="text-sm font-medium text-[#f02c56] hover:underline">Edit</button>
-                                <button @click="deleteZone(zone.id)" class="text-sm font-medium text-red-500 hover:underline">Delete</button>
+                                <button @click="openZoneModal(zone)" class="text-sm font-medium text-brand hover:underline">Edit</button>
+                                <button @click="deleteZone(zone.id)" class="text-sm font-medium text-brand hover:underline">Delete</button>
                             </div>
                         </div>
                     </li>

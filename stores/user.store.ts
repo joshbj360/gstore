@@ -7,7 +7,7 @@ export const useUserStore = defineStore('user', {
   state: () => ({
     userProfile: null as IProfile | null,
     sellerProfile: null as ISellerProfile | null,
-    sellerCache: new Map<string, ISellerProfile>(),
+    sellerCache: {} as Record<string, ISellerProfile>,
     isLoading: false,
   }),
 
@@ -28,8 +28,13 @@ export const useUserStore = defineStore('user', {
      */
     async _onLoginSuccess() {
         const cartStore = useCartStore();
-        await cartStore.mergeAndSyncCartOnLogin();
-        await this.fetchUserAndProfile();
+        this.isLoading = true;
+      await Promise.all([
+        await cartStore.mergeAndSyncCartOnLogin(),
+        await this.fetchUserAndProfile()
+
+      ]);
+      this.isLoading = false;
     },
     
     /**
@@ -134,13 +139,15 @@ export const useUserStore = defineStore('user', {
      * Fetches a seller's public profile if it's not already in the cache.
      */
     async ensureSellerProfileLoaded(slug: string) {
-      if (!slug || this.sellerCache.has(slug)) return;
+      if (!slug || this.sellerCache[slug]) {
+        return; // Already have it cached
+      }
 
       const apiService = useApiService();
       try {
         const sellerData = await apiService.getSellerProfileBySlug(slug);
         if (sellerData) {
-          this.sellerCache.set(slug, sellerData);
+          this.sellerCache[slug] = sellerData;
         }
       } catch (error) {
         console.error(`Failed to fetch seller profile for ${slug}:`, error);
@@ -155,11 +162,12 @@ export const useUserStore = defineStore('user', {
       await supabase.auth.signOut();
       this.userProfile = null;
       this.sellerProfile = null;
-      this.sellerCache.clear();
+      this.sellerCache = {};
       // Also clear the cart
       const cartStore = useCartStore();
       cartStore.resetCart();
     },
   },
+  persist: true
 });
 

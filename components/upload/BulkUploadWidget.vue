@@ -1,7 +1,7 @@
 <template>
   <div class="bulk-upload-widget space-y-4">
     <div
-      class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50 hover:border-[#C42B78] transition-colors cursor-pointer"
+      class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50 hover:border-[#f02c56] transition-colors cursor-pointer"
       @dragover.prevent @drop.prevent="handleDrop" @click="triggerFileInput"
     >
       <input ref="fileInput" type="file" accept=".csv" class="hidden" @change="handleFileChange" />
@@ -23,8 +23,8 @@
       <p class="text-sm text-gray-600 mt-2 text-center">{{ progressMessage }}</p>
       
       <div v-if="statusLog.length > 0" class="mt-4 max-h-40 overflow-y-auto bg-white p-2 rounded border text-xs space-y-1">
-        <p v-for="(log, index) in statusLog" :key="index" :class="log.type === 'error' ? 'text-red-500' : 'text-gray-700'">
-            {{ log.message }}
+        <p v-for="(log, index) in statusLog" :key="index" :class="log.type === 'error' ? 'text-brand' : 'text-gray-700'">
+          {{ log.message }}
         </p>
       </div>
     </div>
@@ -33,7 +33,7 @@
       <button @click="downloadTemplate" class="px-4 py-2 border rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
         Download Template
       </button>
-      <button @click="startUpload" :disabled="isUploading || !file" class="px-6 py-2 bg-brand text-white rounded-md font-medium disabled:bg-gray-400 disabled:cursor-not-allowed">
+      <button @click="startUpload" :disabled="isUploading || !file || records.length === 0" class="px-6 py-2 bg-brand text-white rounded-md font-medium disabled:bg-gray-400 disabled:cursor-not-allowed">
         {{ isUploading ? 'Uploading...' : 'Start Upload' }}
       </button>
     </div>
@@ -45,13 +45,14 @@ import { ref } from 'vue';
 import Papa from 'papaparse';
 import { notify } from "@kyvg/vue3-notification";
 import { useRouter } from 'vue-router';
+import { useApiService } from '~/services/api/apiService';
+import type { IProduct } from '~/models';
 
 interface CsvRecord {
   title: string;
   description: string;
   price: string;
-  discount?: string
-  slug?: string;
+  discount?: string;
   category: string;
   tags?: string;
   media_urls?: string;
@@ -59,33 +60,12 @@ interface CsvRecord {
   sizes?: string;
   stocks?: string;
 }
-
-interface ProductVariant {
-  size: string;
-  stock: number;
-}
-
-interface ProductMedia {
-  url: string;
-  type: string;
-}
-
-interface ProductToCreate {
-  title: string;
-  description: string;
-  price: number;
-  discount: string;
-  slug: string;
-  category: string;
-  tags: string[];
-  media: ProductMedia[];
-  variants: ProductVariant[];
-}
-
 interface StatusLogEntry {
   message: string;
   type: 'success' | 'error';
 }
+
+const emit = defineEmits(['upload-start', 'upload-complete', 'upload-error']);
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const file = ref<File | null>(null);
@@ -96,16 +76,16 @@ const progress = ref<number>(0);
 const progressMessage = ref<string>('');
 const statusLog = ref<StatusLogEntry[]>([]);
 const router = useRouter();
+const apiService = useApiService();
 
 const triggerFileInput = (): void => fileInput.value?.click();
-
-const handleFileChange = (e: Event): void => {
-    const target = e.target as HTMLInputElement;
+const handleFileChange = (e: Event): void => { 
+  const target = e.target as HTMLInputElement;
     if (target.files) parseFile(target.files[0]);
 };
-
 const handleDrop = (e: DragEvent): void => {
-    if (e.dataTransfer?.files) parseFile(e.dataTransfer.files[0]);
+  e.preventDefault();
+  if (e.dataTransfer?.files) parseFile(e.dataTransfer.files[0]);
 };
 
 const parseFile = (csvFile: File): void => {
@@ -124,60 +104,54 @@ const parseFile = (csvFile: File): void => {
 };
 
 const startUpload = async (): Promise<void> => {
-    if (records.value.length === 0) {
-        notify({ type: 'error', text: 'No products to upload.' });
-        return;
-    }
-
+    if (records.value.length === 0) return;
+    
+    emit('upload-start');
     isUploading.value = true;
     uploadComplete.value = false;
     statusLog.value = [];
     progress.value = 0;
+    
+    const productsToCreate = records.value.map(record => ({
+        title: record.title,
+        description: record.description,
+        price: parseFloat(record.price) * 100,
+        discount: record.discount ? parseFloat(record.discount) : null,
+        category: record.category,
+        tags: record.tags ? record.tags.split(',').map(t => t.trim()) : [],
+        media: record.media_urls ? record.media_urls.split('|').map((url, i) => ({ url: url.trim(), type: record.media_types?.split('|')[i]?.trim().toUpperCase() || 'IMAGE' })) : [],
+        variants: record.sizes ? record.sizes.split('|').map((size, i) => ({ size: size.trim(), stock: parseInt(record.stocks?.split('|')[i]?.trim() || '0', 10) })) : [],
+    }));
 
     const batchSize = 5; // Send 5 products per API call
     let successfulUploads = 0;
 
-    for (let i = 0; i < records.value.length; i += batchSize) {
-        const batch = records.value.slice(i, i + batchSize);
-        progressMessage.value = `Uploading products ${i + 1} to ${i + batch.length}...`;
-
-        const productsToCreate: ProductToCreate[] = batch.map((record: CsvRecord) => ({
-            title: record.title,
-            description: record.description,
-            price: parseFloat(record.price),
-            discount: record.discount || '0',
-            slug: record.slug || record.title.toLowerCase().replace(/\s+/g, '-'),
-            category: record.category,
-            tags: record.tags ? record.tags.split(',').map((t: string) => t.trim()) : [],
-            media: record.media_urls ? record.media_urls.split('|').map((url: string, index: number) => ({
-                url: url.trim(),
-                type: record.media_types?.split('|')[index]?.trim().toUpperCase() || 'IMAGE'
-            })) : [],
-            variants: record.sizes ? record.sizes.split('|').map((size: string, index: number) => ({
-                size: size.trim(),
-                stock: parseInt(record.stocks?.split('|')[index]?.trim() || '0', 10)
-            })) : [],
-        }));
+    for (let i = 0; i < productsToCreate.length; i += batchSize) {
+        const batch = productsToCreate.slice(i, i + batchSize);
+        progressMessage.value = `Uploading products ${i + 1} to ${Math.min(i + batchSize, productsToCreate.length)}...`;
 
         try {
-            await $fetch('/api/prisma/products/create-batch', {
-                method: 'POST',
-                body: { products: productsToCreate },
-            });
-            successfulUploads += batch.length;
-            statusLog.value.push({ message: `✅ Batch ${i / batchSize + 1}: Successfully uploaded ${batch.length} products.`, type: 'success' });
+            const response = await apiService.createBatchProducts(batch);
+            successfulUploads += response.createdCount;
+            
+            if (response.errors.length > 0) {
+                response.errors.forEach((e: string) => statusLog.value.push({ message: `❌ ${e}`, type: 'error' }));
+            } else {
+                 statusLog.value.push({ message: `✅ Batch ${i / batchSize + 1}: Successfully uploaded ${batch.length} products.`, type: 'success' });
+            }
+
         } catch (error: any) {
-            statusLog.value.push({ message: `❌ Batch ${i / batchSize + 1}: Failed. ${error.data?.message || 'Unknown error'}`, type: 'error' });
+            statusLog.value.push({ message: `❌ Batch ${i / batchSize + 1}: Failed. ${error.data?.message || 'Server error'}`, type: 'error' });
         }
 
-        progress.value = Math.round(( (i + batch.length) / records.value.length) * 100);
+        progress.value = Math.round(((i + batch.length) / productsToCreate.length) * 100);
     }
 
-    progressMessage.value = `Upload complete! ${successfulUploads} / ${records.value.length} products uploaded.`;
+    progressMessage.value = `Upload complete! ${successfulUploads} / ${productsToCreate.length} products created.`;
     isUploading.value = false;
     uploadComplete.value = true;
     notify({ type: 'success', text: 'Bulk upload process finished!' });
-    setTimeout(() => router.push('/seller/dashboard'), 2000);
+    setTimeout(() => router.push('/seller/dashboard'), 3000);
 };
 
 const downloadTemplate = (): void => {

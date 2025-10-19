@@ -13,7 +13,7 @@
                     <label class="block text-sm font-medium text-gray-700">Payout Amount</label>
                     <p class="text-xs text-gray-500 mb-1">Available: {{ formatPrice(availableBalance) }}</p>
                     <CurrencyInput v-model:input="amount" :max="availableBalance" required />
-                    <p v-if="error" class="text-red-500 text-sm mt-1">{{ error }}</p>
+                    <p v-if="error" class="text-brand text-sm mt-1">{{ error }}</p>
                 </div>
 
                 <div>
@@ -28,7 +28,7 @@
 
                 <div class="pt-4 flex justify-end gap-3">
                     <button @click="$emit('close')" type="button" class="px-4 py-2 border rounded-lg text-sm font-semibold">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-[#f02c56] text-white rounded-lg text-sm font-semibold">Submit Request</button>
+                    <button type="submit" class="px-4 py-2 bg-brand text-white rounded-lg text-sm font-semibold">Submit Request</button>
                 </div>
             </form>
         </div>

@@ -1,5 +1,5 @@
 import { useRuntimeConfig } from '#app';
-import type { IProduct, ICategory, IAddress, IShippingZone, IProfile, ISellerProfile, ICartItem, IOrders, IComment } from '~/models';
+import type { IProduct, ICategory, IAddress, IShippingZone, IProfile, ISellerProfile, ICartItem, IOrders, IComment, IStory, IMedia } from '~/models';
 import { ApiError } from './apiError';
 
 //#region === API SERVICE INTERFACE ===.
@@ -78,13 +78,20 @@ getProductById(id: number): Promise<IProduct> {
   }
   
   getProductFeedBySlug(slug: string): Promise<IProduct[]> {
-    return this.request(`/api/prisma/products/get-product-feed-by-slug/${slug}`);
+    return this.request(`/api/prisma/products/feed/${slug}`);
   }
 
   createProduct(productData: IProduct): Promise<IProduct> {
-    return this.request('/api/prisma/products/create-product', {
+    return this.request('/api/prisma/products/create/create-product', {
       method: 'POST',
       body: productData,
+    });
+  }
+
+  createBatchProducts(products: any): Promise<{ success: boolean; createdCount: number; errors: string[] }> {
+    return this.request('/api/prisma/products/create/create-batch-products', {
+      method: 'POST',
+      body: products,
     });
   }
   //#endregion
@@ -104,6 +111,18 @@ getProductById(id: number): Promise<IProduct> {
       method: 'POST',
       body: data
     });
+  }
+  //#endregion
+
+  //#region === CATEGORY METHODS ===
+  getAllCategories(): Promise<ICategory[]> {
+    return this.request('/api/prisma/categories/get-all-categories');
+  }
+  createCategory(categoryData: { name: string; thumbnailCatUrl: string }): Promise<ICategory> {
+    return  this.request('/api/prisma/categories/create-category', {
+          method: 'POST',
+          body: categoryData,
+        });
   }
   //#endregion
   
@@ -236,30 +255,95 @@ getProductById(id: number): Promise<IProduct> {
     });
   }
 
-  /**
-   * NEW METHOD: Encapsulates the EventSource connection logic.
-   * @param productId The ID of the product to listen for comments on.
-   * @param onUpdate A callback function that the store will provide to handle new messages.
-   * @returns The EventSource instance so it can be managed (closed) by the store.
-   */
-  subscribeToCommentUpdates(id: number, onUpdate: (data: any) => void): EventSource {
-     const url = new URL(`${this.baseURL}/api/prisma/comments/subscribe-by-product-id/${id}`);
-    const eventSource = new EventSource(url.toString());
-    
-    eventSource.onmessage = (event) => {
-        try {
-            const data = JSON.parse(event.data);
-            if (data.type === 'UPDATE') {
-                // When a message is received, call the provided callback function.
-                onUpdate(data.payload);
-            }
-        } catch (e) {
-            console.error("Failed to parse SSE message:", e);
-        }
-    };
-    
-    return eventSource;
+  toggleCommentLike(commentId: string): Promise<{ liked: boolean }> {
+    return this.request('/api/prisma/like/like-unlike-comment', {
+      method: 'POST',
+      body: { commentId },
+    });
   }
+
+
+  //#endregion
+
+  //#region === LIKE METHODS ===
+  getUserLikes(): Promise<{ productLikes: number[]; commentLikes: string[] }> {
+    return this.request('/api/prisma/like/user-likes');
+  }
+
+/*************  ✨ Windsurf Command ⭐  *************/
+/**
+ * Toggles the like status for a product.
+ * @param {number} productId The ID of the product to toggle the like status for.
+ * @returns {Promise<{ liked: boolean }>} A promise that resolves with an object containing the like status.
+ * @example
+ * const response = await apiService.toggleProductLike(123);
+ * const { liked } = response;
+ * console.log(liked ? 'Product is liked' : 'Product is not liked');
+ */
+/*******  aba371f3-3129-4c89-93e7-0cb7d4ec6846  *******/  toggleProductLike(productId: number): Promise<{ liked: boolean }> {
+    return this.request('/api/prisma/like/like-unlike-product', {
+      method: 'POST',
+      body: { productId },
+    });
+  }
+
+  //#endregion
+
+  //#region === HOMEPAGE METHODS ===
+  getHomepageData(): Promise<{
+      stories: IStory[]; 
+      featuredProducts: IProduct[]; 
+      products: IProduct[]; 
+      topSellers: ISellerProfile[]; 
+      hotAccessories: IProduct[];
+  }> {
+    return this.request('/api/prisma/home/home-page-api');
+  }
+  //#endregion
+
+  //#region === UPLOAD METHODS ===
+  getCloudinarySignature(): Promise<{ signature: string; timestamp: number }> {
+    return this.request('/api/prisma/media/cloudinary-signature');
+  }
+  //#endregion
+
+  //#region === SEARCH METHODS ===
+  searchProducts(query: string): Promise<IProduct[]> {
+    return this.request(`/api/prisma/search/search-by-name/${query}`, {
+      method: 'POST',
+      body: { query },
+    });
+  }
+
+  //#region === STORY METHODS ===
+  createStory(payload: { media: object; productId?: number | null }): Promise<IStory> {
+    return this.request('/api/prisma/stories/create-story', {
+      method: 'POST',
+      body: payload,
+    });
+  }
+
+  fetchStory(storyId: string): Promise<IStory[]> {
+    return this.request(`/api/prisma/stories/feed/${storyId}`);
+  }
+  //#endregion
+
+  //#region === AI METHODS ===
+
+  async aiChat(params: { productId?: number; message: string; context?: IProduct[] }): Promise<string> {
+    try {
+      const { productId, message, context } = params;
+      const response = await $fetch<{ reply: string }>('/api/ai/chat', {
+        method: 'POST',
+        body: { productId, message, context: JSON.stringify(context || []) },
+      });
+      return response.reply;
+    } catch (error) {
+      console.error('AI Chat Error:', error);
+      return 'Style tip: Add some accessories for that extra edge! What\'s your vibe?';
+    }
+  }
+
   //#endregion
 
 }

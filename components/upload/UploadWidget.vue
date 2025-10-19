@@ -1,212 +1,182 @@
 <template>
   <div>
-    <button
-      class="mt-2 px-6 py-2.5 text-white text-[15px] bg-brand rounded-lg hover:bg-[#df4949] transition flex items-center justify-center gap-2"
-      @click="openCloudinaryWidget"
-      :disabled="isLoading"
-    >
-      <Icon v-if="isLoading" name="mingcute:loading-line" class="animate-spin" />
-      <span>{{ isLoading ? 'Uploading...' : mediaLabel }}</span>
-    </button>
+    <!-- 
+            THE FIX: The drop zone is now a simple div.
+            The `ref="dropZoneRef"` connects it to the VueUse composable.
+        -->
+    <div ref="dropZoneRef" class="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors"
+      :class="isOverDropZone ? 'border-[#f02c56] bg-brand/10' : 'hover:bg-gray-50'" @click="open">
+      <div class="space-y-2">
+        <Icon name="mdi:cloud-upload-outline" size="48" class="mx-auto text-gray-400" />
+        <p class="text-sm text-gray-600">
+          <span class="font-semibold text-brand">Click to upload</span> or drag and drop
+        </p>
+        <p class="text-xs text-gray-500">Images or video (Max 100MB)</p>
+      </div>
+    </div>
 
-    <!-- Error Message -->
-    <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
+    <!-- Hidden file input that the composable will trigger -->
+    <input ref="fileInput" type="file" :multiple="allowMultiple" @change="onFileChange" class="hidden" />
+
+    <!-- Upload Progress Section -->
+    <div v-if="uploadingFiles.length > 0" class="mt-4 space-y-2">
+      <div v-for="file in uploadingFiles" :key="file.id" class="p-2 border rounded-lg flex items-center gap-3">
+        <div class="w-10 h-10 bg-gray-100 rounded flex items-center justify-center">
+          <Icon v-if="file.type?.startsWith('image')" name="mdi:image" size="24" class="text-gray-500" />
+          <Icon v-else name="mdi:movie" size="24" class="text-gray-500" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-800 truncate">{{ file.name }}</p>
+          <div class="flex items-center gap-2 text-xs text-gray-500">
+            <span>{{ ((file.size || 0) / 1024 / 1024).toFixed(2) }} MB</span>
+            <span v-if="file.error" class="text-brand font-semibold">{{ file.error }}</span>
+          </div>
+        </div>
+        <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden" v-if="file.progress > 0 && file.progress < 100">
+          <div class="h-full bg-green-500" :style="{ width: file.progress + '%' }"></div>
+        </div>
+        <Icon v-if="file.success" name="mdi:check-circle" size="20" class="text-green-500" />
+        <Icon v-if="file.error" name="mdi:alert-circle" size="20" class="text-brand" />
+      </div>
+    </div>
   </div>
 </template>
 
-<script lang="ts" setup>
-import type { IMedia, EMediaType } from '~/models';
+<script setup lang="ts">
+import { ref, reactive } from 'vue';
+import { useDropZone } from '@vueuse/core'; // THE FIX: Import the composable
+import { useApiService } from '~/services/api/apiService';
+import { useRuntimeConfig } from '#app';
+import type { EMediaType, IMedia } from '~/models';
+import { v4 as uuidv4 } from 'uuid';
 
-interface CloudinaryResult {
-  event: string;
-  info: {
-    secure_url: string;
-    resource_type: string;
-    format: string;
-    width?: number;
-    height?: number;
-    bytes?: number;
-  };
+const props = defineProps<{
+  allowMultiple: boolean,
+  altText: string
+
+}>()
+
+const emit = defineEmits(['upload-start', 'upload-complete', 'upload-error']);
+
+const apiService = useApiService();
+const config = useRuntimeConfig();
+
+// State for files being processed
+const uploadingFiles = ref<any[]>([]);
+const uploadedMedia = ref<IMedia[]>([]);
+const fileInput = ref<HTMLInputElement | null>(null);
+
+// --- VueUse `useDropZone` Implementation ---
+const dropZoneRef = ref<HTMLDivElement>();
+const { isOverDropZone } = useDropZone(dropZoneRef, { onDrop });
+
+function open() {
+  fileInput.value?.click();
 }
-interface CloudinaryError {
-  message: string;
-  status: number;
-}
-interface CloudinaryWidgetOptions {
-  cloudName: string;
-  uploadPreset: string;
-  multiple?: boolean;
-  maxFiles?: number;
-  folder?: string;
-  showAlreadyUploaded: boolean
-  buttonCaption?: string;
-  styles?: {
-    palette: {
-      [key: string]: string;
-    };
-  };
+
+function onFileChange(e: Event) {
+  const target = e.target as HTMLInputElement;
+  if (target.files) {
+    processFiles(Array.from(target.files));
+  }
 }
 
-const props = defineProps({
-    mediaLabel: {
-        type: String,
-        default: 'Select Media',
-    },
-    allowMultiple: {
-        type: Boolean,
-        default: true,
-    },
-    maxFiles: {
-    type: Number,
-    default: 10,
-    validator: (value: number) => value > 0 && value <= 20,
-  },
-  folder: {
-    type: String,
-    default: 'product_media',
-  },
-  accept: {
-    type: String,
-    default: 'image/*,video/*',
-  },
-  sellerId: {
-    type: String,
-    required: true  
+function onDrop(files: File[] | null) {
+  if (files) {
+    processFiles(files);
   }
-})
+}
+// --- End of VueUse Implementation ---
 
-const emit = defineEmits<{
-  (e: 'upload-complete', media: IMedia[]): void;
-  (e: 'upload-error', error: string): void;
-}>();
-const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'dcci05bzj';
-const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET || 'ml_default';
-// const mediaArray: IMedia[] = [];
+const processFiles = (filesToProcess: File[]) => {
+  emit('upload-start');
+  for (const file of filesToProcess) {
+    const fileState = reactive({
+      id: uuidv4(),
+      file: file,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      progress: 0,
+      success: false,
+      error: null as string | null,
+    });
 
-const isLoading = ref(false);
-const error = ref<string | null>(null);
-const widget = ref<any>(null);
-
-console.log("cloud name:", cloudName) //TODO: remove this line
-console.log("upload preset:", uploadPreset) //TODO: remove this line
-
-  interface Window {
-    cloudinary?: any;
-  }
-  declare var window: Window;
-
-  // Open Cloudinary widget
- const openCloudinaryWidget = () => {
-  if (isLoading.value) return;
-
-  if (!window.cloudinary) {
-    error.value = 'Cloudinary widget is not loaded yet. Please try again.';
-    return;
-  }
-
-  isLoading.value = true;
-  error.value = null;
-
-  try {
-    if (!widget.value) {
-      initializeWidget();
+    if (file.size > 100 * 1024 * 1024) { // 100MB limit
+      fileState.error = 'File size exceeds 100MB'
+    } else {
+      uploadFile(fileState);
     }
-    widget.value?.open();
-  } catch (err) {
-    error.value = 'Failed to open upload widget';
-    console.error('Widget error:', err);
-    isLoading.value = false;
+    uploadingFiles.value.push(fileState);
   }
 };
-const initializeWidget = () => {
-  const options: CloudinaryWidgetOptions = {
-    cloudName,
-    uploadPreset,
-    multiple: props.allowMultiple,
-    maxFiles: props.maxFiles,
-    folder: `${props.folder}/seller/0 ${props.sellerId}`,
-    buttonCaption: props.mediaLabel,
-    showAlreadyUploaded: true,
-    styles: {
-      palette: {
-        window: '#F8F8F8',
-        sourceBg: '#FFFFFF',
-        windowBorder: '#C42B78',
-        tabIcon: '#C42B78',
-        inactiveTabIcon: '#555555',
-        menuIcons: '#C42B78',
-        link: '#C42B78',
-        action: '#C42B78',
-        inProgress: '#C42B78',
-        complete: '#C42B78',
-        error: '#FF0000',
-        textDark: '#000000',
-        textLight: '#FFFFFF',
-      },
-    },
-  };
-  widget.value = window.cloudinary.createUploadWidget(
-    options,
-    (error: CloudinaryError | null, result: CloudinaryResult) => {
-      isLoading.value = false;
-      
-      if (error) {
-        handleUploadError(error);
-        return;
-      }
 
-      if (result && result.event === 'success') {
-        handleUploadSuccess(result);
-      }
+const uploadFile = (fileState: any) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // const { signature, timestamp } = await apiService.getCloudinarySignature();
+      const formData = new FormData();
+      formData.append('file', fileState.file);
+      formData.append('upload_preset', config.public.cloudinaryUploadPreset as string)
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${config.public.cloudName}/auto/upload`);
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          fileState.progress = parseInt(((e.loaded / e.total) * 100).toFixed(2));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const data = JSON.parse(xhr.responseText);
+          const newMedia: IMedia = {
+            id: data.asset_id,
+            name: data.original_filename,
+            url: data.secure_url,
+            public_id: data.public_id,
+            type: data.resource_type.toUpperCase() as EMediaType,
+            error: data.error,
+            success: data.secure_url ? true : false,
+            metadata: {
+              width: data.width,
+              height: data.height,
+            },
+            sellerId: '',
+            created_at: new Date(data.created_at),
+            productId: null,
+            altText: props.altText || data.original_filename,
+          };
+
+          if (props.allowMultiple) {
+            uploadedMedia.value.push(newMedia);
+            emit('upload-complete', uploadedMedia.value);
+          } else {
+            emit('upload-complete', newMedia);
+          }
+
+          fileState.success = true;
+          resolve(fileState);
+        } else {
+          const errorMsg = JSON.parse(xhr.responseText)?.error?.message || 'Upload failed';
+          fileState.error = errorMsg;
+          emit('upload-error', errorMsg);
+          reject(fileState);
+        }
+      };
+      xhr.onerror = () => {
+        fileState.error = 'Network error';
+        emit('upload-error', 'Network error during upload.');
+        reject(fileState);
+      };
+      xhr.send(formData);
+    } catch (error: any) {
+      const errorMsg = error.data?.message || 'Failed to prepare upload.';
+      fileState.error = errorMsg;
+      emit('upload-error', errorMsg);
+      reject(fileState);
     }
-  );
+  });
 };
-const handleUploadSuccess = (result: CloudinaryResult) => {
-  const mediaType = result.info.resource_type.toUpperCase() as EMediaType;
-
-  const media: IMedia = {
-    url: result.info.secure_url,
-    type: mediaType,
-    sellerId: props.sellerId,
-    created_at: new Date(),
-    metadata: null,
-    id: 0,
-    productId: null,
-    altText: null
-  };
-
-  emit('upload-complete', [media]);
-};
-const handleUploadError = (err: CloudinaryError) => {
-  error.value = `Upload failed: ${err.message}`;
-  emit('upload-error', err.message);
-  console.error('Cloudinary upload error:', err);
-};
-
-   // Mount Cloudinary script
-onMounted(() => {
-  if (!window.cloudinary) {
-    const script = document.createElement('script');
-    script.src = 'https://upload-widget.cloudinary.com/latest/global/all.js';
-    script.type = 'text/javascript';
-    script.async = true;
-    script.onload = () => {
-      initializeWidget();
-    };
-    script.onerror = () => {
-      error.value = 'Failed to load Cloudinary widget';
-    };
-    document.head.appendChild(script);
-  } else {
-    initializeWidget();
-  }
-});
-
-// Clean up widget when component unmounts
-onBeforeUnmount(() => {
-  if (widget.value) {
-    widget.value.close();
-    widget.value.destroy();
-  }
-});
 </script>

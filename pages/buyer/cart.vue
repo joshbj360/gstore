@@ -5,7 +5,7 @@
     
     <!-- The Error state is shown if the fetch fails -->
     <!-- <div v-else-if="error" class="text-center py-20">
-        <h2 class="text-2xl font-bold text-red-500">Could not load your cart</h2>
+        <h2 class="text-2xl font-bold text-brand">Could not load your cart</h2>
         <p class="text-gray-500 mt-2">{{ error.message }}</p>
     </div> -->
     
@@ -25,7 +25,7 @@
           </div>
           <h2 class="text-2xl font-bold text-gray-800">Your cart is empty</h2>
           <p class="text-gray-500 mt-2 mb-6">Looks like you haven't added anything yet.</p>
-          <NuxtLink to="/" class="px-6 py-3 bg-[#f02c56] text-white font-semibold rounded-lg shadow-md hover:bg-[#d81b36] transition-transform hover:scale-105">
+          <NuxtLink to="/" class="px-6 py-3 bg-brand text-white font-semibold rounded-lg shadow-md hover:bg-[#d81b36] transition-transform hover:scale-105">
             Continue Shopping
           </NuxtLink>
         </div>
@@ -36,12 +36,12 @@
             <div v-if="cartStore.cartItems.length > 0" class="bg-white rounded-xl shadow-sm p-6">
               <div class="flex items-center justify-between pb-4 border-b">
                 <div class="flex items-center">
-                  <input type="checkbox" v-model="selectAll" class="h-5 w-5 rounded border-gray-300 text-[#f02c56] focus:ring-[#f02c56]/50">
+                  <input type="checkbox" v-model="selectAll" class="h-5 w-5 rounded border-gray-300 text-brand focus:ring-[#f02c56]/50">
                   <label for="select-all" class="ml-3 text-sm font-medium">
                     Select All ({{ cartStore.cartCount }} item{{ cartStore.cartCount !== 1 ? 's' : '' }})
                   </label>
                 </div>
-                <button @click="removeSelectedItems" :disabled="!selectedItems.length" class="text-sm text-red-500 hover:underline disabled:text-gray-400">
+                <button @click="removeSelectedItems" :disabled="!selectedItems.length" class="text-sm text-brand hover:underline disabled:text-gray-400">
                   Delete Selected
                 </button>
               </div>
@@ -70,9 +70,9 @@
                       >
                       <div class="flex-1">
                           <p class="font-semibold text-sm">{{ item.product?.title }}</p>
-                          <p class="text-gray-500 text-sm">{{ formatPrice(item.variant.price) }}</p>
+                          <p class="text-gray-500 text-sm">{{ formatPrice(item.variant.price ?? 0) }}</p>
                       </div>
-                      <button @click="moveToCart(item)" class="text-sm text-[#f02c56] hover:underline">Move to Cart</button>
+                      <button @click="moveToCart(item)" class="text-sm text-brand hover:underline">Move to Cart</button>
                   </div>
               </div>
             </div>
@@ -98,7 +98,7 @@
                   </div>
                 </div>
               </div>
-              <button @click="goToCheckout" :disabled="!selectedItems.length" class="mt-6 w-full bg-[#f02c56] text-white py-3 px-6 rounded-lg font-semibold shadow-md hover:bg-[#d81b36] transition-transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed">
+              <button @click="goToCheckout" :disabled="!selectedItems.length" class="mt-6 w-full bg-brand text-white py-3 px-6 rounded-lg font-semibold shadow-md hover:bg-[#d81b36] transition-transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed">
                 Proceed to Checkout
               </button>
             </div>
@@ -176,13 +176,13 @@ const saveItemForLater = (item: ICartItem) => {
 
 const moveToCart = (item: ICartItem) => {
   if(item.product){
-    cartStore.addToCart(item.variant.productId, item.variant, item.quantity, item.product);
+    cartStore.addToCart( item.product, item.variant, item.quantity);
     savedForLaterItems.value = savedForLaterItems.value.filter(p => p.id !== item.id);
   }
 };
 
 const totalPriceComputed = computed(() => {
-  return selectedItems.value.reduce((sum, item) => sum + ((item.variant.price ) * item.quantity), 0);
+  return selectedItems.value.reduce((sum, item) => sum + ((item.variant?.price || 0) * item.quantity), 0);
 });
 
 const goToCheckout = () => {

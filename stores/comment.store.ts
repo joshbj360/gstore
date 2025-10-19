@@ -19,57 +19,17 @@ export const useCommentStore = defineStore('comment', {
   }),
 
   actions: {
-    /**
-     * Subscribes to real-time comment updates for a specific product.
+      /**
+     * A handler for real-time updates to comments.
+     * Called by the realtimeService.
      */
-    subscribeToComments(productId: number) {
-        if (activeChannel) {
-            this.unsubscribeFromComments();
-        }
-
-        const supabase = useSupabaseClient();
-
-        activeChannel = supabase
-            .channel('public:Comment') // Subscribe to the entire table
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'Comment',
-            },
-            (payload) => {
-                console.log('Real-time update received for Comment table:', payload);
-                
-                // THE FIX: We now filter the event on the client-side.
-                // Check if the new comment belongs to the product we are currently viewing.
-                const relevantProductId = payload.new?.productId || payload.old?.productId;
-                if (relevantProductId === productId) {
-                    console.log(`Update is relevant for product ${productId}. Refreshing comments.`);
-                    // If it matches, force a refresh of the comments for this product.
-                    this.fetchComments(productId, true); 
-                }
-            })
-            .subscribe((status, err) => {
-                if (status === 'SUBSCRIBED') {
-                    console.log(`Successfully subscribed to real-time comments.`);
-                    this.isConnected = true;
-                }
-                if (err) {
-                    console.error(`Error subscribing to channel:`, err);
-                    this.isConnected = false;
-                }
-            });
-    },
-
-    /**
-     * Closes the active real-time connection.
-     */
-    unsubscribeFromComments() {
-        if (activeChannel) {
-            useSupabaseClient().removeChannel(activeChannel);
-            activeChannel = null;
-            this.isConnected = false;
-            console.log('Unsubscribed from comment stream.');
-        }
+    _handleRealtimeCommentUpdate(payload: { new?: any, old?: any }) {
+        const record = payload.new || payload.old;
+        if (!record || !record.product_id) return;
+        
+        console.log(`Comment update for product ${record.product_id}. Forcing a refresh.`);
+        // When a change is detected, force a refresh of the comments for that product.
+        this.fetchComments(record.product_id, true);
     },
 
     /**

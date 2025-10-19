@@ -19,7 +19,7 @@
                 
                 <div class="pt-4 flex justify-end gap-3">
                     <button @click="$emit('close')" type="button" class="px-4 py-2 border rounded-lg text-sm font-semibold">Cancel</button>
-                    <button type="submit" :disabled="isLoading" class="px-4 py-2 bg-[#f02c56] text-white rounded-lg text-sm font-semibold disabled:opacity-70">
+                    <button type="submit" :disabled="isLoading" class="px-4 py-2 bg-brand text-white rounded-lg text-sm font-semibold disabled:opacity-70">
                         <span v-if="isLoading">Confirming...</span>
                         <span v-else>Confirm Shipment</span>
                     </button>

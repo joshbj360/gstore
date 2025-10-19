@@ -2,14 +2,14 @@
     <div>
         <AddressSkeleton v-if="pending" />
         <div v-else-if="error" class="text-center py-20">
-            <h2 class="text-xl font-semibold text-red-500">Could Not Load Address</h2>
+            <h2 class="text-xl font-semibold text-brand">Could Not Load Address</h2>
             <p class="text-gray-500 mt-2">{{ error.message }}</p>
         </div>
 
         <div v-else class="min-h-screen bg-gray-50">
             <header class="sticky top-0 z-10 bg-white shadow-sm">
                 <div class="max-w-2xl mx-auto px-4 py-4 flex items-center">
-                    <button @click="router.push('/buyer/shipping/checkout')" class="flex items-center text-gray-700 hover:text-[#f02c56] transition-colors">
+                    <button @click="router.push('/buyer/shipping/checkout')" class="flex items-center text-gray-700 hover:text-brand transition-colors">
                         <Icon name="mdi:arrow-left" size="22" class="mr-2" />
                         <span class="font-medium text-sm">Back to Checkout</span>
                     </button>
@@ -69,7 +69,7 @@
 
                         <TextInput v-model:input="form.phone" label="Phone Number" placeholder="e.g., 08012345678" type="tel" :error="errors.phone" required />
 
-                        <button :disabled="isWorking" type="submit" class="mt-6 w-full bg-[#f02c56] text-white text-base font-semibold py-3 rounded-lg disabled:opacity-50 transition-all hover:bg-[#d81b36] shadow-md">
+                        <button :disabled="isWorking" type="submit" class="mt-6 w-full bg-brand text-white text-base font-semibold py-3 rounded-lg disabled:opacity-50 transition-all hover:bg-[#d81b36] shadow-md">
                             <Icon v-if="isWorking" name="eos-icons:loading" size="20" class="mr-2 animate-spin" />
                             <span>{{ isUpdate ? 'Update Address' : 'Save Address' }}</span>
                         </button>
@@ -163,6 +163,6 @@ const submit = async () => {
 <style>
 .form-label { @apply block text-sm font-medium text-gray-700 mb-1; }
 .form-input { @apply block w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#f02c56] focus:border-transparent; }
-.form-error { @apply text-red-500 text-xs mt-1; }
+.form-error { @apply text-brand text-xs mt-1; }
 </style>
 

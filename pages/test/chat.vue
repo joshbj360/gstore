@@ -5,7 +5,7 @@
         <div class="bg-white p-6 rounded-lg shadow-md space-y-4">
             <div>
                 <h2 class="font-semibold">Connection Status:</h2>
-                <p class="text-sm" :class="isConnected ? 'text-green-600' : 'text-red-500 font-mono bg-red-50 p-2 rounded'">
+                <p class="text-sm" :class="isConnected ? 'text-green-600' : 'text-brand font-mono bg-red-50 p-2 rounded'">
                     {{ connectionStatus }}
                 </p>
             </div>

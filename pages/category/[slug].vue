@@ -6,9 +6,9 @@
 
       <!-- The Error state is shown if the fetch fails -->
       <div v-else-if="error" class="text-center py-20">
-        <h2 class="text-2xl font-bold text-red-500">Error Loading Category</h2>
+        <h2 class="text-2xl font-bold text-brand">Error Loading Category</h2>
         <p class="text-gray-500 mt-2">{{ error.data|| 'The category could not be found.' }}</p>
-        <NuxtLink to="/" class="mt-4 inline-block text-[#f02c56] hover:underline">
+        <NuxtLink to="/" class="mt-4 inline-block text-brand hover:underline">
           Return to Homepage
         </NuxtLink>
       </div>
@@ -36,8 +36,8 @@ import { useRoute } from 'vue-router';
 import { useProductStore, useCategoryStore } from '~/stores';
 
 // Component Imports
-import MainLayout from '@/layouts/MainLayout.vue';
-import ProductLayout from '@/layouts/ProductLayout.vue';
+import MainLayout from '~/layouts/ProductLayout.vue';
+import ProductLayout from '~/components/unused/ProductLayout.vue';
 import CategoryPageSkeleton from '~/components/skeletons/CategoryPageSkeleton.vue';
 
 const route = useRoute();

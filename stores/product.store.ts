@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { useApiService } from "~/services/api/apiService"; // The central service for API calls
-import type { IProduct, ISellerProfile } from "~/models"; // Use your project's main interface export
+import type { IProduct, IProductVariant, ISellerProfile } from "~/models"; // Use your project's main interface export
 import { notify } from "@kyvg/vue3-notification";
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -46,7 +46,7 @@ export const useProductStore = defineStore('product', {
       const userStore = useUserStore();
       const product = this.currentProduct;
       if (!product || !product.seller?.store_slug) return null;
-      return userStore.sellerCache.get(product.seller?.store_slug) || null;
+      return userStore.sellerCache[product.seller?.store_slug] || null;
     },
     activeProductList: (state) => {
       if (state.currentCategorySlug) {
@@ -178,6 +178,21 @@ export const useProductStore = defineStore('product', {
         this.isLoading = false;
       }
     },
+    async createBatchProducts(files: File[]): Promise<{ success: number; errors: string[] }> {
+      const apiService = useApiService();
+      this.isLoading = true;
+      const result = { success: 0, errors: [] as string[] };
+      try {
+        const data = await apiService.createBatchProducts(files);
+        result.success = data.createdCount;
+        result.errors = data.errors;
+      } catch (error: any) {
+        notify({ type: 'error', text: error.message || 'Failed to create product.' });
+      } finally {
+        this.isLoading = false;
+      }
+      return result;
+    },
     /**
      * Fetches similar products and caches them.
      */
@@ -273,5 +288,25 @@ export const useProductStore = defineStore('product', {
     clearCategoryFilter() {
       this.currentCategorySlug = null;
     },
+
+     /**
+     * A handler for real-time updates to product variants (e.g., stock changes).
+     * Called by the realtimeService.
+     */
+    _handleRealtimeVariantUpdate(updatedVariant: IProductVariant) {
+        if (!updatedVariant || !this.productMap.has(updatedVariant.productId)) return;
+
+        const product = this.productMap.get(updatedVariant.productId)!;
+        if (!product.variants) return;
+        const variantIndex = product.variants.findIndex(v => v.id === updatedVariant.id);
+
+        if (variantIndex !== -1) {
+            // Update the specific variant in the product object
+            product.variants[variantIndex] = updatedVariant;
+            // Re-set the product in the map to trigger reactivity
+            this.productMap.set(product.id!, { ...product });
+        }
+    },
+    
   },
 });

@@ -5,6 +5,7 @@ export default defineNuxtConfig({
   css: [
     '~/assets/css/main.css',
   ],
+  ssr: true,
   modules: [
     '@nuxt/icon',
     'nuxt-lodash',
@@ -25,6 +26,7 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     'nuxt-tiptap-editor',
     'vue3-carousel-nuxt',
+    "@nuxtjs/cloudinary",
   ],
   supabase: {
     redirect: false,
@@ -39,7 +41,15 @@ export default defineNuxtConfig({
     platformCommissionRate: process.env.PLATFORM_COMMISSION_RATE,
     public: {
       baseURL: process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:3000',
-      paystackPk: process.env.PAYSTACK_PUBLIC_KEY
+      paystackPk: process.env.PAYSTACK_PUBLIC_KEY,
+      CloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      cloudinaryUploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET
+    },
+    private: {
+      cloudinary: {
+        apiSecret: process.env.CLOUDINARY_API_SECRET
+      }
 
     }
   }

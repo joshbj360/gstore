@@ -3,7 +3,8 @@ import type {
   Products, Orders, ProductVariant, CartItem, Media, OrderItem, Addresses, Like,
   Share, SocialMediaInfo, Tag, Category, Measurement, ZoneRate, ShippingZone,
   VerificationDocument, Comment, SellerProfile, Profile, Notification,
-  CommentLike
+  CommentLike,
+  Story
 } from '@prisma/client';
 
 export enum EMediaType {
@@ -81,7 +82,15 @@ export interface IPartialCartItem {
 export interface IMedia extends Media {
   product?: IProduct | null;
   seller?: ISellerProfile;
-
+  name?: string;
+  error?: Error | string ;
+  duration?: number; // in seconds, for videos
+  success?: boolean;
+  active?: boolean;
+  progress?: string;
+  speed?: 0;
+  size?: number
+  file?: Blob
 }
 
 export interface IOrderItem extends OrderItem {
@@ -94,13 +103,13 @@ export interface IAddress extends Addresses {
 }
 
 export interface ILike extends Like {
-  product: IProduct;
-  profile: IProfile;
+  product?: IProduct;
+  profile?: IProfile;
 }
 
 export interface IShare extends Share {
-  product: IProduct;
-  profile: IProfile;
+  product?: IProduct;
+  profile?: IProfile;
 }
 
 export interface IComment extends Comment {
@@ -167,6 +176,9 @@ export interface ISellerProfile extends SellerProfile {
   verificationDocuments?: IVerificationDocument[];
   shippingZones?: IShippingZone[];
   products?: IProduct[];
+  _count?: {
+    products: number;
+  }
 }
 
 export interface IProfile extends Profile {
@@ -178,6 +190,12 @@ export interface IProfile extends Profile {
   shares: IShare[];
   socialMedia: ISocialMediaInfo[];
   cartItems: ICartItem[];
+}
+
+export interface IStory extends Story {
+  media: IMedia;
+  seller: ISellerProfile;
+  product?: IProduct | null;
 }
 
 export const defaultMeasurement: IMeasurement = {
@@ -229,4 +247,9 @@ export const defaultProduct: IProduct = {
   shippingZoneId: '',
   averageRating: 0,
   totalReviews: 0,
+  likes: [],
+  comments: [],
+  shares: [],
+  socialMedia: [],
+  isFeatured: false,
 };

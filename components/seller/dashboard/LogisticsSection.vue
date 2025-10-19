@@ -5,7 +5,7 @@
       <!-- This button now links to the dedicated shipping management page -->
       <NuxtLink 
         to="/seller/dashboard/shipping"
-        class="bg-[#f02c56]/10 text-[#f02c56] px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#f02c56]/20 transition-colors"
+        class="bg-brand/10 text-brand px-4 py-2 rounded-lg font-semibold text-sm hover:bg-brand/20 transition-colors"
       >
         Manage Shipping Profiles
       </NuxtLink>
@@ -22,7 +22,7 @@
           <p class="text-gray-600 text-sm mb-4">
             You have {{ orders.length }} order(s) ready to be shipped.
           </p>
-          <button class="text-sm font-medium text-[#f02c56] hover:underline">
+          <button class="text-sm font-medium text-brand hover:underline">
             View All Orders
           </button>
         </div>

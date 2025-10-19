@@ -7,13 +7,19 @@
       </NuxtLink>
     </div>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4">
-      <ProductCard v-for="product in products" :key="product.id" :product="product" />
+      <NuxtLink v-for="product in products" :key="product.id" :product="product" :to="`/product/${product.slug}`"
+        class="block w-full aspect-square relative overflow-hidden">
+        <MediaDisplayCard :product-media="product.media?.[0]"
+          class="w-full h-full transition-transform duration-300 group-hover:scale-105" />
+      </NuxtLink>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import ProductCard from '~/components/product/productCard/ProductCard.vue';
+import MediaDisplayCard from '~/components/product/productCard/MediaDisplayCard.vue';
+import type { IProduct } from '~/models';
 
-defineProps<{ products: any[] }>();
+
+defineProps<{ products: IProduct[] }>();
 </script>

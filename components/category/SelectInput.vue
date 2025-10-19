@@ -23,13 +23,13 @@
         <Icon name="mdi:plus" class="cursor-pointer" size="20" />
       </button>
     </div>
-    <span v-if="error" class="text-red-500 text-sm font-semibold">{{ error }}</span>
+    <span v-if="error" class="text-brand text-sm font-semibold">{{ error }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, toRefs } from 'vue';
-import type { CategoryInterface } from '~/models/interface/products/category.interface';
+import type { ICategory } from '~/models'
 
 const emit = defineEmits<{
   (e: 'update:input', value: string): void;
@@ -37,12 +37,12 @@ const emit = defineEmits<{
 }>();
 
 const props = defineProps<{
-  input: string;
+  input: string | undefined
   placeholder?: string;
   max?: number;
   inputType?: string;
   error?: string;
-  categories: CategoryInterface[];
+  categories: ICategory[];
   label: string;
 }>();
 
