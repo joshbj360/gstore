@@ -10,6 +10,7 @@ export const useShippingStore = defineStore('shipping', {
     isLoading: false,
   }),
 
+  
   getters: {
     hasAddress: (state) => !!state.address && !!state.address.address,
   },

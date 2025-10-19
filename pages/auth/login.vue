@@ -1,17 +1,17 @@
 <template>
   <div id="AuthPage" class="min-h-screen bg-gray-100 flex flex-col">
-    <header class="w-full flex items-center justify-center p-5 border-b border-gray-200 bg-white">
+    <!-- <header class="w-full flex items-center justify-center p-5 border-b border-gray-200 bg-white">
       <NuxtLink to="/">
         <img width="170" src="~/assets/images/grandeur-logo.png" alt="Grandeur Logo" class="h-10 w-auto" />
       </NuxtLink>
-    </header>
+    </header> -->
 
     <main class="flex-1 flex items-center justify-center px-4 py-12">
       <div class="max-w-md w-full bg-white rounded-xl shadow-md p-6 sm:p-8 space-y-6">
-        <h2 class="text-center text-2xl sm:text-3xl font-bold text-gray-800">
-          {{ isRegister ? 'Create Your Account' : 'Welcome Back' }}
-        </h2>
-        
+        <NuxtLink class="text-center text-2xl sm:text-3xl font-bold text-gray-800">
+          {{ isRegister ? 'Create Your Account with Aura' : 'Login to Aura' }}
+        </NuxtLink>
+
         <p v-if="authMessage" class="text-center text-sm p-3 rounded-lg" :class="isError_ ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'">
           {{ authMessage }}
         </p>
@@ -25,7 +25,7 @@
             <TextInput v-if="isRegister" v-model:input="form.confirmPassword" placeholder="Confirm Password" inputType="password" label="Confirm Password" :error="errors.confirmPassword" />
           </transition>
           
-          <button type="submit" class="w-full py-3 px-4 text-white bg-[#f02c56] rounded-lg font-semibold hover:bg-[#d81b36] transition-all disabled:bg-gray-400" :disabled="userStore.isLoading">
+          <button type="submit" class="w-full py-3 px-4 text-white bg-brand rounded-lg font-semibold hover:bg-[#d81b36] transition-all disabled:bg-gray-400" :disabled="userStore.isLoading">
             {{ userStore.isLoading ? 'Processing...' : isRegister ? 'Create Account' : 'Sign In' }}
           </button>
         </form>
@@ -51,7 +51,7 @@
         <!-- Toggle Login/Register -->
         <p class="text-center text-sm text-gray-600">
           {{ isRegister ? 'Already have an account?' : 'Need an account?' }}
-          <button @click="toggleRegister" class="font-semibold text-[#f02c56] hover:underline">
+          <button @click="toggleRegister" class="font-semibold text-brand hover:underline">
             {{ isRegister ? 'Sign In' : 'Sign Up' }}
           </button>
         </p>
@@ -104,7 +104,7 @@ const handleSubmit = async () => {
   let result;
   if (isRegister.value) {
     result = await userStore.registerWithPassword(form.email, form.password);
-    if(result.success && result.user?.identities?.length > 0) {
+    if(result.success && (result.user?.identities?.length ?? 0) > 0) {
         authMessage.value = 'Registration successful! Please check your email to confirm your account.';
     }
   } else {

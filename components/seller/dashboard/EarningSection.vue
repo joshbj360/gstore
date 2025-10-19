@@ -9,7 +9,7 @@
       <button 
         @click="isPayoutModalOpen = true" 
         :disabled="!wallet || wallet.balance <= 0"
-        class="bg-[#f02c56] text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#d81b36] disabled:opacity-50"
+        class="bg-brand text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#d81b36] disabled:opacity-50"
       >
         Request Payout
       </button>

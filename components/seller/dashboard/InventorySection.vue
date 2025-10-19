@@ -15,7 +15,7 @@
             <td class="py-2">{{ product.title }}</td>
             <td>{{ product.stock || 0 }}</td>
             <td>
-              <span v-if="product.stock <= 5" class="text-red-500">Low Stock</span>
+              <span v-if="product.stock <= 5" class="text-brand">Low Stock</span>
               <span v-else class="text-[#009A66]">In Stock</span>
             </td>
           </tr>

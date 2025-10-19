@@ -220,6 +220,6 @@ const saveProfile = async () => {
   @apply mt-1 block w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#C42B78] focus:border-transparent transition-colors;
 }
 .form-error {
-  @apply text-red-500 text-sm mt-1;
+  @apply text-brand text-sm mt-1;
 }
 </style>

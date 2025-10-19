@@ -19,7 +19,7 @@
               placeholder="John Doe"
               required
             />
-            <span v-if="errors.name" class="text-red-500 text-sm">{{ errors.name }}</span>
+            <span v-if="errors.name" class="text-brand text-sm">{{ errors.name }}</span>
           </div>
 
           <!-- Email -->
@@ -33,7 +33,7 @@
               placeholder="john.doe@example.com"
               required
             />
-            <span v-if="errors.email" class="text-red-500 text-sm">{{ errors.email }}</span>
+            <span v-if="errors.email" class="text-brand text-sm">{{ errors.email }}</span>
           </div>
 
           <!-- Store Name -->
@@ -47,7 +47,7 @@
               placeholder="My Fashion Hub"
               required
             />
-            <span v-if="errors.storeName" class="text-red-500 text-sm">{{ errors.storeName }}</span>
+            <span v-if="errors.storeName" class="text-brand text-sm">{{ errors.storeName }}</span>
           </div>
 
           <!-- Description -->
@@ -60,7 +60,7 @@
               placeholder="Tell us about your store and what you plan to sell..."
               required
             />
-            <span v-if="errors.description" class="text-red-500 text-sm">{{ errors.description }}</span>
+            <span v-if="errors.description" class="text-brand text-sm">{{ errors.description }}</span>
           </div>
 
           <!-- Submit Button -->
@@ -77,7 +77,7 @@
           <!-- Success/Error Messages -->
           <div v-if="submissionStatus" class="text-center">
             <p v-if="submissionStatus === 'success'" class="text-green-600">Application submitted successfully! We will review it soon.</p>
-            <p v-else-if="submissionStatus === 'error'" class="text-red-500">Something went wrong. Please try again later.</p>
+            <p v-else-if="submissionStatus === 'error'" class="text-brand">Something went wrong. Please try again later.</p>
           </div>
         </form>
       </div>

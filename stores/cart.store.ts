@@ -16,7 +16,7 @@ export const useCartStore = defineStore('cart', {
     cartCount: (state) => state.cartItems.length,
     cartTotal: (state) => {
       return state.cartItems.reduce((total, item) => {
-        const price = item.variant.price;
+        const price = item.variant.price ?? 0;
         return total + (price * item.quantity);
       }, 0);
     },
@@ -87,14 +87,17 @@ export const useCartStore = defineStore('cart', {
     /**
      * Adds a specific product variant to the cart.
      * If the item already exists, it increments the quantity.
+     * param product The main product object.
+     * param variant The specific variant to add.
+     * param quantity How many of this variant to add (default is 1).
      */
-    async addToCart(productId: number, variant: IProductVariant, quantity = 1, product: IProduct) {
+    async addToCart( product: IProduct, variant: IProductVariant, quantity = 1,) {
       const userStore = useUserStore();
       const apiService = useApiService();
-      const cartId = `${productId}-${variant.id}`;
+      const cartId = `${product.id}-${variant.id}`;
       const existingItem = this.cartItems.find(item => item.id === cartId);
 
-      console.log("Adding to cart:", { productId, variant, quantity, userId: userStore.user?.id }); //TODO remove 
+      console.log("Adding to cart:", { product, variant, quantity, userId: userStore.user?.id }); //TODO remove 
 
       if (existingItem) {
         existingItem.quantity += quantity;

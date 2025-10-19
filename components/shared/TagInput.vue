@@ -31,7 +31,7 @@
             />
           </div>
     </client-only>
-        <!-- <span v-if="error" class="text-red-500 text-[14px] font-semibold">
+        <!-- <span v-if="error" class="text-brand text-[14px] font-semibold">
             {{ error }}
         </span> -->
   </div>

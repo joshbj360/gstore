@@ -5,7 +5,7 @@
         <LoadingSpinner />
       </div>
       <div v-else-if="error" class="text-center py-10">
-        <p class="text-red-500">{{ error }}</p>
+        <p class="text-brand">{{ error }}</p>
       </div>
       <div v-else ref="swipeContainer" class="h-[calc(100vh-80px)] overflow-y-auto overflow-x-hidden snap-y snap-mandatory">
         <div v-for="(product, index) in products" :key="product.id" class="h-full w-full flex items-center justify-center snap-start relative">
@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useProductStore } from '~/stores/product.store';
-import MainLayout from '~/layouts/MainLayout.vue';
+import MainLayout from '~/layouts/ProductLayout.vue';
 import MediaDisplay from '~/components/product/productDetails/mediaSection/MediaDisplay.vue';
 import LoadingSpinner from '~/components/shared/Loading.vue';
 import type { IProduct } from '~/models/interface/products/product.interface';

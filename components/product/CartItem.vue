@@ -33,7 +33,7 @@
         {{ formatPrice(item.variant.price) }}
       </p>
       
-      <p v-if="isOutOfStock" class="text-sm font-semibold text-red-500 mt-2">
+      <p v-if="isOutOfStock" class="text-sm font-semibold text-brand mt-2">
         Out of Stock
       </p>
 
@@ -53,7 +53,7 @@
               Save for Later
           </button>
           <div class="h-4 border-l mx-3"></div>
-          <button @click="removeFromCart" class="text-gray-500 hover:text-red-500 font-medium transition-colors">
+          <button @click="removeFromCart" class="text-gray-500 hover:text-brand font-medium transition-colors">
               Remove
           </button>
         </div>

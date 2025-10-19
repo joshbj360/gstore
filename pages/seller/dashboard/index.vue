@@ -5,9 +5,9 @@
 
     <!-- The Error state is shown if the fetch fails -->
     <div v-else-if="error || !dashboardData" class="text-center py-20">
-      <h2 class="text-xl font-semibold text-red-500">Could Not Load Dashboard</h2>
+      <h2 class="text-xl font-semibold text-brand">Could Not Load Dashboard</h2>
       <p class="text-gray-500 mt-2">{{ error?.data || 'An unexpected error occurred.' }}</p>
-      <button @click="refresh" class="mt-4 text-sm font-semibold text-[#f02c56] hover:underline">
+      <button @click="refresh" class="mt-4 text-sm font-semibold text-brand hover:underline">
         Try Again
       </button>
     </div>
@@ -16,7 +16,7 @@
     <div v-else class="min-h-screen bg-gray-50">
       <header class="sticky top-0 z-10 bg-white shadow-sm">
         <div class="container mx-auto px-4 py-3 flex items-center justify-between">
-          <button @click="navigateHome" class="flex items-center text-gray-700 hover:text-[#f02c56] transition-colors">
+          <button @click="navigateHome" class="flex items-center text-gray-700 hover:text-brand transition-colors">
             <Icon name="mdi:arrow-left" size="24" />
             <span class="font-medium text-sm ml-2 hidden sm:inline">Back to Home</span>
           </button>
@@ -27,7 +27,7 @@
             <div v-click-outside="() => showNotificationMenu = false" class="relative">
               <button @click="showNotificationMenu = !showNotificationMenu" class="p-2 rounded-full hover:bg-gray-100 text-gray-600 relative" aria-label="Notifications">
                 <Icon name="mdi:bell-outline" size="22" />
-                <span v-if="unreadNotifications > 0" class="absolute top-1 right-1 bg-[#f02c56] text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center border-2 border-white">
+                <span v-if="unreadNotifications > 0" class="absolute top-1 right-1 bg-brand text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center border-2 border-white">
                   {{ unreadNotifications }}
                 </span>
               </button>
@@ -83,8 +83,8 @@
                 @click="activeSection = section.id"
                 class="px-4 py-3 text-sm font-medium flex items-center whitespace-nowrap"
                 :class="{
-                  'text-[#f02c56] border-b-2 border-[#f02c56]': activeSection === section.id,
-                  'text-gray-500 hover:text-[#f02c56] hover:bg-gray-50': activeSection !== section.id
+                  'text-brand border-b-2 border-[#f02c56]': activeSection === section.id,
+                  'text-gray-500 hover:text-brand hover:bg-gray-50': activeSection !== section.id
                 }"
               >
                 <Icon :name="section.icon" size="18" class="mr-2" />

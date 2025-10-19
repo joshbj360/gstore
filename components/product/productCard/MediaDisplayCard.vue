@@ -1,18 +1,23 @@
 <template>
   <div class="w-full h-full bg-gray-200">
-    <img 
+    <video 
       v-if="productMedia?.type === EMediaType.VIDEO" 
       :src="videoThumbnail" 
       alt="Product video thumbnail"
       class="w-full h-full object-cover" 
       loading="lazy"
+      :width="300"
+      :height="300"
     />
-    <img 
+    
+    <CldImage 
       v-else-if="productMedia?.type === EMediaType.IMAGE"
       :src="productMedia.url" 
       :alt="productMedia.altText || 'Product image'"
       class="w-full h-full object-cover" 
       loading="lazy"
+      :width="300"
+      :height="300"
     />
     <div v-else class="w-full h-full flex items-center justify-center bg-gray-100">
       <Icon name="mdi:image-off-outline" size="24" class="text-gray-400" />

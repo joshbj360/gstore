@@ -15,6 +15,7 @@ export default defineEventHandler(async (event) => {
         seller: {
           select: {
             store_slug: true,
+            store_name: true,
             store_logo: true,
             is_verified: true,
             followers_count: true

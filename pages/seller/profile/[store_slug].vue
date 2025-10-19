@@ -7,7 +7,7 @@
     <div v-else-if="error || !sellerData" class="text-center py-20">
         <h2 class="text-2xl font-bold">Store Not Found</h2>
         <p class="text-gray-500 mt-2">The store you are looking for does not exist or may have been moved.</p>
-        <NuxtLink to="/" class="mt-4 inline-block bg-[#f02c56] text-white px-6 py-2 rounded-md hover:bg-[#df4949]">
+        <NuxtLink to="/" class="mt-4 inline-block bg-brand text-white px-6 py-2 rounded-md hover:bg-[#df4949]">
             Browse All Products
         </NuxtLink>
     </div>
@@ -28,7 +28,7 @@
           <div class="flex-1 pb-2">
             <div class="flex items-center gap-2 mb-1">
               <h2 class="text-2xl font-bold text-gray-900">{{ sellerData?.store_name }}</h2>
-              <Icon v-if="sellerData?.is_verified" name="mdi:check-decagram" size="20" class="text-[#f02c56]" title="Verified Seller" />
+              <Icon v-if="sellerData?.is_verified" name="mdi:check-decagram" size="20" class="text-brand" title="Verified Seller" />
             </div>
             <div class="flex items-center gap-4 text-sm text-gray-500">
               <div class="flex items-center gap-1"><Icon name="mdi:map-marker-outline" size="16" />{{ sellerData?.store_location || 'No location' }}</div>
@@ -45,7 +45,7 @@
 
         <!-- Action Buttons -->
         <div class="flex gap-3 py-4">
-          <button @click="toggleFollow" class="flex-1 py-2.5 rounded-lg font-semibold text-sm transition-colors" :class="isFollowing ? 'bg-gray-200 text-gray-800' : 'bg-[#f02c56] text-white'">
+          <button @click="toggleFollow" class="flex-1 py-2.5 rounded-lg font-semibold text-sm transition-colors" :class="isFollowing ? 'bg-gray-200 text-gray-800' : 'bg-brand text-white'">
             {{ isFollowing ? 'Following' : 'Follow' }}
           </button>
           <button @click="openChat" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border bg-white hover:bg-gray-50">Message</button>
@@ -161,6 +161,6 @@ const openChat = () => { if (userStore.isLoggedIn) showChat.value = true; /* els
     @apply flex-1 py-3 text-center font-medium border-b-2 transition-colors text-gray-500 border-transparent hover:text-gray-800;
 }
 .tab-button.active {
-    @apply border-[#f02c56] text-[#f02c56];
+    @apply border-[#f02c56] text-brand;
 }
 </style>

@@ -12,13 +12,13 @@
                 <div v-for="i in 3" :key="i" class="bg-gray-200 rounded-lg h-32 animate-pulse"></div>
             </div>
             <div v-else-if="error" class="text-center py-12">
-                <p class="text-red-500">Could not load your order history.</p>
+                <p class="text-brand">Could not load your order history.</p>
             </div>
             <div v-else-if="!orders || orders.length === 0" class="text-center py-16">
                 <Icon name="mdi:package-variant-closed" size="48" class="mx-auto text-gray-300 mb-4" />
                 <h3 class="text-lg font-medium text-gray-900 mb-2">No Orders Found</h3>
                 <p class="text-gray-500 mb-6">You haven't placed any orders yet.</p>
-                <NuxtLink to="/" class="px-6 py-2 bg-[#f02c56] text-white font-semibold rounded-lg shadow-md hover:bg-[#d81b36]">
+                <NuxtLink to="/" class="px-6 py-2 bg-brand text-white font-semibold rounded-lg shadow-md hover:bg-[#d81b36]">
                     Start Shopping
                 </NuxtLink>
             </div>

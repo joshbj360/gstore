@@ -20,10 +20,10 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     // THIS IS WHERE YOU CALL THE ACTION
     //
     // Before fetching the user's DB cart, we merge any items they had as a guest.
-    //await cartStore.mergeAndSyncCartOnLogin();
+    await cartStore.mergeAndSyncCartOnLogin();
 
     // Now, we fetch the user's full profile and other data
-    // await userStore.fetchUserAndProfile();
+     await userStore.fetchUserAndProfile();
   }
 
   if (event === 'SIGNED_OUT') {

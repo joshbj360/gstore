@@ -17,7 +17,7 @@
         <div v-if="pendingSimilarProducts" class="p-6">
           <ProductGridSkeleton /> 
         </div>
-        <div v-else-if="errorSimilarProducts" class="p-8 text-center text-red-500">
+        <div v-else-if="errorSimilarProducts" class="p-8 text-center text-brand">
           Could not load similar products.
         </div>
         <!-- Render the component only AFTER data is ready, passing it as a prop -->
@@ -33,7 +33,7 @@
         <div v-if="pendingSellerProducts" class="p-6">
           <ProductGridSkeleton /> 
         </div>
-        <div v-else-if="errorSellerProducts" class="p-8 text-center text-red-500">
+        <div v-else-if="errorSellerProducts" class="p-8 text-center text-brand">
           Could not load seller's products.
         </div>
         <MoreSellerProducts  

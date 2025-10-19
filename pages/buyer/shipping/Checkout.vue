@@ -23,7 +23,7 @@
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <div class="flex items-center justify-between">
                         <h2 class="text-lg font-semibold flex items-center gap-2"><span class="checkout-step">1</span> Shipping Information</h2>
-                        <NuxtLink to="/buyer/shipping/Address" class="text-sm font-medium text-[#f02c56] hover:underline">
+                        <NuxtLink to="/buyer/shipping/Address" class="text-sm font-medium text-brand hover:underline">
                             {{ shippingStore.address ? 'Change' : 'Add Address' }}
                         </NuxtLink>
                     </div>
@@ -40,8 +40,8 @@
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <h2 class="text-lg font-semibold flex items-center gap-2"><span class="checkout-step">2</span> Payment Method</h2>
                     <div class="mt-4 pt-4 border-t space-y-3">
-                        <label v-for="method in paymentMethods" :key="method.id" class="flex items-center p-3 border rounded-lg cursor-pointer transition-all" :class="{'border-[#f02c56] bg-[#f02c56]/5 ring-2 ring-[#f02c56]/50': paymentMethod === method.id}">
-                            <input type="radio" :value="method.id" v-model="paymentMethod" class="h-4 w-4 text-[#f02c56] focus:ring-[#f02c56]/50 border-gray-300">
+                        <label v-for="method in paymentMethods" :key="method.id" class="flex items-center p-3 border rounded-lg cursor-pointer transition-all" :class="{'border-[#f02c56] bg-brand/5 ring-2 ring-[#f02c56]/50': paymentMethod === method.id}">
+                            <input type="radio" :value="method.id" v-model="paymentMethod" class="h-4 w-4 text-brand focus:ring-[#f02c56]/50 border-gray-300">
                             <span class="ml-3 text-sm font-medium">{{ method.label }}</span>
                         </label>
                     </div>
@@ -72,7 +72,7 @@
                         </div>
                     </div>
                 </div>
-                <button :disabled="!canPlaceOrder || isProcessing" @click="processOrder" class="mt-6 w-full bg-[#f02c56] text-white py-3 px-6 rounded-lg font-semibold shadow-md hover:bg-[#d81b36] transition-transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed">
+                <button :disabled="!canPlaceOrder || isProcessing" @click="processOrder" class="mt-6 w-full bg-brand text-white py-3 px-6 rounded-lg font-semibold shadow-md hover:bg-[#d81b36] transition-transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed">
                     <Icon v-if="isProcessing" name="eos-icons:loading" class="mr-2 animate-spin" />
                     <span v-else>{{ paymentMethod === 'payondelivery' ? 'Confirm Order' : 'Proceed to Payment' }}</span>
                 </button>
@@ -158,7 +158,7 @@ const formatPrice = (price: number) => {
 
 <style scoped>
 .checkout-step {
-    @apply bg-[#f02c56] text-white rounded-full h-6 w-6 text-sm flex items-center justify-center;
+    @apply bg-brand text-white rounded-full h-6 w-6 text-sm flex items-center justify-center;
 }
 </style>
 

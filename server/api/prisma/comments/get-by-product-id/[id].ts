@@ -31,6 +31,15 @@ export default defineEventHandler(async (event) => {
                         replies: true,
                         likes: true,
                     }
+                },
+                replies: {
+                    include: {
+                        author: { select: { username: true, avatar: true } },
+                        _count: { select: { likes: true } },
+                    },
+                    orderBy: {
+                        created_at: 'asc' // Show replies in chronological order
+                    }
                 }
             },
             orderBy: {

@@ -85,7 +85,7 @@
     <div v-if="error" 
          class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div class="bg-white rounded-lg p-6 max-w-sm w-full">
-        <p class="text-red-500 mb-4">{{ error }}</p>
+        <p class="text-brand mb-4">{{ error }}</p>
         <button @click="retryLoad" 
                 class="bg-brand text-white px-4 py-2 rounded-md hover:bg-[#df4949]">
           Retry

@@ -2,7 +2,7 @@
   <div class="space-y-1">
     <label v-if="label" class="block text-sm font-medium text-gray-700">
       {{ label }}
-      <span v-if="required" class="text-red-500">*</span>
+      <span v-if="required" class="text-brand">*</span>
     </label>
     <div class="relative rounded-md shadow-sm">
       <input

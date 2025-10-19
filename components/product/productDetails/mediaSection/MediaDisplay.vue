@@ -34,7 +34,16 @@
       </template>
 
       <template v-else-if="productMedia?.type === EMediaType.IMAGE">
-        <img :src="productMedia.url" :alt="`Product image ${productMedia.altText || ''}`" class="media-content" :loading="loading" @error="handleError" />
+        <CldImage 
+          :src="productMedia.url" 
+          :alt="`Product image ${productMedia.altText || ''}`" 
+          class="media-content" 
+          :loading="loading" 
+          @error="handleError" 
+          :width="width"
+          :height="height"
+          
+        />
       </template>
 
       <template v-else>
@@ -65,6 +74,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  width: {
+    type: [String, Number] as PropType<string | number>,
+    default: "500",
+  },
+  height: {
+    type: [String, Number] as PropType<string | number>,
+    default: "500",
+  }
 });
 
 const error = ref(false);

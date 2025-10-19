@@ -11,14 +11,14 @@
         <div class="ml-4">
           <div class="flex items-center gap-2">
             <span class="text-base font-semibold text-gray-900">{{ sellerStore.store_name || 'Unknown Seller' }}</span>
-            <Icon v-if="sellerStore.is_verified" name="mdi:check-decagram" size="18" class="text-[#f02c56]" />
+            <Icon v-if="sellerStore.is_verified" name="mdi:check-decagram" size="18" class="text-brand" />
           </div>
           <p class="text-xs text-gray-500 mt-1">{{ sellerStore.store_location }}</p>
         </div>
       </div>
       <button v-if="userStore.isLoggedIn" @click="toggleFollow"
         class="border text-sm px-4 py-1.5 font-medium rounded-md transition-all duration-300"
-        :class="isFollowing ? 'bg-[#f02c56]/10 text-[#f02c56]' : 'text-gray-700 hover:bg-gray-100'">
+        :class="isFollowing ? 'bg-brand/10 text-brand' : 'text-gray-700 hover:bg-gray-100'">
         {{ isFollowing ? 'Following' : 'Follow' }}
       </button>
     </div>
@@ -26,7 +26,7 @@
     <!-- Product Title & Price -->
     <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2 leading-tight">{{ product.title }}</h1>
     <div class="flex items-baseline mb-4">
-      <span class="text-3xl font-bold text-[#f02c56]">{{ formatPrice(priceComputed) }}</span>
+      <span class="text-3xl font-bold text-brand">{{ formatPrice(priceComputed) }}</span>
       <span v-if="product.discount" class="ml-3 text-base text-gray-400 line-through">{{ formatPrice(product.price)
         }}</span>
     </div>
@@ -47,13 +47,13 @@
         <button v-for="variant in product.variants" :key="variant.id" @click="selectVariant(variant)"
           :disabled="variant.stock === 0" :class="[
             'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 border',
-            selectedVariant?.id === variant.id ? 'bg-[#f02c56] text-white border-[#f02c56] shadow-sm' : 'bg-white text-gray-800 border-gray-200 hover:border-gray-400',
+            selectedVariant?.id === variant.id ? 'bg-brand text-white border-[#f02c56] shadow-sm' : 'bg-white text-gray-800 border-gray-200 hover:border-gray-400',
             variant.stock === 0 ? 'opacity-50 cursor-not-allowed bg-gray-100 line-through' : ''
           ]">
           {{ variant.size }}
         </button>
       </div>
-      <p v-if="variantError" class="text-red-500 text-sm mt-2">{{ variantError }}</p>
+      <p v-if="variantError" class="text-brand text-sm mt-2">{{ variantError }}</p>
     </div>
 
     <!-- Action Block: Quantity, Add to Cart, and Buy Now -->
@@ -77,7 +77,7 @@
         {{ isInCart ? 'Added' : 'Add to Cart' }}
       </button>
       <button @click="buyNow"
-        class="col-span-1 bg-[#f02c56] text-white h-full py-2 rounded-xl hover:bg-[#d81b36] transition-all font-medium text-sm flex items-center justify-center gap-2">
+        class="col-span-1 bg-brand text-white h-full py-2 rounded-xl hover:bg-[#d81b36] transition-all font-medium text-sm flex items-center justify-center gap-2">
         <Icon name="mdi:flash" size="20" />
         Buy Now
       </button>
@@ -173,7 +173,7 @@ const buyNow = () => {
     if (!validateSelection()) return;
 
     if (!isInCart.value) {
-      cartStore.addToCart(product.value.id, selectedVariant.value!, quantity.value, product.value);
+      cartStore.addToCart(product.value, selectedVariant.value!, quantity.value);
     }
     // Set this item as the one to checkout and go to the checkout page
     cartStore.checkout = [cartStore.cartItems.find(item => item.id === `${product.value.id}-${selectedVariant.value!.id}`)!];
@@ -192,7 +192,7 @@ const addToCart = () => {
     return;
   }
 console.log("Selected to cart:", selectedVariant.value);
-  cartStore.addToCart(product.value.id, selectedVariant.value, quantity.value, product.value);
+  cartStore.addToCart(product.value, selectedVariant.value, quantity.value);
 
   notify({ type: 'success', text: `${product.value.title} (${selectedVariant.value.size}) added to cart!` });
 };

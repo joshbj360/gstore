@@ -133,7 +133,7 @@ const handleAddToCart = () => {
             emit('toggle-details', props.product);
         } else {
           if (props.product.variants && props.product.variants.length > 0)
-            cartStore.addToCart(props.product.id, props.product.variants[0], 1, props.product);
+            cartStore.addToCart(props.product, props.product.variants[0], 1 );
             notify({ type: 'success', text: `${props.product.title} added to cart!` });
         }
     }

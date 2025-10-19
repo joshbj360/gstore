@@ -1,154 +1,183 @@
 <template>
-  <div id="product-card"
-    class="relative bg-white rounded-lg shadow-sm overflow-hidden group transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-    <!-- Edit button (if owner) -->
-    <NuxtLink v-if="isOwner" :to="`/edit/${product.slug}`"
-      class="absolute top-2 right-2 z-20 h-8 w-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-700 hover:bg-brand hover:text-white transition-all opacity-0 group-hover:opacity-100"
-      aria-label="Edit Product">
-      <Icon name="mdi:pencil-outline" size="18" />
-    </NuxtLink>
-
-    <!-- DISCOUNT BADGE -->
-    <div v-if="showDiscount"
-      class="absolute top-2 right-2 z-10 bg-brand text-white text-[10px] font-bold px-2 py-1 rounded-full">
-      -{{ discountPercentage.value }}%
-    </div>
-    
-    <!-- Seller label -->
-    <NuxtLink v-if="product.seller?.store_slug" :to="`/seller/profile/${product.seller?.store_slug}`" class="absolute top-2 left-2 z-10 px-2 py-1 rounded-full flex items-center gap-1
-         font-semibold backdrop-blur-sm text-xs sm:text-[10px]" :class="product.isVerified
-          ? 'bg-brand/90 text-white'
-          : 'bg-white/80 text-gray-800'" :title="`Sold by ${product.seller?.store_slug}`">
-
-      <Icon name="mdi:store-outline" size="12" aria-hidden="true" />
-      <span>{{ product.seller?.store_slug }}</span>
-      <Icon v-if="product.isVerified" name="mdi:check-decagram" class="h-3 w-3 text-white" aria-hidden="true" />
-    </NuxtLink>
-
-    <!-- Product image -->
-    <NuxtLink :to="`/product/${product.slug}`" class="block w-full aspect-square relative overflow-hidden">
-      <MediaDisplayCard :product-media="product.media?.[0]"
-        class="w-full h-full transition-transform duration-300 group-hover:scale-105" />
-    </NuxtLink>
-
-    <!-- Product details -->
-    <div class="p-2">
-      <!-- Price + Cart -->
-      <div class="flex justify-between items-center mt-1">
+    <div id="product-card" class="relative bg-white rounded-lg shadow-sm overflow-hidden group transition-all duration-300 hover:shadow-lg">
         
-          <p class="text-base font-bold text-gray-800">
-            {{ formatPrice(discountedPrice) }}
-          </p>
-          <p v-if="showDiscount" class="text-xs text-gray-400 line-through -mt-1 pt-1">
-            {{ formatPrice(product.price) }}
-          </p>
-        
+        <!-- LIKE & SHARE BUTTONS -->
+        <div class="absolute top-2 right-2 z-20 flex gap-2">
+            <button 
+                @click.stop="likeStore.toggleProductLike(product.id!)"
+                class="h-8 w-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-500 hover:text-brand transition-colors"
+                aria-label="Like Product"
+            >
+                <Icon :name="isLiked ? 'mdi:heart' : 'mdi:heart-outline'" size="20" :class="{ 'text-brand': isLiked }" />
+            </button>
+            <button
+                @click.stop="shareProduct"
+                class="h-8 w-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-500 hover:text-brand transition-colors"
+                aria-label="Share Product"
+            >
+                <Icon name="mdi:share-variant" size="20" />
+            </button>
+        </div>
 
-        <button @click.stop="handleAddToCart" :disabled="isInCart"
-          class="h-8 w-8 flex items-center justify-center rounded-full bg-brand/10 text-brand-dark hover:bg-brand hover:text-white transition-colors disabled:bg-gray-200 disabled:text-gray-400"
-          :class="{ 'bg-emerald-500 !text-white': isInCart }" aria-label="Add to cart">
-          <Icon :name="isInCart ? 'mdi:cart-check' : 'mdi:cart-plus'" class="h-5 w-5" />
-        </button>
-      </div>
-      <!-- Title -->
-<h4 class="text-sm font-semibold text-gray-600 line-clamp-2 leading-snug">
-  {{ product.title || 'Untitled Product' }}
-</h4>
+        <!-- Product Image -->
+        <NuxtLink :to="`/product/${product.slug}`" class="block w-full aspect-square relative overflow-hidden">
+            <MediaDisplayCard :product-media="product.media?.[0]" class="w-full h-full transition-transform duration-300 group-hover:scale-105" />
+        </NuxtLink>
 
-<!-- Show Metrics only if both are > 10 -->
-<div v-if="product.likes?.length && product.soldCount ? (product.likes?.length || 0) > 10 && (product.soldCount || 0)> 10 : false"
-  class="mt-2 pt-1 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-  
-  <!-- Likes -->
-  <div class="flex items-center gap-1.5">
-    <Icon name="mdi:heart-outline" class="h-4 w-4 text-rose-400" />
-    <span>{{ likeCountFormatted }} Likes</span>
-  </div>
+        <!-- Product details -->
+        <div class="p-3 flex flex-col flex-1">
+            <div class="flex items-center gap-2 mb-2">
+                <NuxtLink :to="`/seller/profile/${product.seller?.store_slug}`" class="flex-shrink-0">
+                    <img :src="product.seller?.store_logo || '/default-store-logo.png'" class="w-6 h-6 rounded-full object-cover">
+                </NuxtLink>
+                <div class="flex-1 min-w-0">
+                    <NuxtLink :to="`/seller/profile/${product.seller?.store_slug}`" class="text-xs font-semibold text-gray-700 hover:underline truncate">
+                        {{ product.seller?.store_name || 'Unknown Seller' }}
+                    </NuxtLink>
+                </div>
+            </div>
 
-  <!-- Number Sold -->
-  <div class="flex items-center gap-1.5">
-    <Icon name="mdi:package-variant-closed" class="h-4 w-4 text-gray-400" />
-    <span>{{ numberSoldFormatted }} Sold</span>
-  </div>
-</div>
-
-<!-- Show Description if not enough likes/sold -->
-<!-- <p v-else  v-html="product.description || 'No description available.'" class="mt-2 text-xs text-gray-500 line-clamp-1">
-</p> -->
-
+            <div class="flex-grow flex flex-col justify-between">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 leading-tight h-10">{{ product.title }}</h3>
+                    <div class="flex justify-between items-center mt-1">
+                        <div class="flex items-baseline gap-2">
+                            <p class="text-base font-bold text-gray-800">{{ formatPrice(product.price) }}</p>
+                        </div>
+                        <div class="relative">
+                            <div class="flex space-x-2">
+                                        <button @click.stop="handleAddToCartClick"
+                                            class="px-3 py-1 bg-brand text-white rounded-lg text-sm hover:bg-brand-dark">
+                                            Bag it!
+                                        </button>
+                                        <button v-if="product" @click.stop
+                                            class="p-1 text-gray-500 hover:text-brand" title="Chat with AI">
+                                            <Icon name="mdi:robot" class="w-5 h-5" />
+                                        </button>
+                                       
+                                    </div>
+                            <transition enter-active-class="transition-all duration-200 ease-out" leave-active-class="transition-all duration-200 ease-in" enter-from-class="opacity-0 translate-y-2" leave-to-class="opacity-0 translate-y-2">
+                                <div v-if="showVariantSelector" v-click-outside="() => showVariantSelector = false" class="absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-2xl border w-36 max-h-48 flex flex-col z-30">
+                                    <p class="text-xs font-semibold text-gray-500 px-2 py-1.5 border-b shrink-0">Select a Size</p>
+                                    <div class="mt-1 space-y-1 p-1 overflow-y-auto">
+                                        <button v-for="variant in product.variants" :key="variant.id" @click="selectVariant(variant)" :disabled="variant.stock === 0" class="w-full text-left px-2 py-1.5 text-sm font-medium rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:line-through">
+                                            {{ variant.size }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </transition>
+                        </div>
+                    </div>
+                </div>
+                
+                <div v-if="(product.likes?.length || 0) > 0 || (product.soldCount || 0) > 0" class="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                    <div class="flex items-center gap-1.5">
+                        <Icon name="mdi:heart-outline" class="h-4 w-4 text-rose-400" />
+                        <span>{{ likeCountFormatted }} Likes</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <Icon name="mdi:package-variant-closed" class="h-4 w-4 text-gray-400" />
+                        <span>{{ numberSoldFormatted }} Sold</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useCartStore, useUserStore } from '~/stores';
-import type { IProduct } from '~/models/interface/';
+import { computed, ref } from 'vue';
+import { useCartStore, useUserStore, useLikeStore } from '~/stores';
+import type { IProduct, IProductVariant } from '~/models/interface/';
 import MediaDisplayCard from './MediaDisplayCard.vue';
 import { notify } from "@kyvg/vue3-notification";
 import { useRouter } from 'vue-router';
 
 const props = defineProps<{
-  product: IProduct & {
-    isVerified?: boolean; // 👈 new flag for verified seller
-  };
+    product: IProduct;
 }>();
 
 const cartStore = useCartStore();
 const userStore = useUserStore();
+const likeStore = useLikeStore();
 const router = useRouter();
 
-const isOwner = computed(() => {
-  return userStore.isLoggedIn && userStore.user?.id === props.product.sellerId;
-});
+const showVariantSelector = ref(false);
 
-const isInCart = computed(() => {
-  const productVariantIds = new Set(props.product.variants?.map(v => v.id))
-  return cartStore.cartItems.some(item => productVariantIds.has(item.variant.id));
-});
+const isLiked = computed(() => likeStore.likedProductIds.has(props.product.id!));
 
 const likeCountFormatted = computed(() => {
-  const count = props.product.likes?.length || 0;
-  return count > 999 ? `${(count / 1000).toFixed(1)}k` : count;
+    const baseLikes = props.product.likes?.length || 0;
+    if (likeStore.likedProductIds.has(props.product.id!)) {
+        const otherLikes = props.product.likes?.filter(l => l.userId !== userStore.user?.id).length || 0;
+        return Math.max(baseLikes, otherLikes + 1);
+    }
+    return baseLikes;
 });
 
 const numberSoldFormatted = computed(() => {
   const count = props.product.soldCount || 0;
   if (count > 999) return `${(count / 1000).toFixed(1)}k+`;
-  if (count > 0) return `${count}`;
-  return '0';
+  return count.toString();
 });
 
-// Computed properties for handling discounts
-const showDiscount = computed(() => props.product.discount && props.product.discount > 0);
-const discountPercentage = computed(() => {
-  return {
-    value: props.product.price > 0 ? Math.round((props.product.discount || 0) / props.product.price * 100) : 0
-  }
-});
-const discountedPrice = computed(() => {
-  return props.product.discount ? props.product.price - props.product.discount : props.product.price;
-});
+const handleAddToCartClick = () => {
+    const variants = props.product.variants;
+    if (variants && variants.length > 1) {
+        // Toggle the pop-up visibility
+        showVariantSelector.value = !showVariantSelector.value;
+    } else if (variants && variants.length === 1) {
+        // If there's only one size, add it directly
+        cartStore.addToCart(props.product, variants[0]);
+        notify({ type: 'success', text: `${props.product.title} added to cart!` });
+    } else {
+        notify({ type: 'error', text: 'This product is currently unavailable.' });
+    }
+};
 
-const handleAddToCart = () => {
-  const variants = props.product.variants;
-
-  if (variants && variants.length > 1) {
-    notify({ type: 'info', text: 'Please open the details panel to select a size.' });
-    router.push(`/product/${props.product.slug}`);
-  } else if (variants && variants.length === 1) {
-    cartStore.addToCart(props.product.id, variants[0], 1, props.product);
-    notify({ type: 'success', text: `${props.product.title} added to cart!` });
-  } else {
-    notify({ type: 'error', text: 'This product is currently unavailable.' });
-  }
+const selectVariant = (variant: IProductVariant) => {
+    cartStore.addToCart(props.product, variant);
+    notify({ type: 'success', text: `${props.product.title} (${variant.size}) added to cart!` });
+    showVariantSelector.value = false; // Close the pop-up after selection
 };
 
 const formatPrice = (price: number) => {
-  if (isNaN(price)) return '₦0';
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-  }).format(price / 100);
+    if (isNaN(price)) return '₦0';
+    return new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: 'NGN',
+    }).format(price / 100);
+};
+
+const shareProduct = async () => {
+    const shareUrl = `${window.location.origin}/product/${props.product.slug}`
+    try {
+        if (navigator.share) {
+            await navigator.share({ url: shareUrl, title: props.product.title })
+        } else {
+            await navigator.clipboard.writeText(shareUrl)
+            notify({ type: 'success', text: 'Link copied to clipboard!' })
+        }
+    } catch (error) {
+        notify({ type: 'error', text: 'Failed to share product.' })
+    }
+}
+
+// Custom directive for clicking outside
+const vClickOutside = {
+  beforeMount: (el: any, binding: any) => {
+    el.clickOutsideEvent = (event: MouseEvent) => {
+      // Check that the click was outside the element and its children
+      if (!(el === event.target || el.contains(event.target))) {
+        // If it was, call the function provided in the directive's value
+        binding.value();
+      }
+    };
+    document.addEventListener('click', el.clickOutsideEvent);
+  },
+  unmounted: (el: any) => {
+    document.removeEventListener('click', el.clickOutsideEvent);
+  },
 };
 </script>
+

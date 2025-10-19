@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import type { ICategory } from '~/models';
+import { useApiService } from '~/services/api/apiService';
 import { notify } from "@kyvg/vue3-notification";
 
 export const useCategoryStore = defineStore('category', {
@@ -47,10 +48,8 @@ export const useCategoryStore = defineStore('category', {
     async addCategory(category: { name: string; thumbnailCatUrl: string }) {
       this.isLoading = true;
       try {
-        const newCategory = await $fetch<ICategory>('/api/prisma/categories/create-category', {
-          method: 'POST',
-          body: category,
-        });
+        const apiService = useApiService();
+        const newCategory = await apiService.createCategory(category);
 
         if (newCategory) {
           // Add the newly created category to the state for instant UI updates
