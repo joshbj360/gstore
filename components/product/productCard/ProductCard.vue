@@ -56,13 +56,13 @@
                                     <span class="hidden md:inline">Bag it!</span>
 
                                     <!-- Icon always visible -->
-                                    <Icon name="mdi:shopping" class="w-5 h-5 pb-3" />
+                                    <Icon name="mdi:shopping" class="w-5 h-5 pb-5" />
                                 </button>
 
                                 <!-- AI Chat Button -->
                                 <button v-if="product" @click.stop
                                     class="p-1 text-brand hover:text-brand-dark transition-colors" title="Chat with AI">
-                                    <Icon name="mdi:robot" class="w-5 h-5" />
+                                    <Icon name="mdi:robot" class="w-5 h-5 pt-2" />
                                 </button>
 
 

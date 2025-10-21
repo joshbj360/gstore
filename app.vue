@@ -1,9 +1,12 @@
 <template>
-  <NuxtLayout>
-    <NuxtPage />
-  </NuxtLayout>
+  <div class="min-h-screen bg-background-dark text-gray-100">
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+  </div>
 </template>
 <script setup lang="ts">
+import { useColorMode } from '@vueuse/core'
 import { useUserStore } from '~/stores/user.store';
 import { useCartStore } from '~/stores/cart.store';
 import { useSupabaseClient } from '#imports';
@@ -11,6 +14,8 @@ import { useSupabaseClient } from '#imports';
 const userStore = useUserStore();
 const cartStore = useCartStore();
 const supabase = useSupabaseClient();
+const $colorMode = useColorMode() // Automatically handles theme persistence
+
 
 // This listener fires whenever the user's login state changes.
 supabase.auth.onAuthStateChange(async (event, session) => {

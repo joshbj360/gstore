@@ -197,6 +197,14 @@ export interface IStory extends Story {
   seller: ISellerProfile;
   product?: IProduct | null;
 }
+export interface IReel {
+    id: string; // A unique ID, e.g., "story-uuid" or "product-123"
+    type: 'story' | 'product';
+    created_at: Date;
+    media: IMedia;
+    seller: Partial<ISellerProfile>;
+    product: Partial<IProduct> | null;
+}
 
 export const defaultMeasurement: IMeasurement = {
   id: 0,

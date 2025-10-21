@@ -1,3 +1,6 @@
+import { Background } from "@cloudinary/url-gen/qualifiers";
+import { light } from "@cloudinary/url-gen/qualifiers/fontWeight";
+
 // tailwind.config.js
 module.exports = {
   content: [
@@ -20,6 +23,10 @@ module.exports = {
           DEFAULT: "#C42B78", // replace with your brand hex
           light: "#E55FA1",
           dark: "#9E205E",
+        },
+        Background: {
+          light: '#f9f9f9',
+          dark: '#0d0d0d',
         }
       }
     },
