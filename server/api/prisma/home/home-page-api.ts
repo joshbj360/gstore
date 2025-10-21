@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
             // Get products flagged as "featured"
             prisma.products.findMany({
                 where: { isFeatured: true, status: 'PUBLISHED' },
-                include: { media: true },
+                include: { media: true, seller: { select: { store_name: true, store_slug: true, store_logo: true } } },
                 take: 5,
             }),
             // Get the main product feed ("Fresh Drops")

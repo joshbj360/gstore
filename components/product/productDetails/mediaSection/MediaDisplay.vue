@@ -25,7 +25,7 @@
           muted
           loop
           playsinline
-          class="media-content"
+          class="media-content w-full h-full object-cover"
           @error="handleError"
           :aria-label="`Product video ${productMedia.altText || ''}`"
         />
@@ -37,7 +37,7 @@
         <CldImage 
           :src="productMedia.url" 
           :alt="`Product image ${productMedia.altText || ''}`" 
-          class="media-content" 
+          class="media-content w-full h-full object-cover" 
           :loading="loading" 
           @error="handleError" 
           :width="width"

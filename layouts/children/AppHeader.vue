@@ -70,12 +70,12 @@
                                         {{ userStore.isSeller ? `${userStore.sellerProfile?.store_name} Store` : 'Buyer Mode' }}
                                     </p>
                                 </NuxtLink>
-                                <NuxtLink to="/seller/dashboard" @click="showMenu = false"
+                                <NuxtLink v-if="userStore.isSeller" to="/seller/dashboard" @click="showMenu = false"
                                     class="block px-3 sm:px-4 py-2 text-sm hover:bg-gray-50 transition-colors">
                                     <Icon name="mdi:view-dashboard-outline" class="w-4 h-4 inline-block mr-2" />
                                     Dashboard
                                 </NuxtLink>
-                                <NuxtLink to="/upload" @click="showMenu = false"
+                                <NuxtLink v-if="userStore.isSeller" to="/upload" @click="showMenu = false"
                                     class="block px-3 sm:px-4 py-2 text-sm hover:bg-gray-50 transition-colors">
                                     <Icon name="mdi:upload" class="w-4 h-4 inline-block mr-2" /> Add products
                                 </NuxtLink>

@@ -1,5 +1,5 @@
 import { useRuntimeConfig } from '#app';
-import type { IProduct, ICategory, IAddress, IShippingZone, IProfile, ISellerProfile, ICartItem, IOrders, IComment, IStory, IMedia } from '~/models';
+import type { IProduct, ICategory, IAddress, IShippingZone, IProfile, ISellerProfile, ICartItem, IOrders, IComment, IStory, IMedia, IReel } from '~/models';
 import { ApiError } from './apiError';
 
 //#region === API SERVICE INTERFACE ===.
@@ -315,7 +315,14 @@ getProductById(id: number): Promise<IProduct> {
     });
   }
 
-  //#region === STORY METHODS ===
+  //#region === STORY & REEL METHODS ===
+   /**
+   * Fetches a paginated, unified feed of Reels (Stories and Video Products).
+   * @param params - Pagination options { page, limit }.
+   */
+  getReels(params: { page: number, limit?: number }): Promise<{ reels: IReel[], meta: { hasMore: boolean } }> {
+    return this.request('/api/prisma/reels', { params });
+  }
   createStory(payload: { media: object; productId?: number | null }): Promise<IStory> {
     return this.request('/api/prisma/stories/create-story', {
       method: 'POST',
