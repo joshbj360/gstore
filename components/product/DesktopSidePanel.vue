@@ -54,7 +54,7 @@ const tabClass = (tabName: 'details' | 'chat') => {
     return [
         'flex-1 py-3 text-center font-semibold text-sm transition-colors',
         activeTab.value === tabName
-            ? 'text-brand border-b-2 border-[#f02c56]'
+            ? 'text-brand border-b-2 border-brand'
             : 'text-gray-500 hover:text-gray-800'
     ];
 };

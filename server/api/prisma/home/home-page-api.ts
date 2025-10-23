@@ -3,7 +3,7 @@ import prisma from '~/server/prisma/prismaClient';
 export default defineEventHandler(async (event) => {
     try {
         // Fetch all data in parallel for maximum performance
-        const [stories, featuredProducts, products, topSellers, hotAccessories] = await Promise.all([
+        const [stories, featuredProducts, products, hotAccessories] = await Promise.all([
             // Get active stories from the last 24 hours
             prisma.story.findMany({
                 where: { expiresAt: { gt: new Date() } },
@@ -31,17 +31,6 @@ export default defineEventHandler(async (event) => {
                 orderBy: { created_at: 'desc' },
                 take: 10,
             }),
-            // Get top sellers (e.g., by follower count)
-            prisma.sellerProfile.findMany({
-                orderBy: { followers_count: 'desc' },
-                take: 5,
-                select: { 
-                    store_name: true, 
-                    store_slug: true, 
-                    store_logo: true, 
-                    _count: { select: { products: true } }
-                }
-            }),
             // Get products from the "Accessories" category or flagged as isAccessory
             prisma.products.findMany({
                 where: {
@@ -53,7 +42,7 @@ export default defineEventHandler(async (event) => {
             })
         ]);
 
-        return { stories, featuredProducts, products, topSellers, hotAccessories };
+        return { stories, featuredProducts, products,  hotAccessories };
 
     } catch (error) {
         console.error("Error fetching homepage data:", error);

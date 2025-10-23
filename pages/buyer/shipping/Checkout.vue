@@ -40,7 +40,7 @@
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <h2 class="text-lg font-semibold flex items-center gap-2"><span class="checkout-step">2</span> Payment Method</h2>
                     <div class="mt-4 pt-4 border-t space-y-3">
-                        <label v-for="method in paymentMethods" :key="method.id" class="flex items-center p-3 border rounded-lg cursor-pointer transition-all" :class="{'border-[#f02c56] bg-brand/5 ring-2 ring-[#f02c56]/50': paymentMethod === method.id}">
+                        <label v-for="method in paymentMethods" :key="method.id" class="flex items-center p-3 border rounded-lg cursor-pointer transition-all" :class="{'border-brand bg-brand/5 ring-2 ring-[#f02c56]/50': paymentMethod === method.id}">
                             <input type="radio" :value="method.id" v-model="paymentMethod" class="h-4 w-4 text-brand focus:ring-[#f02c56]/50 border-gray-300">
                             <span class="ml-3 text-sm font-medium">{{ method.label }}</span>
                         </label>

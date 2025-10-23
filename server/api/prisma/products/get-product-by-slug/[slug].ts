@@ -28,6 +28,7 @@ export default defineEventHandler(async (event) => {
             store_slug: true,
             store_logo: true,
             is_verified: true,
+            store_name: true,
             followers_count: true,
           }
         }

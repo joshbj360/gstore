@@ -27,7 +27,8 @@ export const useCategoryStore = defineStore('category', {
 
       this.isLoading = true;
       try {
-        const data = await $fetch<ICategory[]>('/api/prisma/categories/get-all-categories');
+        const apiService = useApiService();
+        const data = await apiService.getAllCategories();
         if (Array.isArray(data)) {
           this.categories = data;
         }

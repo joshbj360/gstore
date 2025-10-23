@@ -27,6 +27,7 @@ export default defineNuxtConfig({
     'nuxt-tiptap-editor',
     'vue3-carousel-nuxt',
     "@nuxtjs/cloudinary",
+    'nuxt-charts',
   ],
   supabase: {
     redirect: false,

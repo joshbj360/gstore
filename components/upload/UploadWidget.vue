@@ -5,7 +5,7 @@
             The `ref="dropZoneRef"` connects it to the VueUse composable.
         -->
     <div ref="dropZoneRef" class="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors"
-      :class="isOverDropZone ? 'border-[#f02c56] bg-brand/10' : 'hover:bg-gray-50'" @click="open">
+      :class="isOverDropZone ? 'border-brand bg-brand/10' : 'hover:bg-gray-50'" @click="open">
       <div class="space-y-2">
         <Icon name="mdi:cloud-upload-outline" size="48" class="mx-auto text-gray-400" />
         <p class="text-sm text-gray-600">

@@ -16,6 +16,7 @@ export const useProductStore = defineStore('product', {
     lastFetched: new Map<string | number, number>(),
 
     // UI State
+    currentPage: 1,
     isLoading: false,
     hasMoreProducts: true,
     currentCategorySlug: null as string | null,
@@ -81,6 +82,18 @@ export const useProductStore = defineStore('product', {
         this.categoryCache.set(categorySlug, [...existing, ...newProducts]);
       }
     },
+      /**
+     * Sets the initial list of products for the homepage feed.
+     * This is a "setter" action called by the page after `useAsyncData` completes.
+     */
+    setInitialProducts(initialProducts: IProduct[]) {
+        this.products = initialProducts;
+        this._cacheProducts(initialProducts);
+        // Reset pagination for a new session
+        this.currentPage = 1;
+        this.hasMoreProducts = initialProducts.length > 0;
+    },
+
 
     /**
      * Fetches the initial list of products if the store is empty.
@@ -241,6 +254,28 @@ export const useProductStore = defineStore('product', {
         return [];
       }
     },
+/*************  ✨ Windsurf Command ⭐  *************/
+/**
+ * Fetches a list of products featured on the dashboard page.
+ * This action fetches the products, caches them, and returns the list.
+ * If the fetch fails, it logs an error and returns an empty array.
+ * @returns {Promise<IProduct[]>} Resolves with a list of products or an empty array on failure.
+ */
+/*******  25580be4-41b4-4dbe-adf4-98ffa6286857 *******/
+    async fetchDashboardProducts(): Promise<IProduct[]> {
+      const apiService = useApiService();
+      this.isLoading = true;
+      try {
+        const products = await apiService.getDashboardProducts();
+        this._cacheProducts(products);
+        return products;
+      } catch (error) {
+        console.error('Failed to fetch dashboard products:', error);
+        return [];
+      } finally {
+        this.isLoading = false;
+      }
+    },
     async fetchProductById(id: number): Promise<IProduct> {
       const cachedProduct = this.productMap.get(id);
       if (cachedProduct) return cachedProduct;
@@ -257,6 +292,32 @@ export const useProductStore = defineStore('product', {
         this.isLoading = false;
       }
     },
+ async getProductBySlug(slug: string): Promise<IProduct> {
+    // THE FIX: Search the map's values for a matching slug.
+    // This is an O(n) search, but 'n' is the number of cached products,
+    // which is perfectly acceptable on the client-side.
+    const cachedProduct = Array.from(this.productMap.values()).find(p => p.slug === slug);
+    
+    if (cachedProduct) {
+        console.log(`Serving product ${slug} from cache.`);
+        return cachedProduct;
+    }
+
+    // If not in cache, fetch from the API.
+    const apiService = useApiService();
+    this.isLoading = true;
+    try {
+        console.log(`Fetching product ${slug} from API...`);
+        const product = await apiService.getProductBySlug(slug);
+        this._cacheProducts([product]); // Add it to the cache
+        return product;
+    } catch (error) {
+        console.error(`Failed to fetch product by slug "${slug}":`, error);
+        throw error;
+    } finally {
+        this.isLoading = false;
+    }
+},
     /**
      * Fetches the feed, caches the products, sets the current slug, and returns the feed.
      */

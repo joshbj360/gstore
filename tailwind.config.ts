@@ -1,5 +1,4 @@
-import { Background } from "@cloudinary/url-gen/qualifiers";
-import { light } from "@cloudinary/url-gen/qualifiers/fontWeight";
+
 
 // tailwind.config.js
 module.exports = {

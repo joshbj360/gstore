@@ -1,7 +1,7 @@
 <template>
   <div class="bulk-upload-widget space-y-4">
     <div
-      class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50 hover:border-[#f02c56] transition-colors cursor-pointer"
+      class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50 hover:border-brand transition-colors cursor-pointer"
       @dragover.prevent @drop.prevent="handleDrop" @click="triggerFileInput"
     >
       <input ref="fileInput" type="file" accept=".csv" class="hidden" @change="handleFileChange" />
