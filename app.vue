@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-background-dark text-gray-100">
+  <div class="min-h-screen bg-background-dark">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

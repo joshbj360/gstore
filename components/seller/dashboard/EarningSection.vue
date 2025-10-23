@@ -1,15 +1,15 @@
 <template>
-  <div>
+  <div class="text-neutral-100">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
       <div>
-        <h2 class="text-xl font-bold text-gray-900">Earnings & Payouts</h2>
-        <p class="text-sm text-gray-500">View your balance and manage your withdrawals.</p>
+        <h2 class="text-2xl font-bold text-neutral-100">Earnings & Payouts</h2>
+        <p class="text-sm text-neutral-400 mt-1">View your balance and manage your withdrawals.</p>
       </div>
       <button 
         @click="isPayoutModalOpen = true" 
         :disabled="!wallet || wallet.balance <= 0"
-        class="bg-brand text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#d81b36] disabled:opacity-50"
+        class="bg-[#f02c56] text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#d81b36] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Request Payout
       </button>
@@ -17,25 +17,36 @@
 
     <!-- Wallet Balance Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-      <div class="bg-green-50 border border-green-200 rounded-lg p-6">
-        <h3 class="text-sm font-medium text-green-800">Available Balance</h3>
-        <p class="text-3xl font-bold text-green-700 mt-2">{{ formatPrice(wallet?.balance || 0) }}</p>
+      <div class="bg-green-900/50 border border-green-800 rounded-lg p-6">
+        <h3 class="text-sm font-medium text-green-300">Available Balance</h3>
+        <p class="text-3xl font-bold text-green-400 mt-2">{{ formatPrice(wallet?.balance || 0) }}</p>
       </div>
-      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-        <h3 class="text-sm font-medium text-yellow-800">Pending Balance</h3>
-        <p class="text-3xl font-bold text-yellow-700 mt-2">{{ formatPrice(wallet?.pending_balance || 0) }}</p>
+      <div class="bg-yellow-900/50 border border-yellow-800 rounded-lg p-6">
+        <h3 class="text-sm font-medium text-yellow-300">Pending Balance</h3>
+        <p class="text-3xl font-bold text-yellow-400 mt-2">{{ formatPrice(wallet?.pending_balance || 0) }}</p>
       </div>
     </div>
 
     <!-- Transaction History -->
     <div>
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Transaction History</h3>
-        <div class="bg-white rounded-lg shadow-sm border">
-            <div v-if="!wallet?.transactions || wallet.transactions.length === 0" class="text-center p-8 text-gray-500">
+        <h3 class="text-lg font-semibold text-neutral-200 mb-4">Recent Transactions</h3>
+        <div class="bg-neutral-950 rounded-lg shadow-md border border-neutral-800">
+            <div v-if="!wallet?.transactions || wallet.transactions.length === 0" class="text-center p-8 text-neutral-500">
                 <p>No transactions found.</p>
             </div>
-            <ul v-else class="divide-y divide-gray-200">
-                <!-- ... transaction list ... -->
+            <ul v-else class="divide-y divide-neutral-800">
+                <li v-for="tx in wallet.transactions" :key="tx.id" class="p-4 flex justify-between items-center">
+                    <div>
+                        <p class="font-medium text-neutral-100 capitalize">{{ tx.type.replace('_', ' ') }}</p>
+                        <p class="text-xs text-neutral-400">{{ tx.description }}</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-right" :class="tx.amount >= 0 ? 'text-green-400' : 'text-red-400'">
+                            {{ formatPrice(tx.amount) }}
+                        </p>
+                        <p class="text-xs text-neutral-500 text-right">{{ new Date(tx.created_at).toLocaleDateString() }}</p>
+                    </div>
+                </li>
             </ul>
         </div>
     </div>
@@ -49,16 +60,17 @@
     />
   </div>
 </template>
- 
+
 <script setup lang="ts">
 import { ref } from 'vue';
-import PayoutModal from '@/components/seller/dashboard/PayoutModal.vue';
+import PayoutModal from '~/components/seller/dashboard/PayoutModal.vue';
 import { useApiService } from '~/services/api/apiService';
 import { notify } from '@kyvg/vue3-notification';
+import { formatPrice } from '~/utils/formatters';
+import type { IWallet } from '~/models';
 
-// This component is now "dumb" and receives its data as a prop
 const props = defineProps<{
-    wallet: any | null;
+    wallet: IWallet | null; // You should create a proper IWallet interface for this
 }>();
 
 const emit = defineEmits(['payout-requested']);
@@ -76,10 +88,6 @@ const handlePayoutRequest = async (payoutDetails: { amount: number; bankDetails:
     } finally {
         isPayoutModalOpen.value = false;
     }
-};
-
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(price / 100);
 };
 </script>
 

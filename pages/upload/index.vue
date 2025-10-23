@@ -22,7 +22,7 @@
     <div v-else-if="error" class="p-8 text-center max-w-md mx-auto">
       <Icon name="mdi:alert-circle" size="48" class="mx-auto mb-4 text-brand" />
       <p class="text-gray-600 text-lg mb-4">Couldn't load form data. Let's fix that.</p>
-      <button @click="refresh" class="px-6 py-2 bg-brand text-white rounded-lg font-medium hover:bg-brand-dark transition-colors mr-3">Retry</button>
+      <button @click="refresh()" class="px-6 py-2 bg-brand text-white rounded-lg font-medium hover:bg-brand-dark transition-colors mr-3">Retry</button>
       <button @click="router.back()" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">Back</button>
     </div>
 
@@ -147,7 +147,7 @@ const formKey = ref(0);
 const bulkUploadState = ref({ active: false, progress: 0 });
 
 // Async Data: Guarded for Auth
-const { pending, error, refresh } = await useAsyncData('upload-form-data', async () => {
+const { pending, error, refresh } = await useLazyAsyncData('upload-form-data', async () => {
   if (!userStore.isLoggedIn || !userStore.isSeller) {
     if (import.meta.server) await router.push('/seller/become-a-seller');
     return null;

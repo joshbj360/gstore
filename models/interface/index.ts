@@ -3,8 +3,10 @@ import type {
   Products, Orders, ProductVariant, CartItem, Media, OrderItem, Addresses, Like,
   Share, SocialMediaInfo, Tag, Category, Measurement, ZoneRate, ShippingZone,
   VerificationDocument, Comment, SellerProfile, Profile, Notification,
-  CommentLike,
-  Story
+  CommentLike, SellerWallet,
+  Story,
+  Payout,
+  Transaction
 } from '@prisma/client';
 
 export enum EMediaType {
@@ -54,6 +56,11 @@ export interface IProduct extends Products {
   shares?: IShare[];
   socialMedia?: ISocialMediaInfo[];
   shippingZone?: IShippingZone | null;
+  _count?: {
+    likes: number;
+    comments: number;
+    shares: number;
+  };
 }
 
 export interface IOrders extends Orders {
@@ -206,6 +213,20 @@ export interface IReel {
     product: Partial<IProduct> | null;
 }
 
+export interface IWallet extends SellerWallet {
+  payouts?: IPayout[],
+  seller?: ISellerProfile
+  transactions?: ITransaction[]
+
+}
+
+export interface IPayout extends Payout {
+  wallet?: IWallet
+}
+
+export interface ITransaction extends Transaction {
+  wallet?: IWallet
+}
 export const defaultMeasurement: IMeasurement = {
   id: 0,
   productId: 0,

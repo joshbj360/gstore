@@ -30,7 +30,7 @@
       </p>
 
       <p class="font-bold text-lg text-brand-dark mt-2">
-        {{ formatPrice(item.variant.price) }}
+        {{ formatPrice(item.variant.price || 0) }}
       </p>
       
       <p v-if="isOutOfStock" class="text-sm font-semibold text-brand mt-2">

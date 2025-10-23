@@ -57,6 +57,7 @@ export default defineEventHandler(async (event) => {
                     price: body.price,
                     discount: body.discount,
                     sellerId: sellerProfile.id,
+                    store_slug: sellerProfile.store_slug,
                     shippingZoneId: body.shippingZoneId,
                     isAccessory: body.isAccessory || false,
                     SKU: `SKU-${Math.random().toString(36).substring(2, 8).toUpperCase()}`, // Simple SKU generation

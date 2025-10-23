@@ -1,5 +1,5 @@
 import { useRuntimeConfig } from '#app';
-import type { IProduct, ICategory, IAddress, IShippingZone, IProfile, ISellerProfile, ICartItem, IOrders, IComment, IStory, IMedia, IReel } from '~/models';
+import type { IProduct, ICategory, IAddress, IShippingZone, IProfile, ISellerProfile, ICartItem, IOrders, IComment, IStory, IMedia, IReel, INotification, IWallet } from '~/models';
 import { ApiError } from './apiError';
 
 //#region === API SERVICE INTERFACE ===.
@@ -65,6 +65,10 @@ getProductById(id: number): Promise<IProduct> {
     return this.request(`/api/prisma/products/get-product-by-slug/${slug}`);
   }
 
+  getProductsByCategorySlug_Paginated(slug: string, params: { page?: number, limit?: number } = {}): Promise<{ products: IProduct[], meta: any }> {
+    return this.request(`/api/prisma/categories/get-products/${slug}`, { params });
+  }
+
   getProductsByCategorySlug(slug: string): Promise<{ category: ICategory, products: IProduct[] }> {
     return this.request(`/api/prisma/products/get-products-by-category-slug/${slug}`);
   }
@@ -81,15 +85,19 @@ getProductById(id: number): Promise<IProduct> {
     return this.request(`/api/prisma/products/feed/${slug}`);
   }
 
+  getDashboardProducts(): Promise<IProduct[]> {
+    return this.request('/api/prisma/products/dashboard');
+  }
+
   createProduct(productData: IProduct): Promise<IProduct> {
-    return this.request('/api/prisma/products/create/create-product', {
+    return this.request('/api/prisma/products/dashboard/create', {
       method: 'POST',
       body: productData,
     });
   }
 
   createBatchProducts(products: any): Promise<{ success: boolean; createdCount: number; errors: string[] }> {
-    return this.request('/api/prisma/products/create/create-batch-products', {
+    return this.request('/api/prisma/products/dashboard/create/batch', {
       method: 'POST',
       body: products,
     });
@@ -188,7 +196,7 @@ getProductById(id: number): Promise<IProduct> {
 
   //#region === WALLET & PAYOUT METHODS ===
 
-  getSellerWallet(): Promise<any> {
+  getSellerWallet(): Promise<IWallet> {
     return this.request('/api/prisma/wallet');
   }
 
@@ -290,11 +298,14 @@ getProductById(id: number): Promise<IProduct> {
   //#endregion
 
   //#region === HOMEPAGE METHODS ===
+  getTopSellers(): Promise<ISellerProfile[]> {
+    return this.request('/api/prisma/home/top-sellers')
+  }
+
   getHomepageData(): Promise<{
       stories: IStory[]; 
       featuredProducts: IProduct[]; 
-      products: IProduct[]; 
-      topSellers: ISellerProfile[]; 
+      products: IProduct[];
       hotAccessories: IProduct[];
   }> {
     return this.request('/api/prisma/home/home-page-api');
@@ -352,6 +363,13 @@ getProductById(id: number): Promise<IProduct> {
   }
 
   //#endregion
+
+  //#region === NOTIFICATION METHODS ===
+  
+  getNotifications(): Promise<INotification[]> {
+      return this.request('/api/prisma/notifications');
+  }
+
 
 }
 
