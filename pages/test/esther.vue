@@ -195,7 +195,7 @@
         </div>
 
         <!-- Modals -->
-        <ProductDetailSidePanel v-if="selectedProduct" :product="selectedProduct" :seller-store="dummySeller"
+        <!-- <ProductDetailSidePanel v-if="selectedProduct" :product="selectedProduct" :seller-store="dummySeller" -->
             @close="selectedProduct = null" />
         <div v-if="showUploadModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div class="bg-white rounded-xl p-6 w-full max-w-md">
@@ -216,7 +216,7 @@ import { useApiService } from '~/services/api/apiService';
 import { useCategoryStore } from '~/stores';
 import { useRouter } from 'vue-router'; // For navigation
 
-import ProductDetailSidePanel from '~/components/unused/ProductDetailSidePanel.vue';
+// import ProductDetailSidePanel from '~/components/unused/ProductDetailSidePanel.vue';
 import UploadWidget from '~/components/upload/UploadWidget.vue';
 import AIChat from '~/components/chat/AIChat.vue';
 
