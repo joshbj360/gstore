@@ -1,5 +1,9 @@
 <template>
-    <div class="w-full h-full bg-neutral-800">
+    <!-- 
+      THE FIX: Added light mode default (bg-gray-100) 
+      and dark mode prefix (dark:bg-neutral-800)
+    -->
+    <div class="w-full h-full bg-gray-100 dark:bg-neutral-800">
         <video
             v-if="media.type === 'VIDEO'"
             ref="videoRef"
@@ -27,8 +31,6 @@ const props = defineProps<{
 const videoRef = ref<HTMLVideoElement | null>(null);
 const observer = ref<IntersectionObserver | null>(null);
 
-// This is a professional optimization:
-// The video will only play when it is more than 50% visible on the screen.
 onMounted(() => {
     if (videoRef.value) {
         observer.value = new IntersectionObserver(
@@ -51,3 +53,4 @@ onUnmounted(() => {
     }
 });
 </script>
+

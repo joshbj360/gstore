@@ -1,122 +1,51 @@
 <template>
-  <div class="mb-6">
-    <!-- Header -->
-    <div class="mb-4">
-      <h3 class="text-lg font-semibold text-gray-800">
-        {{ title }} <span class="text-gray-500">({{ media.length }} uploaded)</span>
-      </h3>
-      <p v-if="description" class="text-sm text-gray-500 mt-1">{{ description }}</p>
-    </div>
-
-    <!-- Media Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3">
-      <div
-        v-for="(item, index) in media"
-        :key="index"
-        class="relative group h-48 rounded-lg overflow-hidden border border-gray-200 hover:border-[#C42B78] transition-colors"
-        :class="{ 'ring-2 ring-[#C42B78]': index === mainMediaIndex }"
-      >
-        <!-- Image Preview -->
-        <img
-          v-if="item.type === 'IMAGE'"
-          :src="item.url"
-          class="w-full h-full object-cover cursor-pointer"
-          @click="setMainMedia(index)"
-          :alt="`Product image ${index + 1}`"
-        />
-
-        <!-- Video Preview -->
-        <video
-          v-else-if="item.type === 'VIDEO'"
-          autoplay
-          loop
-          muted
-          class="w-full h-full object-cover cursor-pointer"
-          :src="item.url"
-          @click="setMainMedia(index)"
-        />
-
-        <!-- Fallback for other types -->
-        <div
-          v-else
-          class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400"
-        >
-          <Icon name="mdi:file-outline" size="24" />
-        </div>
-
-        <!-- Media Actions -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-          <div class="flex justify-between w-full">
-            <button
-              v-if="index !== mainMediaIndex"
-              @click.stop="setMainMedia(index)"
-              class="text-white hover:text-brand-dark transition-colors"
-              aria-label="Set as main media"
+    <div class="space-y-3">
+        <p class="text-sm font-medium text-gray-700 dark:text-neutral-300">
+            Uploaded Media ({{ media.length }}/10)
+        </p>
+        <div class="grid grid-cols-3 gap-3">
+            <div 
+                v-for="(item, index) in media" 
+                :key="item.public_id ?? index" 
+                class="relative aspect-square rounded-lg overflow-hidden border-2"
+                :class="item.public_id === mainPublicId ? 'border-[#f02c56]' : 'border-gray-200 dark:border-neutral-700'"
             >
-              <Icon name="mdi:star-outline" size="20" />
-            </button>
-            <span v-else class="text-brand-dark">
-              <Icon name="mdi:star" size="20" />
-            </span>
+                <img v-if="item.type === 'IMAGE'" :src="item.url" class="w-full h-full object-cover" />
+                <video v-else :src="item.url" class="w-full h-full object-cover" muted playsinline></video>
+                
+                <!-- Main Badge -->
+                <div v-if="item.public_id === mainPublicId" class="absolute top-1 left-1 bg-[#f02c56] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                    MAIN
+                </div>
 
-            <button
-              @click.stop="removeMedia(index)"
-              class="text-white hover:text-red-400 transition-colors"
-              aria-label="Remove media"
-            >
-              <Icon name="mdi:trash-can-outline" size="20" />
-            </button>
-          </div>
+                <!-- Remove Button -->
+                <button @click="$emit('remove', index)" class="absolute top-1 right-1 p-1 bg-black/50 rounded-full text-white hover:bg-black/80">
+                    <Icon name="mdi:close" size="16" />
+                </button>
+
+                <!-- Set as Main Button -->
+                <button 
+                    v-if="item.public_id !== mainPublicId" 
+                    @click="$emit('set-main', item.public_id)" 
+                    class="absolute bottom-1 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/50 text-white text-xs rounded-md hover:bg-black/80"
+                >
+                    Set as Main
+                </button>
+            </div>
         </div>
-
-        <!-- Caption Input -->
-        <input
-          v-if="editableCaptions"
-          v-model="item.altText"
-          @change="updateCaption(index, $event)"
-          type="text"
-          placeholder="Add caption"
-          class="absolute bottom-0 left-0 right-0 bg-white/90 p-2 text-sm focus:outline-none"
-        />
-      </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
 import type { IMedia } from '~/models';
+import { computed } from 'vue';
 
-interface Props {
-  media: IMedia[];
-  title?: string;
-  description?: string;
-  mainMediaIndex?: number;
-  editableCaptions?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  title: 'Media Preview',
-  description: '',
-  mainMediaIndex: 0,
-  editableCaptions: true
-});
-
-const emit = defineEmits<{
-  (e: 'remove', index: number): void;
-  (e: 'set-main', index: number): void;
-  (e: 'update-caption', payload: { index: number; caption: string }): void;
+const props = defineProps<{
+    media: IMedia[];
 }>();
 
-const removeMedia = (index: number) => {
-  emit('remove', index);
-};
+const emit = defineEmits(['remove', 'set-main']);
 
-const setMainMedia = (index: number) => {
-  emit('set-main', index);
-};
-
-const updateCaption = (index: number, event: Event) => {
-  const caption = (event.target as HTMLInputElement).value;
-  emit('update-caption', { index, caption });
-};
+// The main image is always the first one in the parent's array
+const mainPublicId = computed(() => props.media[0]?.public_id || null);
 </script>

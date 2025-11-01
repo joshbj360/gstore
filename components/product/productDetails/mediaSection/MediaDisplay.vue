@@ -35,7 +35,7 @@
 
       <template v-else-if="productMedia?.type === EMediaType.IMAGE">
         <CldImage 
-          :src="productMedia.url" 
+          :src="getMediaThumbnailUrl(productMedia)" 
           :alt="`Product image ${productMedia.altText || ''}`" 
           class="media-content w-full h-full object-cover" 
           :loading="loading" 

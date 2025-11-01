@@ -28,6 +28,7 @@ export default defineNuxtConfig({
     'vue3-carousel-nuxt',
     "@nuxtjs/cloudinary",
     'nuxt-charts',
+    '@nuxtjs/color-mode',
   ],
   supabase: {
     redirect: false,
@@ -41,6 +42,7 @@ export default defineNuxtConfig({
     paystackSecretKey: process.env.PAYSTACK_SECRET_KEY,
     platformCommissionRate: process.env.PLATFORM_COMMISSION_RATE,
     public: {
+      siteName: process.env.NUXT_PUBLIC_SITE_NAME,
       baseURL: process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:3000',
       paystackPk: process.env.PAYSTACK_PUBLIC_KEY,
       CloudinaryApiKey: process.env.CLOUDINARY_API_KEY,

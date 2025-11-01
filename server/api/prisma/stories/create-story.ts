@@ -1,56 +1,56 @@
 import prisma from '~/server/prisma/prismaClient';
 import { serverSupabaseUser } from '#supabase/server';
 import { z } from 'zod';
-import { EMediaType } from '~/models';
+import { MediaType } from '@prisma/client';
 
-// This schema now expects the full media object from the Cloudinary upload
 const storySchema = z.object({
     media: z.object({
-        url: z.url(),
+        url: z.string().url(),
         public_id: z.string(),
-        type: z.enum(EMediaType),
-        width: z.number().optional(),
-        height: z.number().optional(),
+        type: z.nativeEnum(MediaType),
+        width: z.number().optional().nullable(),
+        height: z.number().optional().nullable(),
     }),
     productId: z.number().optional().nullable(),
 });
 
 export default defineEventHandler(async (event) => {
     const user = await serverSupabaseUser(event);
-    if (!user) throw createError({ statusCode: 401, message: 'Unauthorized' });
+    if (!user) throw createError({ statusCode: 401, message: 'You must be logged in to post a story.' });
 
-    const sellerProfile = await prisma.sellerProfile.findUnique({ where: { profileId: user.id } });
-    if (!sellerProfile) throw createError({ statusCode: 403, message: 'Only sellers can post stories.' });
-    console.log(event)
     const validation = await readValidatedBody(event, body => storySchema.safeParse(body));
-    console.log("Validation result:", validation);
     if (!validation.success) {
         throw createError({ statusCode: 400, message: 'Invalid story data.' });
     }
     const { media, productId } = validation.data;
 
-    // Stories expire 24 hours from creation
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     try {
-        // THE FIX: Use a transaction to create both records atomically.
         const newStory = await prisma.$transaction(async (tx) => {
-            // Step 1: Create the Media record in your database first.
+            // Find the seller ID (if it exists) to associate with the media
+            const sellerProfile = await tx.sellerProfile.findUnique({ 
+                where: { profileId: user.id },
+                select: { id: true }
+            });
+
+            // Step 1: Create the Media record, now owned by the user.
             const newMediaRecord = await tx.media.create({
                 data: {
                     url: media.url,
                     public_id: media.public_id,
                     type: media.type,
                     metadata: { width: media.width, height: media.height },
-                    sellerId: sellerProfile.id,
+                    authorId: user.id, // THE FIX: Use authorId
+                    sellerId: sellerProfile?.id, // Link to seller *if* they are one
                 }
             });
 
-            // Step 2: Use the ID of the newly created media record to create the Story.
+            // Step 2: Create the Story, also owned by the user.
             const createdStory = await tx.story.create({
                 data: {
-                    mediaId: newMediaRecord.id, // Use the ID from the record we just created
-                    sellerId: sellerProfile.id,
+                    mediaId: newMediaRecord.id,
+                    authorId: user.id,
                     productId: productId,
                     expiresAt: expiresAt,
                 }

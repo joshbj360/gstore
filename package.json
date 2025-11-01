@@ -43,6 +43,7 @@
   },
   "devDependencies": {
     "@iconify-json/mdi": "^1.2.3",
+    "@nuxtjs/color-mode": "^3.5.2",
     "@types/papaparse": "^5.3.16",
     "prisma": "^6.15.0"
   }

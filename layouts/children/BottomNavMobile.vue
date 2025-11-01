@@ -8,14 +8,22 @@
             <NuxtLink to="/discover" class="nav-button" active-class="text-[#f02c56]">
                 <Icon name="mdi:view-grid-outline" size="26" />
             </NuxtLink>
+            <button v-if="userStore.isLoggedIn && userStore.isSeller" @click="$emit('create')"
+                class="transform -translate-y-4">
+                <div class="w-16 h-16 rounded-full bg-brand text-white flex items-center justify-center shadow-lg">
+                    <Icon name="mdi:plus" size="32" />
+                </div>
+            </button>
             <NuxtLink to="/reels" class="nav-button" active-class="text-[#f02c56]">
                 <Icon name="mdi:play-box-outline" size="26" />
             </NuxtLink>
-            <NuxtLink v-if="userStore.isSeller" to="/seller/dashboard" class="nav-button" active-class="text-[#f02c56]">
+            <NuxtLink v-if="userStore.isLoggedIn && userStore.isSeller" to="/seller/dashboard" class="nav-button" active-class="active">
                 <Icon name="mdi:view-dashboard-outline" size="26" />
+                <span class="nav-text">Dashboard</span>
             </NuxtLink>
             <NuxtLink v-if="userStore.isLoggedIn" to="/buyer/profile" class="nav-button" active-class="text-[#f02c56]">
-                 <img :src="userStore.userProfile?.avatar || `https://avatar.iran.liara.run/public/boy?username=${userStore.userProfile?.username || 'user'}`" class="w-7 h-7 rounded-full" />
+                <img :src="userStore.userProfile?.avatar || `https://avatar.iran.liara.run/public/boy?username=${userStore.userProfile?.username || 'user'}`"
+                    class="w-7 h-7 rounded-full" />
             </NuxtLink>
         </nav>
     </div>
@@ -24,6 +32,7 @@
 <script setup lang="ts">
 import { useUserStore } from '~/stores';
 const userStore = useUserStore();
+defineEmits(['create'])
 </script>
 
 <style scoped>

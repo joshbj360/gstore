@@ -1,12 +1,15 @@
 // models/interface/products/product.interface.ts
-import type { 
+import type {
   Products, Orders, ProductVariant, CartItem, Media, OrderItem, Addresses, Like,
   Share, SocialMediaInfo, Tag, Category, Measurement, ZoneRate, ShippingZone,
   VerificationDocument, Comment, SellerProfile, Profile, Notification,
   CommentLike, SellerWallet,
   Story,
   Payout,
-  Transaction
+  Transaction,
+  Post,
+  ProductPostTag,
+  PostLike
 } from '@prisma/client';
 
 export enum EMediaType {
@@ -51,15 +54,15 @@ export interface IProduct extends Products {
   variants?: IProductVariant[];
   likes?: ILike[];
   notifications?: INotification[];
-  seller?: ISellerProfile | null;
+  seller?: Partial<ISellerProfile> | null;
   comments?: IComment[];
   shares?: IShare[];
   socialMedia?: ISocialMediaInfo[];
   shippingZone?: IShippingZone | null;
   _count?: {
-    likes: number;
-    comments: number;
-    shares: number;
+    likes?: number;
+    comments?: number;
+    shares?: number;
   };
 }
 
@@ -90,7 +93,7 @@ export interface IMedia extends Media {
   product?: IProduct | null;
   seller?: ISellerProfile;
   name?: string;
-  error?: Error | string ;
+  error?: Error | string;
   duration?: number; // in seconds, for videos
   success?: boolean;
   active?: boolean;
@@ -152,6 +155,7 @@ export interface INotification extends Notification {
   product?: IProduct | null;
   comment?: IComment | null;
   profile: IProfile;
+  actor?: IProfile | null;
 }
 
 export interface ITag extends Tag {
@@ -177,14 +181,14 @@ export interface IShippingZone extends ShippingZone {
 }
 
 export interface ISellerProfile extends SellerProfile {
-  profile: IProfile;
+  profile?: IProfile;
   media?: IMedia[];
   comments?: IComment[];
   verificationDocuments?: IVerificationDocument[];
   shippingZones?: IShippingZone[];
   products?: IProduct[];
   _count?: {
-    products: number;
+    products?: number;
   }
 }
 
@@ -201,16 +205,44 @@ export interface IProfile extends Profile {
 
 export interface IStory extends Story {
   media: IMedia;
-  seller: ISellerProfile;
+  author: IProfile;
   product?: IProduct | null;
 }
 export interface IReel {
-    id: string; // A unique ID, e.g., "story-uuid" or "product-123"
-    type: 'story' | 'product';
-    created_at: Date;
-    media: IMedia;
-    seller: Partial<ISellerProfile>;
-    product: Partial<IProduct> | null;
+  id: string; // A unique ID, e.g., "story-uuid" or "product-123"
+  type: 'STORY' | 'PRODUCT' | 'POST';
+  created_at: Date;
+  media: IMedia;
+  author: {
+    id: string;
+    username: string | null
+    avatar: string | null;
+    role: string;
+    store_slug?: string;
+  };
+  product: Partial<IProduct> | null;
+  caption: string;
+  likeCount: number;
+  commentCount: number;
+}
+export interface IFeedItem {
+  id: string; // A unique ID, e.g., "story-uuid" or "product-123"
+  type: 'POST' | 'PRODUCT';
+  created_at: Date;
+  author: { // Standardized author object
+    id: string;
+    username?: string;
+    avatar?: string;
+    role: string;
+  };
+  media?: IMedia; // The primary media for the post
+  caption: string;
+  likeCount: number;
+  // `taggedProducts` holds the product being sold.
+  // For a 'PRODUCT' post, this is the product itself.
+  // For a 'POST' post, this is the product the user tagged.
+  taggedProducts: Partial<IProduct>[];
+  product?: IProduct; // The full product object (for seller posts)
 }
 
 export interface IWallet extends SellerWallet {
@@ -227,6 +259,22 @@ export interface IPayout extends Payout {
 export interface ITransaction extends Transaction {
   wallet?: IWallet
 }
+export interface IPost extends Post {
+  media: IMedia,
+  taggedProducts: IProductPostTag[],
+  likes?: IPostLike[]
+  _count: number
+  author?: IProfile
+}
+
+export interface IPostLike extends PostLike {
+  user: IProfile
+  post: IPost
+}
+export interface IProductPostTag extends ProductPostTag {
+  post: IPost
+  product: IProduct
+}
 export const defaultMeasurement: IMeasurement = {
   id: 0,
   productId: 0,
@@ -241,7 +289,7 @@ export const defaultCategory: ICategory = {
   name: '',
   created_at: new Date(),
   updated_at: new Date(),
-  slug: '', 
+  slug: '',
   products: [],
   thumbnailCatUrl: ''
 };

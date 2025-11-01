@@ -1,59 +1,102 @@
 <template>
-    <div class="space-y-4">
-        <h3 class="font-bold text-neutral-300 mb-2">Featured Shops</h3>
-        <div 
-            v-for="seller in topSellers" 
-            :key="seller.id"
-            class="flex items-center space-x-3 p-2 rounded-lg hover:bg-neutral-800 cursor-pointer transition-colors"
-            @click="navigateToSeller(seller.store_slug)"
-        >
-            <img 
-                :src="seller.store_logo || 'https://picsum.photos/80/80'" 
-                alt="Seller"
-                class="w-8 h-8 rounded-full object-cover" 
-            />
-            <div>
-                <p class="text-sm font-medium text-neutral-100">{{ seller.store_name }}</p>
-                <p class="text-xs text-neutral-400">{{ seller._count?.products }} items</p>
+    <div class="flex flex-col h-full p-4">
+        <!-- Logo -->
+        <NuxtLink to="/" class="mb-6 hidden xl:block">
+            <div class="hidden sm:flex flex-col leading-tight text-wrap">
+                    <span
+                        class="text-lg font-extrabold text-neutral-800 tracking-wider group-hover:text-brand transition-colors">
+                        {{ config.public.siteName }}
+                    </span>
+                    <span class="text-xs font-medium text-neutral-400 italic">
+                        Harmony of Styles
+                    </span>
+                </div>
+        </NuxtLink>
+        <NuxtLink to="/" class="mb-6 xl:hidden flex justify-center">
+             <div class="w-10 h-10 bg-[#f02c56] rounded-full flex items-center justify-center">
+                <Icon name="mdi:store-fashion" class="w-6 h-6 text-white" />
             </div>
-        </div>
-
-        <hr class="my-4 border-neutral-800">
-
-        <h3 class="font-bold text-neutral-300 mb-2">Categories</h3>
-        <div class="space-y-1">
-            <!-- Use NuxtLink for proper navigation -->
-            <NuxtLink 
-                v-for="category in categories" 
-                :key="category.id"
-                :to="`/category/${category.slug}`" 
-                class="block text-sm text-neutral-300 cursor-pointer hover:text-[#f02c56] px-2 py-1 rounded transition-colors"
-            >
-                <img 
-                    :src="category.thumbnailCatUrl || 'https://picsum.photos/20/20'" 
-                    alt="Category Icon" 
-                    class="inline-block w-5 h-5 mr-2 object-cover" 
-                />
-                {{ category.name }}
+        </NuxtLink>
+        
+        <!-- Navigation Links -->
+        <nav class="flex flex-col space-y-2">
+            <NuxtLink to="/" class="nav-button" active-class="active">
+                <Icon name="mdi:home" size="26" />
+                <span class="nav-text">Home</span>
             </NuxtLink>
+
+            <!-- THE FIX: The Search button has been restored -->
+            <button @click="$emit('open-search')" class="nav-button">
+                <Icon name="mdi:magnify" size="26" />
+                <span class="nav-text">Search</span>
+            </button>
+            
+            <NuxtLink to="/discover" class="nav-button" active-class="active">
+                <Icon name="mdi:view-grid-outline" size="26" />
+                <span class="nav-text">Discover</span>
+            </NuxtLink>
+            
+            <NuxtLink to="/reels" class="nav-button" active-class="active">
+                <Icon name="mdi:play-box-outline" size="26" />
+                <span class="nav-text">Reels</span>
+            </NuxtLink>
+            
+            <button v-if="userStore.isLoggedIn" @click="$emit('create')" class="nav-button">
+                <Icon name="mdi:plus-circle-outline" size="26" />
+                <span class="nav-text">Create</span>
+            </button>
+             <button v-if="userStore.isLoggedIn" @click="$emit('open-notifications')" class="nav-button">
+                <Icon name="mdi:bell-outline" size="26" />
+                <span class="nav-text">Notifications</span>
+            </button>
+            
+            <NuxtLink v-if="userStore.isLoggedIn" to="/seller/dashboard" class="nav-button" active-class="active">
+                <Icon name="mdi:message-outline" size="26" />
+                <span class="nav-text">Messages</span>
+            </NuxtLink>
+            <NuxtLink v-if="userStore.isLoggedIn && userStore.isSeller" to="/seller/dashboard" class="nav-button" active-class="active">
+                <Icon name="mdi:view-dashboard-outline" size="26" />
+                <span class="nav-text">Dashboard</span>
+            </NuxtLink>
+        </nav>
+
+        <!-- Profile Link (at the bottom) -->
+        <div class="mt-auto">
+            <ClientOnly>
+                <NuxtLink v-if="userStore.isLoggedIn" to="/buyer/profile" class="nav-button" active-class="active">
+                    <img :src="userStore.userProfile?.avatar || `https://avatar.iran.liara.run/public/boy?username=${userStore.userProfile?.username || 'user'}`" class="w-7 h-7 rounded-full" />
+                    <span class="nav-text">Profile</span>
+                </NuxtLink>
+                <NuxtLink v-else to="/auth/login" class="nav-button">
+                    <Icon name="mdi:login-variant" size="26" />
+                    <span class="nav-text">Sign In</span>
+                </NuxtLink>
+            </ClientOnly>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-import type { ICategory, ISellerProfile } from '~/models';
-
-const router = useRouter();
-
-const props = defineProps<{
-    categories: ICategory[];
-    topSellers: ISellerProfile[];
-}>();
-
-const navigateToSeller = (slug: string) => {
-    if (slug) {
-        router.push(`/seller/profile/${slug}`);
-    }
-};
+import { useUserStore } from '~/stores';
+const userStore = useUserStore();
+const config = useRuntimeConfig();
+// THE FIX: Added 'open-search' to the emits
+defineEmits(['create', 'open-search', 'open-notifications']);
 </script>
+
+<style scoped>
+/* THE FIX: 
+  - Base classes are now light-theme friendly (e.g., text-gray-600)
+  - Dark-mode styles are applied with `dark:` prefixes
+*/
+.nav-button {
+    @apply flex items-center gap-4 p-3 rounded-lg text-gray-600 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-white transition-colors;
+}
+.nav-button.active {
+    @apply text-gray-900 dark:text-white font-semibold bg-gray-100 dark:bg-neutral-800;
+}
+.nav-text {
+    @apply hidden xl:inline; /* Only show text on extra-large screens */
+}
+</style>
+

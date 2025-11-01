@@ -118,7 +118,7 @@ import CartSkeleton from '~/components/skeletons/CartSkeleton.vue';
 import type { IProduct, ICartItem } from '~/models';
 import { notify } from '@kyvg/vue3-notification';
 
-definePageMeta({ layout: 'main-layout' });
+definePageMeta({ layout: 'home-layout' });
 
 const router = useRouter();
 const cartStore = useCartStore();

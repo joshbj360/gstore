@@ -6,14 +6,12 @@ import { serverSupabaseUser } from '#supabase/server';
  */
 export default defineEventHandler(async (event) => {
     const user = await serverSupabaseUser(event);
-    if (!user) {
-        throw createError({ statusCode: 401, message: 'Unauthorized' });
-    }
+    if (!user) throw createError({ statusCode: 401, message: 'Unauthorized' });
 
     try {
         const notifications = await prisma.notification.findMany({
             where: {
-                userId: user.id, // Only fetch notifications for the logged-in user
+                userId: user.id,
             },
             include: {
                 // Include the profile of the person who triggered the notification
@@ -25,15 +23,27 @@ export default defineEventHandler(async (event) => {
                 }
             },
             orderBy: {
-                created_at: 'desc' // Show newest notifications first
+                created_at: 'desc'
             },
-            take: 20 // Limit to the 20 most recent notifications
+            take: 30 // Limit to the 30 most recent
         });
 
-        return notifications;
+        // We can also fetch the unread count
+        const unreadCount = await prisma.notification.count({
+            where: {
+                userId: user.id,
+                read: false
+            }
+        });
+
+        return {
+            notifications,
+            unreadCount
+        };
 
     } catch (error) {
         console.error("Error fetching notifications:", error);
         throw createError({ statusCode: 500, message: "Could not load notifications." });
     }
 });
+

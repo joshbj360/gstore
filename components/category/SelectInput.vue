@@ -8,9 +8,9 @@
         :class="{ 'border-gray-900': isFocused, 'border-red-500': error }"
         @focus="isFocused = true"
         @blur="isFocused = false"
-        autocomplete="off"
+        autocomplete="on"
       >
-        <option value="" disabled>{{ placeholder }}</option>
+        <option :value="selectedCategory" disabled>{{ placeholder }}</option>
         <option v-for="category in categories" :key="category.id" :value="category.name">
           {{ category.name }}
         </option>
