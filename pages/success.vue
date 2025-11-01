@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import MainLayout from '~/layouts/ProductLayout.vue';
+import MainLayout from '~/layouts/HomeLayout.vue';
 import { useCartStore } from '~/stores/cart.store';
 import { onMounted } from 'vue';
 
