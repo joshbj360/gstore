@@ -9,7 +9,9 @@
     <main class="flex-1 flex items-center justify-center px-4 py-12">
       <div class="max-w-md w-full bg-white rounded-xl shadow-md p-6 sm:p-8 space-y-6">
         <NuxtLink class="text-center text-2xl sm:text-3xl font-bold text-gray-800">
-          {{ isRegister ? 'Create Your Account with Aura' : 'Login to Aura' }}
+          <span class="text-brand">{{ siteName }}</span>
+          <br></br>
+          <span>{{ isRegister ? 'Create Your Account with Aura' : ' Login' }}</span>
         </NuxtLink>
 
         <p v-if="authMessage" class="text-center text-sm p-3 rounded-lg" :class="isError_ ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'">
@@ -70,6 +72,8 @@ definePageMeta({ layout: false });
 
 const userStore = useUserStore();
 const router = useRouter();
+const nuxtConfig = useRuntimeConfig();
+const siteName = nuxtConfig.public.siteName;
 
 const isRegister = ref(false);
 const authMessage = ref('');

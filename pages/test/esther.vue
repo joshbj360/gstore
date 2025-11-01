@@ -216,7 +216,7 @@ import { useApiService } from '~/services/api/apiService';
 import { useCategoryStore } from '~/stores';
 import { useRouter } from 'vue-router'; // For navigation
 
-import ProductDetailSidePanel from '~/components/product/ProductDetailSidePanel.vue';
+import ProductDetailSidePanel from '~/components/unused/ProductDetailSidePanel.vue';
 import UploadWidget from '~/components/upload/UploadWidget.vue';
 import AIChat from '~/components/chat/AIChat.vue';
 

@@ -206,6 +206,12 @@ export const useCartStore = defineStore('cart', {
       // If not found, fetch it from the API
       return await productStore.fetchProductById(id);
     },
+     /**
+     * Resets the cart to its initial, empty state.
+     */
+    reset() {
+      this.$reset();
+    },
 
     // Persists the cart in localStorage, perfect for guest users.
     persist: true,

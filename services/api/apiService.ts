@@ -1,5 +1,5 @@
 import { useRuntimeConfig } from '#app';
-import type { IProduct, ICategory, IAddress, IShippingZone, IProfile, ISellerProfile, ICartItem, IOrders, IComment, IStory, IMedia, IReel, INotification, IWallet } from '~/models';
+import type { IProduct, ICategory, IAddress, IShippingZone, IProfile, ISellerProfile, ICartItem, IOrders, IComment, IStory, IMedia, IReel, INotification, IWallet, IFeedItem, IPost } from '~/models';
 import { ApiError } from './apiError';
 
 //#region === API SERVICE INTERFACE ===.
@@ -69,7 +69,7 @@ getProductById(id: number): Promise<IProduct> {
     return this.request(`/api/prisma/categories/get-products/${slug}`, { params });
   }
 
-  getProductsByCategorySlug(slug: string): Promise<{ category: ICategory, products: IProduct[] }> {
+  getProductsByCategorySlug(slug: string): Promise<{ meta: ICategory, products: IProduct[] }> {
     return this.request(`/api/prisma/products/get-products-by-category-slug/${slug}`);
   }
 
@@ -88,13 +88,38 @@ getProductById(id: number): Promise<IProduct> {
   getDashboardProducts(): Promise<IProduct[]> {
     return this.request('/api/prisma/products/dashboard');
   }
-
-  createProduct(productData: IProduct): Promise<IProduct> {
-    return this.request('/api/prisma/products/dashboard/create', {
-      method: 'POST',
-      body: productData,
+    /**
+   * NEW: (Step 1b - Quick) Creates a simple, one-variant product.
+   */
+  quickCreateProduct(data: { title: string, price: number, categoryName: string, media: IMedia[] }): Promise<IProduct> {
+    return this.request('/api/prisma/products/quick-create', {
+        method: 'POST',
+        body: data,
     });
   }
+
+   /**
+   * (Step 1 - Quick) Creates the initial product draft with title and media.
+   * This is designed to be extremely fast.
+   */
+  createProductDraft(data: Partial<IProduct>): Promise<IProduct> {
+    return this.request('/api/prisma/products/dashboard/create', {
+      method: 'POST',
+      body: data,
+    });
+  }
+
+  /**
+   * (Step 2 - Heavy) Updates the product with all its complex relational data.
+   * This is designed to be called in the background.
+   */
+  updateProductDetails(productId: number, payload: IProduct): Promise<IProduct> {
+    return this.request(`/api/prisma/products/dashboard/update/${productId}`, {
+      method: 'PATCH',
+      body: payload,
+    });
+  }
+  
 
   createBatchProducts(products: any): Promise<{ success: boolean; createdCount: number; errors: string[] }> {
     return this.request('/api/prisma/products/dashboard/create/batch', {
@@ -274,9 +299,10 @@ getProductById(id: number): Promise<IProduct> {
   //#endregion
 
   //#region === LIKE METHODS ===
-  getUserLikes(): Promise<{ productLikes: number[]; commentLikes: string[] }> {
-    return this.request('/api/prisma/like/user-likes');
+  getUserLikes(): Promise<{ productLikes: number[]; commentLikes: string[], postLikes: string[] }> {
+    return this.request('/api/prisma/like');
   }
+
 
 /*************  ✨ Windsurf Command ⭐  *************/
 /**
@@ -295,6 +321,16 @@ getProductById(id: number): Promise<IProduct> {
     });
   }
 
+  /**
+   * NEW: Toggles a like on a buyer's Post.
+   */
+  togglePostLike(postId: string): Promise<{ liked: boolean }> {
+    return this.request('/api/prisma/like/like-unlike-post', {
+        method: 'POST',
+        body: { postId }
+    });
+  }
+
   //#endregion
 
   //#region === HOMEPAGE METHODS ===
@@ -302,13 +338,20 @@ getProductById(id: number): Promise<IProduct> {
     return this.request('/api/prisma/home/top-sellers')
   }
 
-  getHomepageData(): Promise<{
-      stories: IStory[]; 
-      featuredProducts: IProduct[]; 
-      products: IProduct[];
-      hotAccessories: IProduct[];
-  }> {
-    return this.request('/api/prisma/home/home-page-api');
+  /**
+   * THE FIX: This is the new, correct method for the homepage's main feed.
+   * It calls your unified API and expects the IReel[] shape.
+   */
+  getHomeFeed(params: { page: number, limit?: number }): Promise<{ feed: IFeedItem[], meta: { hasMore: boolean } }> {
+    return this.request('/api/prisma/home/feed', { params });
+  }
+
+  getHotAccessories(): Promise<IProduct[]> {
+    return this.request('/api/prisma/products/accessories');
+  }
+  
+  getLinkedAccessories(productId: number): Promise<IProduct[]> {
+    return this.request(`/api/prisma/products/accessories/linked-products/${productId}`);
   }
   //#endregion
 
@@ -325,6 +368,14 @@ getProductById(id: number): Promise<IProduct> {
       body: { query },
     });
   }
+  searchAllProducts(query: string): Promise<IProduct[]> {
+    return this.request(`/api/prisma/search/search-all-products/${query}`, {
+      method: 'POST',
+      body: { query },
+    });
+  }
+
+  //#endregion
 
   //#region === STORY & REEL METHODS ===
    /**
@@ -343,6 +394,10 @@ getProductById(id: number): Promise<IProduct> {
 
   fetchStory(storyId: string): Promise<IStory[]> {
     return this.request(`/api/prisma/stories/feed/${storyId}`);
+  }
+
+  getHomeStories(): Promise<IStory[]> {
+    return this.request('/api/prisma/stories/feed');
   }
   //#endregion
 
@@ -366,11 +421,32 @@ getProductById(id: number): Promise<IProduct> {
 
   //#region === NOTIFICATION METHODS ===
   
-  getNotifications(): Promise<INotification[]> {
+  getNotifications(): Promise<{notifications:INotification[], unreadCount:number}> {
       return this.request('/api/prisma/notifications');
   }
 
+  //#endregion
 
+  //#region === FOLLOW METHODS ===
+  toggleFollow(sellerProfileId: string): Promise<{ following: boolean }> {
+      return this.request('/api/prisma/follow', {
+          method: 'POST',
+          body: { sellerProfileId },
+      });
+  } 
+  getUserFollows(): Promise<{ followingId: string }[]> {
+      return this.request('/api/prisma/follow/my-followers');
+  }
+  //#endregion
+
+  //#region === POST METHODS ===
+createPost(postData: {media: IMedia, caption:string, taggedProductIds:number[]}): Promise<IPost> {
+    return this.request('/api/prisma/posts/create', {
+      method: 'POST',
+      body: postData
+    })
+  }
+  //#endregion
 }
 
 let apiServiceInstance: ApiService | null = null;

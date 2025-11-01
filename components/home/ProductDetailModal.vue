@@ -1,5 +1,4 @@
 <template>
-    <!-- Use a separate transition for the overlay and the content for a cleaner slide-up effect -->
     <transition
         enter-active-class="transition-opacity duration-300 ease-out"
         leave-active-class="transition-opacity duration-300 ease-in"
@@ -12,8 +11,8 @@
     <transition
         enter-active-class="transition-transform duration-300 ease-out"
         leave-active-class="transition-transform duration-300 ease-in"
-        enter-from-class="translate-y-full"
-        leave-to-class="translate-y-full"
+        enter-from-class="translate-y-full sm:translate-y-0 sm:opacity-0"
+        leave-to-class="translate-y-full sm:translate-y-0 sm:opacity-0"
     >
         <div 
             v-if="product" 
@@ -21,28 +20,28 @@
             role="dialog" 
             aria-modal="true"
         >
-            <div @click.stop class="bg-neutral-900 w-full max-h-[85vh] sm:rounded-lg shadow-xl flex flex-col">
+            <div @click.stop class="bg-white dark:bg-neutral-900 w-full max-h-[85vh] sm:rounded-lg shadow-xl flex flex-col">
                 <!-- Modal Header -->
-                <div class="flex items-center justify-between p-3 border-b border-neutral-800 shrink-0">
-                    <h3 class="text-sm font-semibold text-neutral-200">Product Details</h3>
-                    <button @click="$emit('close')" class="p-2 rounded-full hover:bg-neutral-800">
-                        <Icon name="mdi:close" size="20" class="text-neutral-300" />
+                <div class="flex items-center justify-between p-3 border-b border-gray-200 dark:border-neutral-800 shrink-0">
+                    <h3 class="text-sm font-semibold text-gray-800 dark:text-neutral-200">Product Details</h3>
+                    <button @click="$emit('close')" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800">
+                        <Icon name="mdi:close" size="20" class="text-gray-600 dark:text-neutral-300" />
                     </button>
                 </div>
                 
-                <!-- Scrollable Content Area -->
-                <div class="flex-1 overflow-y-auto">
-                    <!-- 
-                        As you requested, the redundant media carousel is removed.
-                        We now *only* show the details, variants, and purchase actions.
-                    -->
-                    <ProductDetails 
-                        v-if="product.seller"
-                        :product="product" 
-                        :sellerStore="product.seller" 
-                    />
-                    <div v-else class="p-4 text-center text-neutral-400">Loading details...</div>
-                </div>
+                <!-- 
+                  THE FIX: 
+                  - The `overflow-y-auto` wrapper div has been REMOVED.
+                  - The `ProductDetails` component is now the direct child of the flex container.
+                  - `flex-1` and `min-h-0` are applied so *it* becomes the scrolling area.
+                -->
+                <ProductDetails 
+                    v-if="product.seller"
+                    :product="product" 
+                    :sellerStore="product.seller"
+                    class="flex-1 min-h-0"
+                />
+                <div v-else class="p-4 text-center text-gray-500 dark:text-neutral-400">Loading details...</div>
             </div>
         </div>
     </transition>
@@ -50,8 +49,8 @@
 
 <script setup lang="ts">
 import type { IProduct } from '~/models';
-// We are re-using the same detailed info component from the desktop sidebar
-import ProductDetails from '~/components/product/productDetails/productDetails/children/ProductDetails.vue';
+// We are re-using the theme-compliant detailed info component
+import ProductDetails from '~/components/product/productDetails/productDetails/ProductDetails.vue';
 
 defineProps<{ product: IProduct | null }>();
 defineEmits(['close']);

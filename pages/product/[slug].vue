@@ -1,65 +1,68 @@
 <template>
-  <HomeLayout>
-    <!-- Main Page Content -->
-    <div>
-        <ProductPageSkeleton v-if="pending" />
+    <HomeLayout>
+        <!-- Main Page Content -->
+        <div>
+            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-neutral-800">
+                <button @click="router.back()"
+                    class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">
+                    <Icon name="mdi:arrow-left" size="22" class="text-gray-600 dark:text-neutral-300" />
+        
+                </button>
+            </div>
+            <ProductPageSkeleton v-if="pending" />
 
-        <div v-else-if="error || !product" class="text-center py-20">
-            <h2 class="text-2xl font-bold text-red-500">Product Not Found</h2>
-            <p class="text-neutral-400 mt-2">This product does not exist or may have been moved.</p>
-            <NuxtLink to="/" class="mt-4 inline-block bg-brand text-white px-6 py-2 rounded-md hover:bg-[#d81b36]">
-                Back to Homepage
-            </NuxtLink>
-        </div>
+            <div v-else-if="error || !product" class="text-center py-20">
+                <h2 class="text-2xl font-bold text-red-500">Product Not Found</h2>
+                <p class="text-neutral-400 mt-2">This product does not exist or may have been moved.</p>
+                <NuxtLink to="/" class="mt-4 inline-block bg-brand text-white px-6 py-2 rounded-md hover:bg-[#d81b36]">
+                    Back to Homepage
+                </NuxtLink>
+            </div>
 
-        <!-- 
+            <!-- 
             This is the main Product Detail Page (PDP) layout.
             It's a 2-column grid on desktop and stacks on mobile.
         -->
-        <div v-else class="max-w-6xl mx-auto py-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                
-                <!-- Left Column: Media Carousel -->
-                <div class="bg-neutral-900 border border-neutral-800 rounded-xl shadow-md overflow-hidden">
-                    <Carousel v-if="product.media?.length" :items-to-show="1" wrap-around>
-                        <Slide v-for="media in product.media" :key="media.id">
-                            <!-- We reuse the MediaDisplay component for consistent video/image handling -->
-                            <MediaDisplay 
-                                :product-media="media" 
-                                :is-playing="true" 
-                                class="w-full aspect-square object-cover" 
-                            />
-                        </Slide>
-                        <template #addons><Pagination /></template>
-                    </Carousel>
+            <div v-else class="max-w-6xl mx-auto py-8">
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left Column: Sticky Media Carousel -->
+                    <div class="relative">
+                        <div
+                            class="lg:sticky lg:top-20 top-20 bg-neutral-900 border border-neutral-800 rounded-xl shadow-md overflow-hidden">
+                            <Carousel v-if="product.media?.length" :items-to-show="1" wrap-around>
+                                <Slide v-for="media in product.media" :key="media.id">
+                                    <MediaDisplay :product-media="media" :is-playing="true"
+                                        class="w-full aspect-square object-cover" />
+                                </Slide>
+                                <template #addons>
+                                    <Pagination />
+                                </template>
+                            </Carousel>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Scrollable Details -->
+                    <div class="text-neutral-100 flex flex-col">
+                        <ProductDetails v-if="product.seller" :product="product" :sellerStore="product.seller"
+                            class="flex-1" />
+                    </div>
                 </div>
 
-                <!-- Right Column: Product Details & Actions -->
-                <div class="text-neutral-100">
-                    <!-- 
-                        We reuse the professional, dark-themed ProductDetails component
-                        that you've already built and perfected.
-                    -->
-                    <ProductDetails 
-                        v-if="product.seller"
-                        :product="product" 
-                        :sellerStore="product.seller" 
-                    />
-                </div>
+
+                <!-- TODO: Add a "Related Products" or "Shop the Look" section here -->
             </div>
-
-            <!-- TODO: Add a "Related Products" or "Shop the Look" section here -->
         </div>
-    </div>
 
-    <!-- Sidebar Content (fetched from the layout) -->
-    <template #left-sidebar>
-        <SideNav :top-sellers="topSellers" :categories="categories" />
-    </template>
-    <template #right-sidebar>
-        <!-- The right sidebar can be empty or have other content -->
-    </template>
-  </HomeLayout>
+        <!-- Sidebar Content (fetched from the layout) -->
+        <template #left-sidebar>
+            <SideNav :top-sellers="topSellers" :categories="categories" />
+        </template>
+        <template #right-sidebar>
+            <!-- The right sidebar can be empty or have other content -->
+            <LinkedAccessories v-if="product?.id" :productId="product.id" />
+        </template>
+    </HomeLayout>
 </template>
 
 <script setup lang="ts">
@@ -70,13 +73,15 @@ import { useApiService } from '~/services/api/apiService';
 import { useLayoutData } from '@/composables/useLayoutData';
 import HomeLayout from '~/layouts/HomeLayout.vue';
 import SideNav from '~/layouts/children/SideNav.vue';
-import ProductDetails from '~/components/product/productDetails/productDetails/children/ProductDetails.vue';
+import ProductDetails from '~/components/product/productDetails/productDetails/ProductDetails.vue';
 import MediaDisplay from '~/components/product/productDetails/mediaSection/MediaDisplay.vue';
-import ProductPageSkeleton from '~/components/skeletons/ProductPageSkeleton.vue'; // You'll need to create this
+import ProductPageSkeleton from '@/components/skeletons/ProductPageSkeleton.vue';
+import LinkedAccessories from '~/components/accessories/LinkedAccesories.vue';
 import 'vue3-carousel/dist/carousel.css';
 import type { IProduct } from '~/models';
 
 const route = useRoute();
+const router = useRouter();
 const productStore = useProductStore();
 const apiService = useApiService();
 const slug = route.params.slug as string;
@@ -89,8 +94,8 @@ const topSellers = computed(() => layoutData.value?.topSellers || []);
 // 2. Fetch all page-specific data (the single product)
 // We use a new, more specific action from the product store
 const { data: product, pending, error } = await useLazyAsyncData(
-  `product-${slug}`,
-  () => productStore.getProductBySlug(slug)
+    `product-${slug}`,
+    () => productStore.getProductBySlug(slug)
 );
 
 // 3. Pre-fetch the seller profile
@@ -113,8 +118,8 @@ watch(product, (newProduct) => {
     padding: 0;
     margin: 0 4px;
 }
+
 .carousel__pagination-button--active {
     background-color: rgba(255, 255, 255, 0.9) !important;
 }
 </style>
-

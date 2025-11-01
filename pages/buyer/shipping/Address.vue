@@ -106,7 +106,7 @@ const { data: existingAddress, pending, error } = await useAsyncData('shipping-a
         if (import.meta.server) await navigateTo('/auth/login');
         return null;
     }
-    return shippingStore.fetchAddress(userStore.user!.id);
+    return shippingStore.fetchAddress();
 });
 
 if (existingAddress.value) {

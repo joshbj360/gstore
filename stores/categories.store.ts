@@ -1,72 +1,83 @@
 import { defineStore } from 'pinia';
-import type { ICategory } from '~/models';
 import { useApiService } from '~/services/api/apiService';
-import { notify } from "@kyvg/vue3-notification";
+import type { ICategory } from '~/models';
+import { notify } from '@kyvg/vue3-notification';
+
+// Set a 5-minute cache duration for categories
+const CACHE_DURATION = 5 * 60 * 1000; 
 
 export const useCategoryStore = defineStore('category', {
   state: () => ({
     categories: [] as ICategory[],
     isLoading: false,
+    /**
+     * This timestamp is the key to our "smart" cache.
+     * It tracks when the categories were last fetched from the API.
+     */
+    lastFetched: 0 as number,
   }),
-  
-  getters: {
-    // A simple getter to access the list of categories
-    getCategories: (state) => state.categories,
-  },
 
   actions: {
     /**
-     * Fetches all categories from the API, but only if they haven't been loaded yet.
-     * This prevents redundant network calls.
+     * This is now a "smart" action that uses a time-based cache.
+     * It will serve from the cache ONLY if the data is fresh.
      */
     async fetchCategories() {
-      // If categories are already in the state, don't fetch them again.
-      if (this.categories.length > 0) {
-        return;
+      const now = Date.now();
+      
+      // 1. Check if we have fresh, cached data
+      if (this.categories.length > 0 && (now - this.lastFetched) < CACHE_DURATION) {
+        console.log('Serving categories from fresh cache.');
+        return this.categories;
       }
 
+      // 2. If cache is stale or empty, fetch from the API
       this.isLoading = true;
+      console.log('Fetching stale categories from API...');
       try {
         const apiService = useApiService();
-        const data = await apiService.getAllCategories();
+        // This should be your API endpoint to get all categories
+        const data = await apiService.getAllCategories(); 
+        
         if (Array.isArray(data)) {
           this.categories = data;
+          this.lastFetched = now; // 3. Update the timestamp
         }
         return data;
       } catch (err) {
         console.error('Failed to fetch categories:', err);
         notify({ type: 'error', text: 'Could not load product categories.' });
+        return [];
       } finally {
         this.isLoading = false;
       }
     },
 
     /**
-     * Adds a new category by calling the API and then adds the new category
-     * to the local state for an immediate UI update.
-     * @param category - The category object to create.
+     * Creates a new category and then forces a refresh of the cache.
      */
-    async addCategory(category: { name: string; thumbnailCatUrl: string }) {
+    async addCategory(data: { name: string; thumbnailCatUrl: string }) {
       this.isLoading = true;
       try {
         const apiService = useApiService();
-        const newCategory = await apiService.createCategory(category);
-
-        if (newCategory) {
-          // Add the newly created category to the state for instant UI updates
-          this.categories.push(newCategory);
-          notify({ type: 'success', text: `Category "${newCategory.name}" created!` });
-          return newCategory;
-        }
-      } catch (err: any) {
-        console.error('Failed to add category:', err);
-        notify({ type: 'error', text: err.data?.message || 'Failed to create category.' });
-        throw err;
+        const newCategory = await apiService.createCategory(data);
+        
+        // --- THE FIX ---
+        // 1. Invalidate the Pinia cache by setting the timestamp to 0
+        this.lastFetched = 0;
+        
+        // 2. Proactively refresh the `useAsyncData('layout-data')` cache
+        // This will force `useLayoutData` to re-run.
+        await refreshNuxtData('layout-data');
+        
+        notify({ type: 'success', text: 'Category created!' });
+        return newCategory;
+      } catch (error: any) {
+        notify({ type: 'error', text: error.data?.message || 'Failed to create category.' });
       } finally {
         this.isLoading = false;
       }
-    },
-  },
-
-  persist: true
+    }
+  }
 });
+

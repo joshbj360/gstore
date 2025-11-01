@@ -27,10 +27,10 @@ export const useUserStore = defineStore('user', {
      * It syncs the guest cart and fetches the user's full profile.
      */
     async _onLoginSuccess() {
-        const cartStore = useCartStore();
+        //const cartStore = useCartStore();
         this.isLoading = true;
       await Promise.all([
-        await cartStore.mergeAndSyncCartOnLogin(),
+        //await cartStore.mergeAndSyncCartOnLogin(),
         await this.fetchUserAndProfile()
 
       ]);
@@ -163,10 +163,16 @@ export const useUserStore = defineStore('user', {
       this.userProfile = null;
       this.sellerProfile = null;
       this.sellerCache = {};
-      // Also clear the cart
-      const cartStore = useCartStore();
-      cartStore.resetCart();
+      this.reset()
     },
+     /**
+     * Resets the store to its initial, unauthenticated state.
+     */
+    reset() {
+      // $reset() is a built-in Pinia method that re-calls the state function
+      this.$reset();
+    },
+
   },
   persist: true
 });

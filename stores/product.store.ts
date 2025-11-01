@@ -1,273 +1,296 @@
-import { defineStore } from "pinia";
-import { useApiService } from "~/services/api/apiService"; // The central service for API calls
-import type { IProduct, IProductVariant, ISellerProfile } from "~/models"; // Use your project's main interface export
-import { notify } from "@kyvg/vue3-notification";
-
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+import { defineStore } from 'pinia';
+import {useUserStore } from '~/stores';
+import { useApiService } from '~/services/api/apiService';
+import type { IProduct, IReel, IMedia, ISellerProfile, IProductVariant, IFeedItem } from '~/models';
+import { notify } from '@kyvg/vue3-notification';
 
 export const useProductStore = defineStore('product', {
   state: () => ({
+    /**
+     * Holds the main, unified social feed for the homepage (mix of Posts and Products).
+     */
+    mainFeed: [] as IFeedItem[],
+    /**
+     * Holds the paginated list of products for the "Discover" or "Category" pages.
+     */
     products: [] as IProduct[],
+    /**
+     * A global, high-performance cache (Map) of all products loaded in the app, keyed by product ID.
+     */
     productMap: new Map<number, IProduct>(),
-    feedCache: new Map<string, IProduct[]>(),
-    categoryCache: new Map<string, IProduct[]>(),
-    sellerProductCache: new Map<string, IProduct[]>(),
-    similarProductCache: new Map<number, IProduct[]>(),
-    lastFetched: new Map<string | number, number>(),
-
-    // UI State
-    currentPage: 1,
+    
+    // --- Pagination State ---
+    // We need separate pagination for the feed vs. the discover page
+    feedCurrentPage: 1,
+    feedHasMore: true,
+    discoverCurrentPage: 1,
+    discoverHasMore: true,
+    
+    currentCategorySlug: 'all', // For the discover page
     isLoading: false,
-    hasMoreProducts: true,
-    currentCategorySlug: null as string | null,
+    
+    /**
+     * The slug of the product currently being viewed in the swipeable feed.
+     */
     currentProductSlug: null as string | null,
   }),
 
   getters: {
-    // This is now the single source of truth for the product feed
-    MainProductFeed: (state) => state.products,
-    
     /**
-     * THE FIX: This is the new, single source of truth for the current product.
-     * It reactively finds the product in the cache based on the current slug.
+     * Reactively gets the full product object for the currently viewed product.
      */
     currentProduct(state): IProduct | null {
       if (!state.currentProductSlug) return null;
-      //  This can find the product in either the master list or just the map
-      const product = state.productMap.get(
-        state.products.find(p => p.slug === state.currentProductSlug)?.id || -1
-      );
-      return product || null;
+      
+      // 1. Try to find it in the mainFeed
+      const feedItem = state.mainFeed.find(item => item.type === 'PRODUCT' && item.product?.slug === state.currentProductSlug);
+      if (feedItem && feedItem.product) return feedItem.product;
+
+      // 2. Fallback to checking the productMap
+      return Array.from(state.productMap.values()).find(p => p.slug === state.currentProductSlug) || null;
     },
+    
     /**
-     * This getter derives the current seller's profile based on the current product.
-     * It creates a reactive chain: slug changes -> product changes -> seller changes.
+     * Reactively gets the seller profile for the currently viewed product.
      */
     currentSellerProfile(state): ISellerProfile | null {
       const userStore = useUserStore();
-      const product = this.currentProduct;
-      if (!product || !product.seller?.store_slug) return null;
-      return userStore.sellerCache[product.seller?.store_slug] || null;
-    },
-    activeProductList: (state) => {
-      if (state.currentCategorySlug) {
-        return state.categoryCache.get(state.currentCategorySlug) || [];
-      }
-      return state.products;
-    },
-    getProductById: (state) => (id: number) => {
-      return state.productMap.get(id);
-    },
+      if (!this.currentProduct || !this.currentProduct.seller) return null;
+      
+      // Read from the userStore's cache for consistency
+      return userStore.sellerCache[this.currentProduct.seller.store_slug] || this.currentProduct.seller;
+    }
   },
 
   actions: {
-
-
     /**
-     * A private helper to add new products to all relevant caches.
+     * Internal helper to add products to the high-performance cache.
      */
-    _cacheProducts(productsToCache: IProduct[], categorySlug?: string) {
+    _cacheProducts(productsToCache: IProduct[]) {
       productsToCache.forEach(product => {
-        if (!this.productMap.has(product.id!)) {
-          // Add to the main products array only if it's new
-          this.products.push(product);
+        if (product && product.id) {
+          // Store the full product object by its ID
+          this.productMap.set(product.id, { ...this.productMap.get(product.id), ...product });
         }
-        // Always update the map with the latest product data
-        this.productMap.set(product.id!, product);
       });
-
-      if (categorySlug) {
-        const existing = this.categoryCache.get(categorySlug) || [];
-        const newProducts = productsToCache.filter(p => !existing.some(ep => ep.slug === p.slug));
-        this.categoryCache.set(categorySlug, [...existing, ...newProducts]);
-      }
-    },
-      /**
-     * Sets the initial list of products for the homepage feed.
-     * This is a "setter" action called by the page after `useAsyncData` completes.
-     */
-    setInitialProducts(initialProducts: IProduct[]) {
-        this.products = initialProducts;
-        this._cacheProducts(initialProducts);
-        // Reset pagination for a new session
-        this.currentPage = 1;
-        this.hasMoreProducts = initialProducts.length > 0;
-    },
-
-
-    /**
-     * Fetches the initial list of products if the store is empty.
-     * Called by useAsyncData on the main page.
-     */
-    async ensureInitialProductsLoaded() {
-      const apiService = useApiService();
-      if (this.products.length > 0) return this.products;
-      this.isLoading = true;
-      try {
-        const data = await apiService.getAllProducts({ page: 1, limit: 20 });
-        this._cacheProducts(data);
-        this.hasMoreProducts = data.length === 20;
-        return data
-      } finally {
-        this.isLoading = false;
-      }
     },
 
     /**
-     * Fetches all products for a given category slug if they aren't already cached.
-     * This is designed to be called by `useAsyncData` on the category page.
-     * It returns the list of products for that category.
+     * Sets the initial, unified feed for the homepage.
      */
-    async ensureCategoryProductsLoaded(slug: string): Promise<IProduct[]> {
-      this.currentCategorySlug = slug;
-      
-      // If the category is already cached, return the cached data immediately.
-      const cachedProducts = this.categoryCache.get(slug);
-      if (cachedProducts) {
-        return cachedProducts;
-      }
-
-      this.isLoading = true;
-      try {
-        const apiService = useApiService();
-        const { products } = await apiService.getProductsByCategorySlug(slug);
-        this._cacheProducts(products, slug);
-        this.hasMoreProducts = products.length >= 20; // Assuming a limit
-        return products; // Return the newly fetched products
-      } finally {
-        this.isLoading = false;
-      }
+    setInitialFeed(initialFeed: IFeedItem[]) {
+        this.mainFeed = initialFeed;
+        const products = initialFeed
+          .filter((item): item is IFeedItem & { product: IProduct } => item.type === 'PRODUCT' && !!item.product)
+          .map(item => item.product);
+        this._cacheProducts(products);
+        this.feedCurrentPage = 1;
+        this.feedHasMore = initialFeed.length > 0;
     },
+
     /**
-     * Fetches more products for the current view (all products or a specific category).
-     * Used for infinite scrolling.
+     * Fetches the next page of the unified feed for the homepage's infinite scroll.
+     */
+    async fetchMoreFeedItems() {
+        if (this.isLoading || !this.feedHasMore) return;
+        this.isLoading = true;
+        try {
+            const nextPage = this.feedCurrentPage + 1;
+            const apiService = useApiService();
+            const { feed, meta } = await apiService.getHomeFeed({ page: nextPage, limit: 10 });
+
+            if (feed.length > 0) {
+                this.mainFeed.push(...feed);
+                const products = feed
+                  .filter((item): item is IFeedItem & { product: IProduct } => item.type === 'PRODUCT' && !!item.product)
+                  .map(item => item.product);
+                this._cacheProducts(products);
+                this.feedCurrentPage = nextPage;
+                this.feedHasMore = meta.hasMore;
+            } else {
+                this.feedHasMore = false;
+            }
+        } finally {
+            this.isLoading = false;
+        }
+    },
+
+    /**
+     * Fetches the first page of products for a specific category (or 'all') for the Discover page.
+     * This action RESETS the products list.
+     */
+    async fetchProductsForCategory(slug: string): Promise<IProduct[]> {
+        this.isLoading = true;
+        this.currentCategorySlug = slug;
+        this.discoverCurrentPage = 1;
+        try {
+            const apiService = useApiService();
+            const { products, meta } = await apiService.getProductsByCategorySlug_Paginated(slug, { page: 1 });
+            this.products = products;
+            this._cacheProducts(products);
+            this.discoverHasMore = meta.hasMorePages;
+            return products;
+        } catch (error) {
+            notify({ type: 'error', text: 'Could not load products.' });
+            return [];
+        } finally {
+            this.isLoading = false;
+        }
+    },
+
+    /**
+     * Fetches the *next* page of products for the *current* category (for the Discover page).
      */
     async fetchMoreProducts() {
-      const apiService = useApiService();
-      if (this.isLoading || !this.hasMoreProducts) return;
-      this.isLoading = true;
-      try {
-        const currentList = this.activeProductList; // Use the getter for consistency
-        const nextPage = Math.floor(currentList.length / 20) + 1;
+        if (this.isLoading || !this.discoverHasMore) return;
+        this.isLoading = true;
+        try {
+            const nextPage = this.discoverCurrentPage + 1;
+            const apiService = useApiService();
+            const { products, meta } = await apiService.getProductsByCategorySlug_Paginated(this.currentCategorySlug, { page: nextPage });
 
-        const newProducts = this.currentCategorySlug
-          ? (await apiService.getProductsByCategorySlug(this.currentCategorySlug)).products
-          : await apiService.getAllProducts({ page: nextPage, limit: 20 });
-
-        if (newProducts.length > 0) {
-          this._cacheProducts(newProducts, this.currentCategorySlug || undefined);
+            if (products.length > 0) {
+                const newProducts = products.filter(p => !this.productMap.has(p.id!));
+                this.products.push(...newProducts);
+                this._cacheProducts(newProducts);
+                this.discoverCurrentPage = nextPage;
+                this.discoverHasMore = meta.hasMorePages;
+            } else {
+                this.discoverHasMore = false;
+            }
+        } catch (error) {
+            notify({ type: 'error', text: 'Could not load more products.' });
+        } finally {
+            this.isLoading = false;
         }
-        this.hasMoreProducts = newProducts.length === 20;
-      } catch (error) {
-        notify({ type: 'error', text: 'Could not load more products.' });
-      } finally {
-        this.isLoading = false;
-      }
+    },
+    
+    /**
+     * Creates a new product using the two-step (draft + update) process.
+     */
+    async createProduct(fullProductData: IProduct): Promise<IProduct | null> {
+        const apiService = useApiService();
+        const userStore = useUserStore();
+        this.isLoading = true;
+        
+        let newDraftProduct: IProduct | null = null;
+        try {
+            // --- STEP 1: The "Quick" Call ---
+            newDraftProduct = await apiService.createProductDraft({ 
+                title: fullProductData.title, 
+                media: fullProductData.media 
+            });
+            if (!newDraftProduct || !newDraftProduct.id) {
+                throw new Error('Failed to create product draft.');
+            }
+
+            // --- Optimistic Update ---
+            const newFeedItem: IFeedItem = {
+                id: `product-${newDraftProduct.id}`,
+                type: 'PRODUCT',
+                created_at: new Date(),
+                author: {
+                    id: userStore.user!.id,
+                    username: userStore.sellerProfile?.store_name ?? undefined,
+                    avatar: userStore.sellerProfile?.store_logo ?? undefined,
+                    role: 'seller',
+                },
+                media: newDraftProduct.media[0] ?? undefined,
+                caption: newDraftProduct.title,
+                likeCount: 0,
+                taggedProducts: [newDraftProduct],
+                product: newDraftProduct,
+            };
+            this.mainFeed.unshift(newFeedItem);
+            this.productMap.set(newDraftProduct.id, newDraftProduct);
+            
+            // --- STEP 2: The "Heavy" Call (Fire-and-Forget) ---
+            apiService.updateProductDetails(newDraftProduct.id, fullProductData)
+                .then(updatedProduct => {
+                    console.log(`Product ${updatedProduct.id} details successfully updated.`);
+                    this._cacheProducts([updatedProduct]);
+                })
+                .catch(err => {
+                    console.error(`BACKGROUND_UPDATE_FAILED for product ${newDraftProduct?.id}:`, err);
+                });
+
+            return newDraftProduct;
+
+        } catch (error: any) {
+            console.error('Error in createProduct (Store):', error);
+            notify({ type: 'error', text: error.data?.message || 'Failed to create product.' });
+            return null;
+        } finally {
+            this.isLoading = false;
+        }
     },
 
     /**
-     * Sets the current category slug for filtering.
-     * This is called by the category page.
+     * Fetches a single product by its slug.
+     * Uses the cache first for high performance.
      */
-    setCategoryFilter(slug: string | null) {
-      this.currentCategorySlug = slug;
-    },
+    async getProductBySlug(slug: string): Promise<IProduct | null> {
+      const cachedProduct = Array.from(this.productMap.values()).find(p => p.slug === slug);
+      if (cachedProduct) return cachedProduct;
 
-    /**
-     * Creates a new product via the API and adds it to the local cache.
-     */
-    async createProduct(productData: IProduct): Promise<IProduct | null> {
       const apiService = useApiService();
       this.isLoading = true;
       try {
-        const newProduct = await apiService.createProduct(productData);
-        this._cacheProducts([newProduct]);
-        notify({ type: 'success', text: 'Product created successfully!' });
-        return newProduct;
-      } catch (error: any) {
-        notify({ type: 'error', text: error.message || 'Failed to create product.' });
+        const product = await apiService.getProductBySlug(slug);
+        this._cacheProducts([product]);
+        return product;
+      } catch (error) {
+        console.error(`Failed to fetch product by slug "${slug}":`, error);
         return null;
       } finally {
         this.isLoading = false;
       }
     },
-    async createBatchProducts(files: File[]): Promise<{ success: number; errors: string[] }> {
+
+    /**
+     * Fetches the full, swipeable feed for a specific product.
+     */
+    async fetchProductFeedForSlug(slug: string): Promise<IProduct[]> {
       const apiService = useApiService();
       this.isLoading = true;
-      const result = { success: 0, errors: [] as string[] };
       try {
-        const data = await apiService.createBatchProducts(files);
-        result.success = data.createdCount;
-        result.errors = data.errors;
-      } catch (error: any) {
-        notify({ type: 'error', text: error.message || 'Failed to create product.' });
+        const feed = await apiService.getProductFeedBySlug(slug);
+        this._cacheProducts(feed);
+        return feed;
       } finally {
         this.isLoading = false;
       }
-      return result;
     },
-    /**
-     * Fetches similar products and caches them.
-     */
-    async fetchAndCacheSimilarProducts(productId: number): Promise<IProduct[]> {
-      const apiService = useApiService();
-      const cacheKey = `similar_${productId}`;
-      const cached = this.similarProductCache.get(productId);
-      const lastFetchTime = this.lastFetched.get(cacheKey) || 0;
 
-      if (cached && (Date.now() - lastFetchTime) < CACHE_DURATION) {
-        return cached;
-      }
-
-      try {
-        const similarProducts = await apiService.getSimilarProducts(productId);
-        this.similarProductCache.set(productId, similarProducts);
-        this.lastFetched.set(cacheKey, Date.now());
-        return similarProducts;
-      } catch (error) {
-        console.error(`Failed to fetch similar products for ID ${productId}:`, error);
-        return []; // Return empty array on error
-      }
-    },
     /**
-     * NEW ACTION: Fetches products by a seller's store slug and caches them.
+     * Fetches all products for a specific seller's public profile.
+     * This does not use a timed cache; it lets `useLazyAsyncData` handle caching.
      */
     async getProductsByStoreSlug(slug: string): Promise<IProduct[]> {
       const apiService = useApiService();
-      const cacheKey = `seller_${slug}`;
-      const cached = this.sellerProductCache.get(slug);
-      const lastFetchTime = this.lastFetched.get(cacheKey) || 0;
-
-      if (cached && (Date.now() - lastFetchTime) < CACHE_DURATION) {
-        return cached;
-      }
-
+      this.isLoading = true;
       try {
         const products = await apiService.getProductsByStoreSlug(slug);
-        this.sellerProductCache.set(slug, products);
-        this.lastFetched.set(cacheKey, Date.now());
-        // Also add these products to the global cache
         this._cacheProducts(products);
         return products;
       } catch (error) {
         console.error(`Failed to fetch products for store slug "${slug}":`, error);
         return [];
+      } finally {
+        this.isLoading = false;
       }
     },
-/*************  ✨ Windsurf Command ⭐  *************/
-/**
- * Fetches a list of products featured on the dashboard page.
- * This action fetches the products, caches them, and returns the list.
- * If the fetch fails, it logs an error and returns an empty array.
- * @returns {Promise<IProduct[]>} Resolves with a list of products or an empty array on failure.
- */
-/*******  25580be4-41b4-4dbe-adf4-98ffa6286857 *******/
+
+    /**
+     * Fetches all of a seller's products for their dashboard (includes drafts).
+     */
     async fetchDashboardProducts(): Promise<IProduct[]> {
       const apiService = useApiService();
       this.isLoading = true;
       try {
         const products = await apiService.getDashboardProducts();
         this._cacheProducts(products);
+        this.products = products; // Set the main product list to the dashboard list
         return products;
       } catch (error) {
         console.error('Failed to fetch dashboard products:', error);
@@ -276,83 +299,9 @@ export const useProductStore = defineStore('product', {
         this.isLoading = false;
       }
     },
-    async fetchProductById(id: number): Promise<IProduct> {
-      const cachedProduct = this.productMap.get(id);
-      if (cachedProduct) return cachedProduct;
-      const apiService = useApiService();
-      this.isLoading = true;
-      try {
-        const product = await apiService.getProductById(id);
-        this._cacheProducts([product]);
-        return product;
-      } catch (error) {
-        console.error(`Failed to fetch product by ID ${id}:`, error);
-        throw error;
-      } finally {
-        this.isLoading = false;
-      }
-    },
- async getProductBySlug(slug: string): Promise<IProduct> {
-    // THE FIX: Search the map's values for a matching slug.
-    // This is an O(n) search, but 'n' is the number of cached products,
-    // which is perfectly acceptable on the client-side.
-    const cachedProduct = Array.from(this.productMap.values()).find(p => p.slug === slug);
-    
-    if (cachedProduct) {
-        console.log(`Serving product ${slug} from cache.`);
-        return cachedProduct;
-    }
 
-    // If not in cache, fetch from the API.
-    const apiService = useApiService();
-    this.isLoading = true;
-    try {
-        console.log(`Fetching product ${slug} from API...`);
-        const product = await apiService.getProductBySlug(slug);
-        this._cacheProducts([product]); // Add it to the cache
-        return product;
-    } catch (error) {
-        console.error(`Failed to fetch product by slug "${slug}":`, error);
-        throw error;
-    } finally {
-        this.isLoading = false;
-    }
-},
     /**
-     * Fetches the feed, caches the products, sets the current slug, and returns the feed.
-     */
-    async ensureProductFeedLoaded(slug: string): Promise<IProduct[]> {
-      this.currentProductSlug = slug;
-      if (this.feedCache.has(slug)) {
-          return this.feedCache.get(slug)!;
-        }
-      const apiService = useApiService();
-      this.isLoading = true;
-      try {
-        
-        const feed = await apiService.getProductFeedBySlug(slug);
-        // This action's primary job is to MUTATE the state
-        this.feedCache.set(slug, feed);
-        this._cacheProducts(feed);
-        return feed; // It also returns the data for flexibility
-      } catch (error) {
-        console.error(`Failed to load feed for slug "${slug}"`, error);
-        this.products = []; // Reset on error
-        throw error;
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    /**
-     * Clears the current category filter to show all products.
-     */
-    clearCategoryFilter() {
-      this.currentCategorySlug = null;
-    },
-
-     /**
-     * A handler for real-time updates to product variants (e.g., stock changes).
-     * Called by the realtimeService.
+     * Handler for real-time stock updates.
      */
     _handleRealtimeVariantUpdate(updatedVariant: IProductVariant) {
         if (!updatedVariant || !this.productMap.has(updatedVariant.productId)) return;
@@ -362,12 +311,10 @@ export const useProductStore = defineStore('product', {
         const variantIndex = product.variants.findIndex(v => v.id === updatedVariant.id);
 
         if (variantIndex !== -1) {
-            // Update the specific variant in the product object
             product.variants[variantIndex] = updatedVariant;
-            // Re-set the product in the map to trigger reactivity
             this.productMap.set(product.id!, { ...product });
         }
     },
-    
   },
 });
+

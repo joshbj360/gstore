@@ -46,6 +46,9 @@ enum NotificationType {
   COMMENT_LIKE
   REPLY
   PRODUCT_SHARE
+  NEW_FOLLOWER
+  NEW_POST
+  POST_LIKE
 }
 
 // --- CORE MODELS ---
@@ -58,20 +61,32 @@ model Profile {
   username          String?
   created_at        DateTime         @default(now()) @db.Timestamptz(6)
   updated_at        DateTime         @updatedAt @db.Timestamptz(6)
-  cartItems         CartItem[]
-  likes             Like[]           @relation("ProfileLikes")
-  commentLikes      CommentLike[]
-  notifications     Notification[]   @relation("NotificationToProfile")
-  sentNotifications Notification[]   @relation("NotificationFromActor")
-  comments          Comment[]        @relation("UserComments")
+  
+  // Relations
   sellerProfile     SellerProfile?   @relation("SellerProfile")
+  media             Media[]          @relation("MediaAuthor")
+  orders            Orders[]         @relation("BuyerOrders")
+  cartItems         CartItem[]
+  addresses         Addresses?       @relation("UserAddress")
+  
+  // Social Relations
+  likes             Like[]           @relation("ProfileLikes")
+  commentLikes      CommentLike[]    @relation("UserCommentLikes")
+  postLikes         PostLike[]       @relation("UserProfileLikes")
+  comments          Comment[]        @relation("UserComments")
+  posts             Post[]           @relation("UserPosts")
+  stories           Story[]          @relation("UserStories")
+  following         Follow[]         @relation("Following")
   shares            Share[]          @relation("ProfileShares")
   socialMedia       SocialMediaInfo[] @relation("ProfileSocialMedia")
-  orders            Orders[]         @relation("BuyerOrders")
+  
+  // Notification Relations
+  notifications     Notification[]   @relation("NotificationToProfile")
+  sentNotifications Notification[]   @relation("NotificationFromActor")
 }
 
 model SellerProfile {
-  id                      String                @id @default(uuid()) @db.Uuid
+  id                      String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profileId               String                @unique @db.Uuid
   store_name              String?
   store_description       String?
@@ -88,13 +103,16 @@ model SellerProfile {
   created_at              DateTime              @default(now()) @db.Timestamptz(6)
   updated_at              DateTime              @updatedAt @db.Timestamptz(6)
   store_slug              String                @unique
-  media                   Media[]
-  products                Products[]            @relation("SellerProducts") // FIX: Product relation is now correctly on the SellerProfile
+  
+  
+  // Relations
   profile                 Profile               @relation("SellerProfile", fields: [profileId], references: [id])
-  wallet                  SellerWallet?
+  products                Products[]            @relation("SellerProducts")
+  media                   Media[]               @relation("MediaSeller")
   shippingZones           ShippingZone[]
-  stories                 Story[]
   verificationDocuments   VerificationDocument[]
+  wallet                  SellerWallet?
+  followers               Follow[]              @relation("Followers")
 }
 
 model Products {
@@ -105,120 +123,59 @@ model Products {
   price            Float
   discount         Float?
   status           ProductStatus?      @default(DRAFT)
-  sellerId         String              @db.Uuid // FIX: This now correctly references SellerProfile's ID
+  sellerId         String              @db.Uuid
+  store_slug       String
+  shippingZoneId   String?             @db.Uuid
   created_at       DateTime            @default(now()) @db.Timestamptz(6)
   updated_at       DateTime            @updatedAt @db.Timestamptz(6)
-  shippingZoneId   String?             @db.Uuid
+  
+  // Flags for discovery
+  isFeatured       Boolean             @default(false)
+  bannerImageUrl   String?
+  isAccessory      Boolean             @default(false)
+  SKU              String?             @unique
+  
+  // Aggregated data
   soldCount        Int                 @default(0)
   averageRating    Float?
   totalReviews     Int                 @default(0)
-  isFeatured       Boolean             @default(false)
-  bannerImageUrl   String?
-  SKU              String?             @unique
-  isAccessory      Boolean             @default(false)
-  store_slug       String
-  comments         Comment[]
-  likes            Like[]
-  measurement      Measurement?
-  media            Media[]
-  notifications    Notification[]      @relation("NotificationToProduct")
-  category         ProductCategories[] @relation("ProductCategory")
-  appearsIn        ProductRelation[]   @relation("AppearsIn")
-  styledWith       ProductRelation[]   @relation("StyledWith")
-  tags             ProductTags[]       @relation("ProductTag")
+  
+  // Relations
+  seller           SellerProfile       @relation("SellerProducts", fields: [sellerId], references: [id], onDelete: Cascade)
+  shippingZone     ShippingZone?       @relation(fields: [shippingZoneId], references: [id], onDelete: SetNull)
   variants         ProductVariant[]
-  seller           SellerProfile       @relation("SellerProducts", fields: [sellerId], references: [id]) // FIX: Relation now points to SellerProfile
-  shippingZone     ShippingZone?       @relation(fields: [shippingZoneId], references: [id])
+  media            Media[]
+  category         ProductCategories[] @relation("ProductCategory")
+  tags             ProductTags[]       @relation("ProductTag")
+  measurement      Measurement?
+  
+  // Social Relations
+  likes            Like[]
+  comments         Comment[]
+  stories          Story[]
   shares           Share[]             @relation("ProductShare")
   socialMedia      SocialMediaInfo[]   @relation("ProductSocialMedia")
-  stories          Story[]
-  // FIX: The redundant store_slug field has been removed.
-}
-
-model ProductRelation {
-  styledWithId Int
-  appearsInId  Int
-  appearsIn    Products @relation("AppearsIn", fields: [appearsInId], references: [id], onDelete: Cascade)
-  styledWith   Products @relation("StyledWith", fields: [styledWithId], references: [id], onDelete: Cascade)
-
-  @@id([styledWithId, appearsInId])
-}
-
-model Story {
-  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  mediaId    String        @unique  @db.Uuid
-  sellerId   String        @db.Uuid
-  productId  Int?
-  expiresAt  DateTime
-  created_at DateTime      @default(now()) @db.Timestamptz(6)
-  product    Products?     @relation(fields: [productId], references: [id])
-  seller     SellerProfile @relation(fields: [sellerId], references: [id])
-  media      Media         @relation(fields: [mediaId], references: [id])
+  taggedInPosts    ProductPostTag[]
+  styledWith       ProductRelation[]   @relation("StyledWith")
+  appearsIn        ProductRelation[]   @relation("AppearsIn")
+  notifications    Notification[]      @relation("NotificationToProduct")
 }
 
 model ProductVariant {
   id         Int         @id @default(autoincrement())
   size       String
   stock      Int
-  price      Float?      // FIX: Price is optional on the variant
+  price      Float?
   productId  Int
+  product    Products    @relation(fields: [productId], references: [id], onDelete: Cascade)
   cartItems  CartItem[]
   orderItems OrderItem[]
-  product    Products    @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, size])
 }
 
-model Media {
-  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  url        String
-  public_id  String?       @unique
-  type       MediaType
-  productId  Int?
-  created_at DateTime      @default(now()) @db.Timestamptz(6)
-  sellerId   String        @db.Uuid
-  altText    String?
-  metadata   Json?
-  product    Products?     @relation(fields: [productId], references: [id], onDelete: SetNull)
-  seller     SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  story      Story?
-}
 
-model Category {
-  id              Int                 @id @default(autoincrement())
-  name            String              @unique
-  thumbnailCatUrl String?
-  created_at      DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime            @updatedAt @db.Timestamptz(6)
-  slug            String              @unique
-  products        ProductCategories[] @relation("ProductCategory")
-}
-
-model ProductCategories {
-  productId  Int
-  categoryId Int
-  category   Category @relation("ProductCategory", fields: [categoryId], references: [id], onDelete: Cascade)
-  product    Products @relation("ProductCategory", fields: [productId], references: [id], onDelete: Cascade)
-
-  @@id([productId, categoryId])
-}
-
-model Tag {
-  id         Int           @id @default(autoincrement())
-  name       String        @unique
-  created_at DateTime      @default(now()) @db.Timestamptz(6)
-  updated_at DateTime      @updatedAt @db.Timestamptz(6)
-  products   ProductTags[] @relation("ProductTag")
-}
-
-model ProductTags {
-  productId Int
-  tagId     Int
-  product   Products @relation("ProductTag", fields: [productId], references: [id], onDelete: Cascade)
-  tag       Tag      @relation("ProductTag", fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([productId, tagId])
-}
+// --- E-COMMERCE MODELS ---
 
 model Orders {
   id                  Int            @id @default(autoincrement())
@@ -227,7 +184,7 @@ model Orders {
   name                String
   address             String
   zipcode             String
-  county String         // FIX: Standardized naming
+  county              String // used as local gov
   country             String
   totalAmount         Int
   paymentMethod       String
@@ -237,18 +194,20 @@ model Orders {
   status              OrderStatus    @default(PENDING)
   created_at          DateTime       @default(now()) @db.Timestamptz(6)
   updated_at          DateTime       @updatedAt @db.Timestamptz(6)
-  notifications       Notification[] @relation("NotificationToOrder")
-  orderItem           OrderItem[]
+  
   user                Profile        @relation("BuyerOrders", fields: [userId], references: [id])
+  orderItem           OrderItem[]
+  notifications       Notification[] @relation("NotificationToOrder")
 }
 
 model OrderItem {
   id         Int            @id @default(autoincrement())
   orderId    Int
+  variantId  Int
   quantity   Int
   created_at DateTime       @default(now()) @db.Timestamptz(6)
-  variantId  Int
-  order      Orders         @relation(fields: [orderId], references: [id])
+  
+  order      Orders         @relation(fields: [orderId], references: [id], onDelete: Cascade)
   variant    ProductVariant @relation(fields: [variantId], references: [id])
 }
 
@@ -258,6 +217,7 @@ model CartItem {
   created_at DateTime       @default(now())
   userId     String         @db.Uuid
   variantId  Int
+  
   user       Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
   variant    ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
@@ -271,11 +231,106 @@ model Addresses {
   address             String
   zipcode             String
   country             String
-  created_at          DateTime @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime @updatedAt @db.Timestamptz(6)
-  county             String   // FIX: Standardized naming
+  county              String
   phone               String
   state               String
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime @updatedAt @db.Timestamptz(6)
+  
+  user                Profile  @relation("UserAddress", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+// --- SHIPPING & WALLET MODELS ---
+
+model ShippingZone {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  sellerId   String        @db.Uuid
+  isDefault  Boolean       @default(false)
+  created_at DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at DateTime      @updatedAt @db.Timestamptz(6)
+  
+  seller     SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  products   Products[]
+  rates      ZoneRate[]
+
+  @@unique([sellerId, name])
+}
+
+model ZoneRate {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  zoneId    String       @db.Uuid
+  cost      Float
+  countries String[]
+  states    String[]
+  
+  zone      ShippingZone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+}
+
+model SellerWallet {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sellerId        String        @unique @db.Uuid
+  balance         Float         @default(0)
+  pending_balance Float         @default(0)
+  updated_at      DateTime      @updatedAt
+  
+  seller          SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  payouts         Payout[]
+  transactions    Transaction[]
+}
+
+model Transaction {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  walletId    String      @db.Uuid
+  amount      Float
+  type        String
+  orderId     Int?
+  description String
+  created_at  DateTime     @default(now())
+  
+  wallet      SellerWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+}
+
+model Payout {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  walletId        String       @db.Uuid
+  amount          Float
+  status          String
+  bank_account    Json
+  transaction_ref String?
+  requested_at    DateTime     @default(now())
+  completed_at    DateTime?
+  
+  wallet          SellerWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+}
+
+
+// --- SOCIAL & ENGAGEMENT MODELS ---
+
+model Story {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mediaId    String        @unique @db.Uuid
+  authorId   String        @db.Uuid
+  productId  Int?
+  expiresAt  DateTime
+  created_at DateTime      @default(now()) @db.Timestamptz(6)
+  author     Profile       @relation("UserStories", fields: [authorId], references: [id], onDelete: Cascade)
+  product    Products?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+  media      Media         @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authorId   String   @db.Uuid
+  caption    String?
+  mediaId    String   @unique @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  author         Profile          @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
+  media          Media            @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  taggedProducts ProductPostTag[]
+  likes          PostLike[]
 }
 
 model Comment {
@@ -285,118 +340,13 @@ model Comment {
   productId     Int
   parentId      String?        @db.Uuid
   created_at    DateTime       @default(now()) @db.Timestamptz(6)
+  
   author        Profile        @relation("UserComments", fields: [authorId], references: [id], onDelete: Cascade)
+  product       Products       @relation(fields: [productId], references: [id], onDelete: Cascade)
   parent        Comment?       @relation("Replies", fields: [parentId], references: [id], onDelete: NoAction)
   replies       Comment[]      @relation("Replies")
-  product       Products       @relation(fields: [productId], references: [id], onDelete: Cascade)
   likes         CommentLike[]
   notifications Notification[] @relation("NotificationToComment")
-}
-
-model CommentLike {
-  userId    String  @db.Uuid
-  commentId String  @db.Uuid
-  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  user      Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([userId, commentId])
-}
-
-model Notification {
-  id         Int              @id @default(autoincrement())
-  userId     String           @db.Uuid
-  profile    Profile          @relation("NotificationToProfile", fields: [userId], references: [id])
-  actorId    String?          @db.Uuid
-  actor      Profile?         @relation("NotificationFromActor", fields: [actorId], references: [id])
-  message    String
-  type       NotificationType
-  read       Boolean          @default(false)
-  created_at DateTime         @default(now()) @db.Timestamptz(6)
-  updated_at DateTime         @updatedAt @db.Timestamptz(6) // FIX: Corrected typo
-  orderId    Int?
-  order      Orders?          @relation("NotificationToOrder", fields: [orderId], references: [id])
-  productId  Int?
-  product    Products?        @relation("NotificationToProduct", fields: [productId], references: [id])
-  commentId  String?          @db.Uuid
-  comment    Comment?         @relation("NotificationToComment", fields: [commentId], references: [id])
-}
-
-model SellerWallet {
-  id              String        @id @default(uuid())
-  sellerId        String        @unique @db.Uuid
-  balance         Float         @default(0)
-  pending_balance Float         @default(0)
-  updated_at      DateTime      @updatedAt
-  payouts         Payout[]
-  seller          SellerProfile @relation(fields: [sellerId], references: [id])
-  transactions    Transaction[]
-}
-
-model Transaction {
-  id          String       @id @default(uuid())
-  walletId    String
-  amount      Float
-  type        String
-  orderId     Int?
-  description String
-  created_at  DateTime     @default(now())
-  wallet      SellerWallet @relation(fields: [walletId], references: [id])
-}
-
-model Payout {
-  id              String       @id @default(uuid())
-  walletId        String
-  amount          Float
-  status          String
-  bank_account    Json
-  transaction_ref String?
-  requested_at    DateTime     @default(now())
-  completed_at    DateTime?
-  wallet          SellerWallet @relation(fields: [walletId], references: [id])
-}
-
-model ShippingZone {
-  id         String        @id @default(uuid()) @db.Uuid
-  name       String
-  created_at DateTime      @default(now()) @db.Timestamptz(6)
-  updated_at DateTime      @updatedAt @db.Timestamptz(6)
-  sellerId   String        @db.Uuid
-  isDefault  Boolean       @default(false)
-  products   Products[]
-  seller     SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  rates      ZoneRate[]
-
-  @@unique([sellerId, name])
-}
-
-model ZoneRate {
-  id        String       @id @default(uuid()) @db.Uuid
-  zoneId    String       @db.Uuid
-  cost      Float
-  countries String[]
-  states    String[]
-  zone      ShippingZone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
-}
-
-model Measurement {
-  id        Int       @id @default(autoincrement())
-  productId Int?      @unique
-  weight    Float?
-  length    Float?
-  width     Float?
-  height    Float?
-  product   Products? @relation(fields: [productId], references: [id])
-}
-
-model VerificationDocument {
-  id              String             @id @default(uuid()) @db.Uuid
-  sellerProfileId String             @db.Uuid
-  type            String
-  url             String
-  status          VerificationStatus @default(PENDING)
-  created_at      DateTime           @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime           @updatedAt @db.Timestamptz(6)
-  sellerProfile   SellerProfile      @relation(fields: [sellerProfileId], references: [id])
 }
 
 model Like {
@@ -404,10 +354,42 @@ model Like {
   userId     String   @db.Uuid
   productId  Int
   created_at DateTime @default(now())
-  product    Products @relation(fields: [productId], references: [id])
-  profile    Profile  @relation("ProfileLikes", fields: [userId], references: [id])
+  
+  product    Products @relation(fields: [productId], references: [id], onDelete: Cascade)
+  profile    Profile  @relation("ProfileLikes", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
+}
+
+model CommentLike {
+  userId    String  @db.Uuid
+  commentId String  @db.Uuid
+  
+  user      Profile @relation("UserCommentLikes", fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@id([userId, commentId])
+}
+
+model PostLike {
+  userId String @db.Uuid
+  postId String @db.Uuid
+  
+  user   Profile @relation("UserProfileLikes", fields: [userId], references: [id], onDelete: Cascade)
+  post   Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+}
+
+model Follow {
+  followerId  String        @db.Uuid
+  followingId String        @db.Uuid
+  created_at  DateTime      @default(now())
+  
+  follower    Profile       @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   SellerProfile @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
 }
 
 model Share {
@@ -417,10 +399,97 @@ model Share {
   platform   String?
   shareUrl   String?
   created_at DateTime @default(now())
-  product    Products @relation("ProductShare", fields: [productId], references: [id])
-  profile    Profile  @relation("ProfileShares", fields: [userId], references: [id])
+  
+  product    Products @relation("ProductShare", fields: [productId], references: [id], onDelete: Cascade)
+  profile    Profile  @relation("ProfileShares", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId, platform])
+}
+
+
+// --- CONTENT & UTILITY MODELS ---
+
+// DEFINITION ADDED
+model Media {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  url        String
+  public_id  String?       @unique
+  type       MediaType
+  productId  Int?
+  created_at DateTime      @default(now()) @db.Timestamptz(6)
+  altText    String?
+  metadata   Json?
+  authorId   String        @db.Uuid
+  author     Profile       @relation("MediaAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  product    Products?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+  sellerId   String?       @db.Uuid // This field is now optional
+  seller     SellerProfile? @relation("MediaSeller", fields: [sellerId], references: [id], onDelete: SetNull)
+  story      Story?
+  post       Post?
+}
+
+// DEFINITION ADDED
+model Category {
+  id              Int                 @id @default(autoincrement())
+  name            String              @unique
+  thumbnailCatUrl String?
+  created_at      DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime            @updatedAt @db.Timestamptz(6)
+  slug            String              @unique
+  products        ProductCategories[] @relation("ProductCategory")
+}
+
+// DEFINITION ADDED
+model Tag {
+  id         Int           @id @default(autoincrement())
+  name       String        @unique
+  created_at DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at DateTime      @updatedAt @db.Timestamptz(6)
+  products   ProductTags[] @relation("ProductTag")
+}
+
+model Measurement {
+  id        Int       @id @default(autoincrement())
+  productId Int?      @unique
+  weight    Float?
+  length    Float?
+  width     Float?
+  height    Float?
+  
+  product   Products? @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model VerificationDocument {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sellerProfileId String             @db.Uuid
+  type            String
+  url             String
+  status          VerificationStatus @default(PENDING)
+  created_at      DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime           @updatedAt @db.Timestamptz(6)
+  
+  sellerProfile   SellerProfile      @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id         Int              @id @default(autoincrement())
+  userId     String           @db.Uuid
+  actorId    String?          @db.Uuid
+  message    String
+  type       NotificationType
+  read       Boolean          @default(false)
+  created_at DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at DateTime         @updatedAt @db.Timestamptz(6)
+  
+  // Relations
+  profile    Profile          @relation("NotificationToProfile", fields: [userId], references: [id])
+  actor      Profile?         @relation("NotificationFromActor", fields: [actorId], references: [id])
+  orderId    Int?
+  order      Orders?          @relation("NotificationToOrder", fields: [orderId], references: [id])
+  productId  Int?
+  product    Products?        @relation("NotificationToProduct", fields: [productId], references: [id])
+  commentId  String?          @db.Uuid
+  comment    Comment?         @relation("NotificationToComment", fields: [commentId], references: [id])
 }
 
 model SocialMediaInfo {
@@ -430,7 +499,51 @@ model SocialMediaInfo {
   platform   String
   handle     String
   created_at DateTime  @default(now())
-  product    Products? @relation("ProductSocialMedia", fields: [productId], references: [id])
-  profile    Profile?  @relation("ProfileSocialMedia", fields: [userId], references: [id])
+  
+  product    Products? @relation("ProductSocialMedia", fields: [productId], references: [id], onDelete: Cascade)
+  profile    Profile?  @relation("ProfileSocialMedia", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+// --- JOIN TABLES ---
+
+model ProductCategories {
+  productId  Int
+  categoryId Int
+  
+  category   Category @relation("ProductCategory", fields: [categoryId], references: [id], onDelete: Cascade)
+  product    Products @relation("ProductCategory", fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+}
+
+model ProductTags {
+  productId Int
+  tagId     Int
+  
+  product   Products @relation("ProductTag", fields: [productId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation("ProductTag", fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([productId, tagId])
+}
+
+model ProductRelation {
+  styledWithId Int
+  appearsInId  Int
+  
+  appearsIn    Products @relation("AppearsIn", fields: [appearsInId], references: [id], onDelete: Cascade)
+  styledWith   Products @relation("StyledWith", fields: [styledWithId], references: [id], onDelete: Cascade)
+
+  @@id([styledWithId, appearsInId])
+}
+
+model ProductPostTag {
+  postId    String  @db.Uuid
+  productId Int
+  
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  product   Products @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([postId, productId])
 }
 

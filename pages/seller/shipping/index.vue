@@ -53,7 +53,7 @@ import ShippingZoneModal from '@/components/seller/dashboard/ShippingZoneModal.v
 import type { ShippingZone } from '@prisma/client'; // Assuming you have run `prisma generate`
 import { notify } from "@kyvg/vue3-notification";
 
-definePageMeta({ layout: 'main-layout' });
+definePageMeta({ layout: 'home-layout' });
 
 const shippingZones = ref<ShippingZone[]>([]); 
 const isModalOpen = ref(false);

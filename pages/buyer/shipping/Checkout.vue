@@ -114,7 +114,7 @@ const canPlaceOrder = computed(() => shippingStore.address && cartStore.checkout
 onMounted(async () => {
   if (!userStore.isLoggedIn) return router.push('/auth/login');
   if (cartStore.checkout.length === 0) return router.push('/buyer/cart');
-  if (!shippingStore.address) await shippingStore.fetchAddress(userStore.user!.id);
+  if (!shippingStore.address) await shippingStore.fetchAddress();
 });
 
 const processOrder = async () => {
