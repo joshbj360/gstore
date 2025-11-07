@@ -1,41 +1,27 @@
 <template>
-  <div class="flex py-4" role="listitem">
-    <div class="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-        <img
-        v-if="item.product.media && item.product.media.length"
-            :src="item.product.media[0].url || '/default-product.png'"
-            :alt="item.product.title"
-            class="w-full h-full object-cover"
-        />
+  <div class="py-4 flex gap-4">
+    <img 
+      v-if="item.product.media && item.product.media.length"
+      :src="item.product?.media[0].url" 
+      class="w-16 h-16 rounded-md object-cover"
+    >
+    <div v-else class="w-16 h-16 rounded-md bg-gray-100 dark:bg-neutral-800"></div>
+
+    <div class="flex-1 min-w-0">
+      <p class="font-semibold text-sm text-gray-800 dark:text-neutral-100 line-clamp-1">{{ item.product?.title }}</p>
+      <p class="text-sm text-gray-500 dark:text-neutral-400">Size: {{ item.variant.size }}</p>
+      <p class="text-sm text-gray-500 dark:text-neutral-400">Qty: {{ item.quantity }}</p>
     </div>
-    <div class="ml-4 flex-1 flex flex-col justify-center">
-      <div>
-        <h3 class="font-semibold text-gray-800 line-clamp-2 leading-tight">
-          {{ item.product.title }}
-        </h3>
-        <p v-if="item.variant.size" class="text-sm text-gray-500 mt-1">
-          Size: {{ item.variant.size }}
-        </p>
-      </div>
-      <div class="flex justify-between items-baseline mt-2">
-        <span class="text-sm text-gray-500">Qty: {{ item.quantity }}</span>
-        <span class="font-semibold text-gray-900">{{ formatPrice(item.variant.price) }}</span>
-      </div>
+
+    <div class="text-sm font-medium text-gray-900 dark:text-neutral-100">
+      {{ formatPrice((item.variant.price || item.product.price) * item.quantity) }}
     </div>
   </div>
 </template>
 
-<script lang="ts" setup>
-import type { ICartItem, IProduct } from '~/models';
+<script setup lang="ts">
+import type { ICartItem } from '~/models';
+import { formatPrice } from '~/utils/formatters';
 
-const props = defineProps<{
-  item: ICartItem 
-}>();
-
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-  }).format(price / 100);
-};
+defineProps<{ item: ICartItem }>();
 </script>

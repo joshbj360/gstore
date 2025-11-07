@@ -9,7 +9,7 @@
 
         <main class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
             <div class="text-right mb-4">
-                <button @click="openZoneModal()" class="bg-brand text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#d81b36] transition-transform hover:scale-105">
+                <button @click="openZoneModal()" class="bg-brand text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-brand-light transition-transform hover:scale-105">
                     Create New Profile
                 </button>
             </div>

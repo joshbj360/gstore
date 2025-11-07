@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col gap-4">
         <button @click="likeStore.toggleProductLike(product.id)" class="action-button">
-            <Icon name="mdi:heart" size="28" :class="isLiked ? 'text-red-500' : ''" />
+            <Icon name="mdi:heart" size="28" :class="isLiked ? 'text-brand-dark' : ''" />
             <span class="text-xs">{{ product._count?.likes || 0 }}</span>
         </button>
         <button @click="$emit('open-comments')" class="action-button">

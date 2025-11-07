@@ -68,7 +68,7 @@
             </button>
             <button
               type="submit"
-              class="px-4 py-2 bg-brand text-white rounded-lg text-sm font-semibold hover:bg-[#d81b36] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-4 py-2 bg-brand text-white rounded-lg text-sm font-semibold hover:bg-brand-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               :disabled="isLoading || !name || !thumbnailCatUrl"
             >
                 <span v-if="isLoading">Saving...</span>

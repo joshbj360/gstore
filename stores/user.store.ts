@@ -27,11 +27,12 @@ export const useUserStore = defineStore('user', {
      * It syncs the guest cart and fetches the user's full profile.
      */
     async _onLoginSuccess() {
+        const cartStore = useCartStore();
         //const cartStore = useCartStore();
         this.isLoading = true;
       await Promise.all([
-        //await cartStore.mergeAndSyncCartOnLogin(),
-        await this.fetchUserAndProfile()
+        await cartStore.mergeAndSyncCartOnLogin(),
+        //await this.fetchUserAndProfile()
 
       ]);
       this.isLoading = false;
@@ -77,7 +78,7 @@ export const useUserStore = defineStore('user', {
     /**
      * Handles OAuth sign-in (e.g., Google, GitHub).
      */
-    async loginWithOAuth(provider: 'google' | 'github') {
+    async loginWithOAuth(provider: 'google' | 'facebook') {
         const supabase = useSupabaseClient();
         this.isLoading = true;
         try {

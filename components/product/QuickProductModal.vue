@@ -27,7 +27,7 @@
                         <Icon name="mdi:close" size="20" class="text-gray-600 dark:text-neutral-300" />
                     </button>
                     <h1 class="font-semibold text-gray-900 dark:text-neutral-100">Quick Add Product</h1>
-                    <button @click="postProduct" :disabled="!canPost || isUploading" class="text-sm font-bold text-[#f02c56] disabled:text-gray-400 dark:disabled:text-neutral-600">
+                    <button @click="postProduct" :disabled="!canPost || isUploading" class="text-sm font-bold text-brand disabled:text-gray-400 dark:disabled:text-neutral-600">
                         {{ isUploading ? 'Posting...' : 'Post' }}
                     </button>
                 </header>

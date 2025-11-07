@@ -9,7 +9,7 @@
             <div class="container mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
                 <button 
                     @click="router.back()"
-                    class="flex items-center space-x-2 text-gray-700 dark:text-neutral-300 hover:text-[#f02c56] transition-colors duration-200 focus:outline-none rounded-md p-1"
+                    class="flex items-center space-x-2 text-gray-700 dark:text-neutral-300 hover:text-brand transition-colors duration-200 focus:outline-none rounded-md p-1"
                     aria-label="Back"
                 >
                     <Icon name="mdi:arrow-left" size="24" />
@@ -25,7 +25,7 @@
                     <button @click="$emit('save-draft')" class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-neutral-400 hover:text-gray-800 dark:hover:text-neutral-100 transition-colors">
                         Draft
                     </button>
-                    <button @click="$emit('publish')" class="px-4 py-2 text-sm font-medium bg-[#f02c56] text-white rounded-lg hover:bg-[#d81b36] transition-colors">
+                    <button @click="$emit('publish')" class="px-4 py-2 text-sm font-medium bg-brand text-white rounded-lg hover:bg-brand-light transition-colors">
                         Publish
                     </button>
                 </div>

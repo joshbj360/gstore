@@ -29,7 +29,7 @@
                                 <img class="rounded-lg w-10 h-10 object-cover flex-shrink-0" :src="item.media?.[0]?.url || 'https://via.placeholder.com/40'" alt="Product" />
                                 <p class="text-sm font-medium text-gray-900 dark:text-neutral-100 truncate">{{ item.title }}</p>
                             </div>
-                            <div class="text-sm font-bold text-[#f02c56]">{{ formatPrice(item.price) }}</div>
+                            <div class="text-sm font-bold text-brand">{{ formatPrice(item.price) }}</div>
                         </NuxtLink>
                     </div>
                 </div>

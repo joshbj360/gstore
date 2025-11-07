@@ -30,15 +30,16 @@ export const useLikeStore = defineStore('like', {
       this.$reset();
     },
 
-    async fetchUserLikes() {
+    async fetchUserLikes(): Promise<{ productLikes: number[]; commentLikes: string[]; postLikes: string[] } | undefined> {
       const userStore = useUserStore();
-      if (!userStore.isLoggedIn) return;
+      if (!userStore.isLoggedIn) 
       try {
         const apiService = useApiService();
         const userLikes = await apiService.getUserLikes(); 
         this._likedProductIds = userLikes.productLikes.map((p: any) => p.productId);
         this._likedCommentIds = userLikes.commentLikes.map((c: any) => c.commentId);
         this._likedPostIds = userLikes.postLikes.map((p: any) => p.postId); // NEW: Populate post likes
+        return userLikes;
       } catch (error) {
         console.error("Failed to fetch user likes:", error);
       }

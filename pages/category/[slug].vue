@@ -15,7 +15,7 @@
             <div v-if="pending" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 <div v-for="n in 10" :key="n" class="h-72 bg-neutral-800 rounded-lg animate-pulse"></div>
             </div>
-             <div v-else-if="error" class="text-center py-20 text-red-400">
+             <div v-else-if="error" class="text-center py-20 text-brand-light">
                 Failed to load products. Please try again.
             </div>
             <div v-else-if="products.length === 0" class="text-center py-16">
@@ -31,7 +31,7 @@
         <!-- Infinite Scroll Trigger -->
         <div ref="loadMoreTrigger" class="h-10"></div>
         <div v-if="isLoadingMore" class="flex justify-center py-8">
-            <Icon name="eos-icons:loading" size="32" class="text-[#f02c56]" />
+            <Icon name="eos-icons:loading" size="32" class="text-brand" />
         </div>
     </div>
     

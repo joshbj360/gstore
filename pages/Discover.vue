@@ -26,7 +26,7 @@
             <div v-if="productsPending" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 <div v-for="n in 10" :key="n" class="h-72 bg-gray-100 dark:bg-neutral-800 rounded-lg animate-pulse"></div>
             </div>
-             <div v-else-if="productsError" class="text-center py-20 text-red-500 dark:text-red-400">
+             <div v-else-if="productsError" class="text-center py-20 text-brand-dark dark:text-brand-light">
                 Failed to load products. Please try again.
             </div>
             <div v-else-if="products.length === 0" class="text-center py-16">
@@ -42,7 +42,7 @@
         <!-- Infinite Scroll Trigger -->
         <div ref="loadMoreTrigger" class="h-10"></div>
         <div v-if="productStore.isLoading" class="flex justify-center py-8">
-            <Icon name="eos-icons:loading" size="32" class="text-[#f02c56]" />
+            <Icon name="eos-icons:loading" size="32" class="text-brand" />
         </div>
     </div>
     
@@ -115,7 +115,7 @@ onUnmounted(() => {
     @apply px-4 py-2 rounded-full text-sm font-medium transition-all bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700;
 }
 .category-button.active {
-    @apply bg-[#f02c56] text-white shadow;
+    @apply bg-brand text-white shadow;
 }
 </style>
 

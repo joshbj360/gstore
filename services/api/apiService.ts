@@ -1,6 +1,8 @@
 import { useRuntimeConfig } from '#app';
+import  {type H3Event, getHeader } from 'h3';
 import type { IProduct, ICategory, IAddress, IShippingZone, IProfile, ISellerProfile, ICartItem, IOrders, IComment, IStory, IMedia, IReel, INotification, IWallet, IFeedItem, IPost } from '~/models';
 import { ApiError } from './apiError';
+import { useRequestEvent} from '#imports';
 
 //#region === API SERVICE INTERFACE ===.
 // This prevents the "Excessive stack depth" error by being more direct.
@@ -25,20 +27,35 @@ class ApiService {
     this.baseURL = config.public.baseURL;
   }
 
-  /**
-   * The core request handler, now correctly typed using our simpler interface.
+    /**
+   * This is the new, high-performance request method.
+   * It now handles forwarding auth cookies for server-side requests.
    */
   private async request<T>(endpoint: string, options: ApiServiceOptions = {}): Promise<T> {
     const headers: Record<string, string> = { ...options.headers };
     
-    if (options.body && typeof options.body === 'object') {
+    if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
         if (['POST', 'PATCH', 'PUT'].includes(options.method?.toUpperCase() || 'POST')) {
             headers['Content-Type'] = 'application/json';
         }
     }
+
+    // --- THE FIX: AUTH FORWARDING ---
+    // This is the key to solving "server-to-self" auth errors.
+    if (import.meta.server) {
+      const event: H3Event | undefined = useRequestEvent();
+      if (event) {
+        // Get the cookie from the original user request
+        const cookie = getHeader(event, 'cookie');
+        if (cookie) {
+          // Add that cookie to the internal API request
+          headers['cookie'] = cookie;
+        }
+      }
+    }
+    // --- END OF FIX ---
     
     try {
-      // The options object is now fully compatible with $fetch.
       return await $fetch<T>(`${this.baseURL}${endpoint}`, {
           ...options,
           headers,
@@ -164,26 +181,24 @@ getProductById(id: number): Promise<IProduct> {
   getCartItems(): Promise<ICartItem[]> {
     return this.request('/api/prisma/cart');
   }
-
-  addCartItem(item: { variantId: number, quantity: number }): Promise<ICartItem> {
-    return this.request('/api/prisma/cart/add', {
-      method: 'POST',
-      body: item,
+private cartAction(action: 'add' | 'update' | 'remove', variantId: number, quantity?: number): Promise<ICartItem> {
+    return this.request('/api/prisma/cart', {
+        method: 'POST',
+        body: { action, variantId, quantity }
     });
   }
+
+  addCartItem(variantId: number, quantity: number): Promise<ICartItem> {
+    return this.cartAction('add', variantId, quantity);
+  }
+
 
   updateCartItem(variantId: number, quantity: number): Promise<ICartItem> {
-    return this.request('/api/prisma/cart/update', {
-      method: 'PATCH',
-      body: { variantId, quantity },
-    });
+    return this.cartAction('update', variantId, quantity);
   }
 
-  removeCartItem(variantId: number): Promise<{ success: boolean }> {
-    return this.request('/api/prisma/cart/remove', {
-      method: 'DELETE',
-      body: { variantId },
-    });
+  removeCartItem(variantId: number): Promise<ICartItem> {
+    return this.cartAction('remove', variantId);
   }
   //#endregion
 

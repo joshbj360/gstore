@@ -14,7 +14,7 @@
                 <video v-else :src="item.url" class="w-full h-full object-cover" muted playsinline></video>
                 
                 <!-- Main Badge -->
-                <div v-if="item.public_id === mainPublicId" class="absolute top-1 left-1 bg-[#f02c56] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                <div v-if="item.public_id === mainPublicId" class="absolute top-1 left-1 bg-brand text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                     MAIN
                 </div>
 

@@ -34,8 +34,8 @@ const iconName = computed(() => {
 const iconColorClass = computed(() => {
     switch(props.notification.type) {
         case 'NEW_FOLLOWER': return '!text-blue-400';
-        case 'POST_LIKE': return '!text-red-400';
-        case 'COMMENT_LIKE': return '!text-red-400';
+        case 'POST_LIKE': return '!text-brand-light';
+        case 'COMMENT_LIKE': return '!text-brand-light';
         case 'NEW_COMMENT': return '!text-green-400';
         case 'REPLY': return '!text-green-400';
         case 'ORDER': return '!text-indigo-400';

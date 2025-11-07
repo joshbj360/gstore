@@ -13,7 +13,7 @@
                 </div>
             </NuxtLink>
             <button @click.stop="followStore.toggleFollow(item.author.id)" class="ml-auto text-sm font-semibold hover:underline"
-                :class="isFollowing ? 'text-gray-500 dark:text-neutral-400' : 'text-[#f02c56]'">
+                :class="isFollowing ? 'text-gray-500 dark:text-neutral-400' : 'text-brand'">
                 {{ isFollowing ? 'Following' : 'Follow' }}
             </button>
         </div>
@@ -28,7 +28,7 @@
             <!-- Action Buttons -->
             <div class="flex items-center space-x-4 mb-3">
                 <button @click.stop="likeStore.togglePostLike(item.id)">
-                    <Icon :name="isLiked ? 'mdi:heart' : 'mdi:heart-outline'" class="w-7 h-7" :class="isLiked ? 'text-red-500' : 'text-gray-500 dark:text-neutral-300 hover:text-red-400'" />
+                    <Icon :name="isLiked ? 'mdi:heart' : 'mdi:heart-outline'" class="w-7 h-7" :class="isLiked ? 'text-brand-dark' : 'text-gray-500 dark:text-neutral-300 hover:text-brand-light'" />
                 </button>
                 <button @click.stop="$emit('open-comments', item.taggedProducts[0])">
                     <Icon name="mdi:comment-text-outline" class="w-7 h-7 text-gray-500 dark:text-neutral-300 hover:text-black dark:hover:text-white" />

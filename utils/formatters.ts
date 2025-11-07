@@ -26,7 +26,7 @@ const formatNumber = (num: number) => new Intl.NumberFormat().format(num);
     return media.url;
 };
 
-const formatAvatarUrl = (username: string | null, gender: string='boy'): string => {
+const formatAvatarUrl = (username: string | null | undefined, gender: string='boy'): string => {
     if (!username) {
         return `https://avatar.iran.liara.run/public/${gender}?username=user`; // A fallback avatar image
     }

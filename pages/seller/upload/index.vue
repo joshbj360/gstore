@@ -7,9 +7,9 @@
         <UploadPageSkeleton v-if="pending" />
         
         <div v-else-if="error" class="p-8 text-center max-w-md mx-auto">
-             <Icon name="mdi:alert-circle" size="48" class="mx-auto mb-4 text-[#f02c56]" />
+             <Icon name="mdi:alert-circle" size="48" class="mx-auto mb-4 text-brand" />
              <p class="text-gray-600 dark:text-neutral-400 text-lg mb-4">Couldn't load form data. Let's fix that.</p>
-             <button @click="refresh()" class="px-6 py-2 bg-[#f02c56] text-white rounded-lg font-medium hover:bg-[#d81b36] transition-colors mr-3">Retry</button>
+             <button @click="refresh()" class="px-6 py-2 bg-brand text-white rounded-lg font-medium hover:bg-brand-light transition-colors mr-3">Retry</button>
              <button @click="router.back()" class="px-6 py-2 bg-gray-200 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-neutral-700">Back</button>
         </div>
 

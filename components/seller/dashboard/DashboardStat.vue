@@ -1,43 +1,29 @@
 <template>
-  <div class="bg-white rounded-lg shadow-sm p-4 sm:p-5 border border-gray-100 hover:shadow-md transition-all duration-200">
+  <div
+    class="bg-white dark:bg-neutral-900 rounded-lg shadow-sm p-4 sm:p-5 border border-gray-200 dark:border-neutral-800 hover:shadow-md transition-all duration-200">
     <div class="flex items-center justify-between">
       <div>
         <p class="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">{{ title }}</p>
         <p class="text-2xl sm:text-3xl font-bold text-gray-800 mt-1">{{ value }}</p>
       </div>
-      <div 
-        class="p-3 rounded-full"
-        :class="{
+      <div class="p-3 rounded-full" :class="{
           'bg-brand/10': trend === 'up',
           'bg-yellow-100': trend === 'down',
           'bg-gray-100': trend === 'neutral'
-        }"
-      >
-        <Icon 
-          :name="icon" 
-          size="20" 
-          :class="{
-            'text-brand-dark': trend === 'up',
+        }">
+        <Icon :name="icon" size="20" :class="{
+          'text-brand-dark': trend === 'up',
             'text-yellow-500': trend === 'down',
             'text-gray-500': trend === 'neutral'
-          }" 
-        />
+          }" />
       </div>
     </div>
-    
-    <div 
-      v-if="change !== 0" 
-      class="flex items-center mt-3 text-xs sm:text-sm"
-      :class="{
+
+    <div v-if="change !== 0" class="flex items-center mt-3 text-xs sm:text-sm" :class="{
         'text-[#009A66]': trend === 'up',
         'text-yellow-600': trend === 'down'
-      }"
-    >
-      <Icon 
-        :name="trend === 'up' ? 'mdi:arrow-up' : 'mdi:arrow-down'" 
-        size="16" 
-        class="mr-1" 
-      />
+      }">
+      <Icon :name="trend === 'up' ? 'mdi:arrow-up' : 'mdi:arrow-down'" size="16" class="mr-1" />
       <span>{{ Math.abs(change) }}% {{ trend === 'up' ? 'increase' : 'decrease' }}</span>
       <span class="text-gray-400 ml-1">vs last period</span>
     </div>

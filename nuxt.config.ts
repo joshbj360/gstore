@@ -29,6 +29,7 @@ export default defineNuxtConfig({
     "@nuxtjs/cloudinary",
     'nuxt-charts',
     '@nuxtjs/color-mode',
+    'nuxt3-notifications',
   ],
   supabase: {
     redirect: false,

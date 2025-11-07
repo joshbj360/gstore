@@ -1,144 +1,141 @@
 <template>
-  <div>
-    <!-- The Skeleton Loader is shown while the initial data is pending -->
-    <CartSkeleton v-if="cartStore.isLoading" />
-    
-    <!-- The Error state is shown if the fetch fails -->
-    <!-- <div v-else-if="error" class="text-center py-20">
-        <h2 class="text-2xl font-bold text-brand">Could not load your cart</h2>
-        <p class="text-gray-500 mt-2">{{ error.message }}</p>
-    </div> -->
-    
-    <!-- The real content is only rendered AFTER data has successfully arrived -->
-    <div v-else id="ShoppingCartPage" class="min-h-screen bg-gray-50">
-      <header class="bg-white shadow-sm sticky top-0 z-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Shopping Cart</h1>
-        </div>
-      </header>
+  <HomeLayout>
+    <!-- Default Slot: Main Cart Content -->
+    <div class="space-y-6">
+      <div class="px-4">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-neutral-100">Shopping Cart</h1>
+      </div>
+      
+      <CartSkeleton v-if="pending" />
+      
+      <div v-else-if="error" class="text-center py-20">
+        <p class="text-brand-dark dark:text-brand-light">Could not load your cart.</p>
+      </div>
 
-      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Empty Cart -->
-        <div v-if="cartStore.cartItems.length === 0 && savedForLaterItems.length === 0" class="text-center py-16">
-          <div class="relative w-52 h-52 mx-auto mb-6">
-            <img src="~/assets/images/cart-empty.png" alt="Empty shopping cart" class="w-full h-full object-contain">
+      <!-- Empty Cart -->
+      <div v-else-if="cartStore.cartItems.length === 0 && savedForLaterItems.length === 0" class="text-center py-16">
+        <Icon name="mdi:cart-remove" size="64" class="mx-auto text-gray-300 dark:text-neutral-700 mb-4" />
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-neutral-200">Your cart is empty</h2>
+        <p class="text-gray-500 dark:text-neutral-400 mt-2 mb-6">Looks like you haven't added anything yet.</p>
+        <NuxtLink to="/discover" class="px-6 py-3 bg-brand text-white font-semibold rounded-lg shadow-md hover:bg-brand-light transition-transform hover:scale-105">
+          Continue Shopping
+        </NuxtLink>
+      </div>
+
+      <!-- Cart with Items -->
+      <div v-else class="space-y-6">
+        <div v-if="cartStore.cartItems.length > 0" class="bg-white dark:bg-neutral-950 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-neutral-800">
+          <div class="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-neutral-800">
+            <div class="flex items-center">
+              <input type="checkbox" v-model="selectAll" class="h-5 w-5 rounded border-gray-300 dark:border-neutral-600 text-brand focus:ring-[#f02c56]/50">
+              <label for="select-all" class="ml-3 text-sm font-medium text-gray-700 dark:text-neutral-300">
+                Select All ({{ cartStore.cartCount }} item{{ cartStore.cartCount !== 1 ? 's' : '' }})
+              </label>
+            </div>
+            <button @click="removeSelectedItems" :disabled="!selectedItems.length" class="text-sm text-brand hover:underline disabled:text-gray-400 dark:disabled:text-neutral-600">
+              Delete Selected
+            </button>
           </div>
-          <h2 class="text-2xl font-bold text-gray-800">Your cart is empty</h2>
-          <p class="text-gray-500 mt-2 mb-6">Looks like you haven't added anything yet.</p>
-          <NuxtLink to="/" class="px-6 py-3 bg-brand text-white font-semibold rounded-lg shadow-md hover:bg-[#d81b36] transition-transform hover:scale-105">
-            Continue Shopping
-          </NuxtLink>
+          <transition-group name="cart-item" tag="div" class="divide-y divide-gray-200 dark:divide-neutral-800">
+            <CartItem
+              v-for="item in cartStore.cartItems"
+              :key="item.id"
+              :item="item"
+              :selected="isSelected(item)"
+              @selected="toggleProductSelection"
+              @save-for-later="saveItemForLater"
+              class="cart-item py-6"
+            />
+          </transition-group>
         </div>
-
-        <!-- Cart with Items -->
-        <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          <div class="lg:col-span-2 space-y-6">
-            <div v-if="cartStore.cartItems.length > 0" class="bg-white rounded-xl shadow-sm p-6">
-              <div class="flex items-center justify-between pb-4 border-b">
-                <div class="flex items-center">
-                  <input type="checkbox" v-model="selectAll" class="h-5 w-5 rounded border-gray-300 text-brand focus:ring-[#f02c56]/50">
-                  <label for="select-all" class="ml-3 text-sm font-medium">
-                    Select All ({{ cartStore.cartCount }} item{{ cartStore.cartCount !== 1 ? 's' : '' }})
-                  </label>
-                </div>
-                <button @click="removeSelectedItems" :disabled="!selectedItems.length" class="text-sm text-brand hover:underline disabled:text-gray-400">
-                  Delete Selected
-                </button>
-              </div>
-              <transition-group name="cart-item" tag="div" class="divide-y divide-gray-200">
-                <CartItem
-                  v-for="item in cartStore.cartItems"
-                  :key="item.id"
-                  :item=" item"
-                  :selected="isSelected(item)"
-                  @selected="toggleProductSelection"
-                  @save-for-later="saveItemForLater"
-                  class="cart-item py-4"
-                />
-              </transition-group>
-            </div>
-            
-            <!-- Saved for Later Section -->
-            <div v-if="savedForLaterItems.length > 0" class="bg-white rounded-xl shadow-sm p-6">
-              <h2 class="text-xl font-bold text-gray-900 mb-4">Saved for Later ({{ savedForLaterItems.length }})</h2>
-              <div class="divide-y divide-gray-200">
-                  <div v-for="item in savedForLaterItems" :key="item.id" class="py-4 flex items-center gap-4">
-                      <img 
-                      v-if="item.product.media && item.product.media.length"
-                        :src="item.product?.media[0].url" 
-                        class="w-20 h-20 rounded-md object-cover"
-                      >
-                      <div class="flex-1">
-                          <p class="font-semibold text-sm">{{ item.product?.title }}</p>
-                          <p class="text-gray-500 text-sm">{{ formatPrice(item.variant.price ?? 0) }}</p>
-                      </div>
-                      <button @click="moveToCart(item)" class="text-sm text-brand hover:underline">Move to Cart</button>
-                  </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Order Summary -->
-          <div class="space-y-6">
-            <div class="bg-white rounded-xl shadow-sm p-6 sticky top-24">
-              <h2 class="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
-              <div class="space-y-3">
-                <div class="flex justify-between text-gray-600">
-                  <span>Subtotal ({{ selectedItems.length }} items)</span>
-                  <span class="font-medium text-gray-900">{{ formatPrice(totalPriceComputed) }}</span>
-                </div>
-                <div class="flex justify-between text-gray-600">
-                  <span>Shipping</span>
-                  <span class="font-medium text-green-600">Free</span>
-                </div>
-                <div class="border-t pt-4 mt-4">
-                  <div class="flex justify-between text-gray-900 font-bold text-lg">
-                    <span>Order Total</span>
-                    <span>{{ formatPrice(totalPriceComputed) }}</span>
-                  </div>
-                </div>
-              </div>
-              <button @click="goToCheckout" :disabled="!selectedItems.length" class="mt-6 w-full bg-brand text-white py-3 px-6 rounded-lg font-semibold shadow-md hover:bg-[#d81b36] transition-transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed">
-                Proceed to Checkout
-              </button>
-            </div>
+        
+        <!-- Saved for Later Section -->
+        <div v-if="savedForLaterItems.length > 0" class="bg-white dark:bg-neutral-950 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-neutral-800">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-neutral-100 mb-4">Saved for Later ({{ savedForLaterItems.length }})</h2>
+          <div class="divide-y divide-gray-200 dark:divide-neutral-800">
+              <!-- ... saved for later items ... -->
           </div>
         </div>
-      </main>
+      </div>
+      
+      <!-- 
+        THE FIX: Add padding to the bottom of the main content 
+        to ensure it doesn't get hidden by the sticky mobile footer.
+        h-14 (nav) + h-20 (summary) = pb-34
+      -->
+      <div class="h-34 lg:hidden"></div>
     </div>
+
+    <!-- Right Sidebar Slot: Desktop Order Summary -->
+    <template #right-sidebar>
+        <div class="bg-white dark:bg-neutral-900 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-neutral-800 sticky top-6">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-neutral-100 mb-4">Order Summary</h2>
+          <div class="space-y-3">
+            <div class="flex justify-between text-gray-600 dark:text-neutral-300">
+              <span>Subtotal ({{ selectedItems.length }} items)</span>
+              <span class="font-medium text-gray-900 dark:text-neutral-100">{{ formatPrice(totalPriceComputed) }}</span>
+            </div>
+            <div class="flex justify-between text-gray-600 dark:text-neutral-300">
+              <span>Shipping</span>
+              <span class="font-medium text-green-600 dark:text-green-400">Free</span>
+            </div>
+            <div class="border-t border-gray-200 dark:border-neutral-700 pt-4 mt-4">
+              <div class="flex justify-between text-gray-900 dark:text-neutral-100 font-bold text-lg">
+                <span>Order Total</span>
+                <span>{{ formatPrice(totalPriceComputed) }}</span>
+              </div>
+            </div>
+          </div>
+          <button @click="goToCheckout" :disabled="!selectedItems.length" class="mt-6 w-full bg-brand text-white py-3 px-6 rounded-lg font-semibold shadow-md hover:bg-brand-light transition-transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed">
+            Proceed to Checkout
+          </button>
+        </div>
+    </template>
+
+    <!-- Left sidebar is empty for a focused cart experience -->
+    <template #left-sidebar></template>
+  </HomeLayout>
+
+  <!-- 
+    THE FIX: Mobile-Only Sticky Footer
+    This bar is fixed to the bottom of the screen and sits *above* the
+    BottomNavMobile (which is h-14). It is hidden on desktop (lg:hidden).
+  -->
+  <div class="lg:hidden fixed bottom-14 left-0 right-0 z-10 p-4 bg-white dark:bg-neutral-900 border-t border-gray-200 dark:border-neutral-800 shadow-lg">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm text-gray-600 dark:text-neutral-400">Total ({{ selectedItems.length }} items)</span>
+        <span class="font-bold text-lg text-gray-900 dark:text-neutral-100">{{ formatPrice(totalPriceComputed) }}</span>
+      </div>
+      <button @click="goToCheckout" :disabled="!selectedItems.length" class="w-full bg-brand text-white py-3 px-6 rounded-lg font-semibold disabled:opacity-70">
+        Proceed to Checkout
+      </button>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { useCartStore } from '~/stores/cart.store';
+import { useCartStore, useUserStore } from '~/stores';
 import CartItem from '~/components/product/CartItem.vue';
 import CartSkeleton from '~/components/skeletons/CartSkeleton.vue';
+import HomeLayout from '~/layouts/HomeLayout.vue';
 import type { IProduct, ICartItem } from '~/models';
 import { notify } from '@kyvg/vue3-notification';
 
-definePageMeta({ layout: 'home-layout' });
+definePageMeta({ layout: false }); // We use HomeLayout directly
 
 const router = useRouter();
 const cartStore = useCartStore();
+const userStore = useUserStore();
 
-let _product = ref<IProduct>({} as IProduct); // Temporary holder for fetched products
 const selectedItems = ref<ICartItem[]>([]);
-const savedForLaterItems = ref<ICartItem[]>([]); // This would typically be managed in its own store
+const savedForLaterItems = ref<ICartItem[]>([]);
 
-// This is the core of the optimization. `useAsyncData` calls the store action
-// to fetch and populate the cart BEFORE the page is rendered.
-// const { pending, error } = await useAsyncData(
-//     'cart-items',
-//     () => cartStore.fetchCartItems(),
-//     {
-//         // We don't want this to run on the server if the user is a guest,
-//         // as the cart only exists in their browser's localStorage.
-//         server: useUserStore().isLoggedIn 
-//     }
-// );
-
+const { pending, error } = await useLazyAsyncData(
+    'cart-items',
+    () => cartStore.fetchCartItems(),
+    { server: userStore.isLoggedIn }
+);
 
 // "Select All" logic
 const selectAll = computed({
@@ -153,7 +150,6 @@ const isSelected = (item: ICartItem) => selectedItems.value.some(p => p.id === i
 const toggleProductSelection = (data: { item: ICartItem, selected: boolean }) => {
   const { item, selected } = data;
   const index = selectedItems.value.findIndex(p => p.id === item.id);
-  
   if (selected && index === -1) {
     selectedItems.value.push({ ...item });
   } else if (!selected && index > -1) {
@@ -182,7 +178,7 @@ const moveToCart = (item: ICartItem) => {
 };
 
 const totalPriceComputed = computed(() => {
-  return selectedItems.value.reduce((sum, item) => sum + ((item.variant?.price || 0) * item.quantity), 0);
+  return selectedItems.value.reduce((sum, item) => sum + ((item.variant?.price || item.product.price || 0) * item.quantity), 0);
 });
 
 const goToCheckout = () => {

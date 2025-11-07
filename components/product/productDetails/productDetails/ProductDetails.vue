@@ -24,7 +24,7 @@
                   v-if="sellerStore.is_verified"
                   name="mdi:check-decagram"
                   size="16"
-                  class="inline ml-1 text-[#f02c56]"
+                  class="inline ml-1 text-brand"
                 />
               </p>
               <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ sellerStore.store_location }}</p>
@@ -37,7 +37,7 @@
           @click="followStore.toggleFollow(sellerStore.id)"
           class="border text-xs px-3 py-1 rounded-full transition-all"
           :class="isFollowing 
-            ? 'bg-[#f02c56]/10 text-[#f02c56] border-[#f02c56]/30'
+            ? 'bg-brand/10 text-brand border-[#f02c56]/30'
             : 'border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'"
         >
           {{ isFollowing ? 'Following' : 'Follow' }}
@@ -47,7 +47,7 @@
       <!-- Title and Price -->
       <h1 class="text-lg font-bold text-neutral-900 dark:text-neutral-100 mb-2">{{ product.title }}</h1>
       <div class="flex items-baseline mb-3">
-        <span class="text-2xl font-semibold text-[#f02c56]">{{ formatPrice(priceComputed) }}</span>
+        <span class="text-2xl font-semibold text-brand">{{ formatPrice(priceComputed) }}</span>
         <span
           v-if="product.discount"
           class="ml-3 text-sm line-through text-neutral-400"
@@ -58,7 +58,7 @@
 
       <!-- Shipping Info -->
       <div class="flex items-center mb-6 text-sm text-neutral-700 dark:text-neutral-300">
-        <Icon name="mdi:truck-fast-outline" class="text-[#f02c56] mr-2" size="18" />
+        <Icon name="mdi:truck-fast-outline" class="text-brand mr-2" size="18" />
         <span>Ships in 5–11 days • {{ formatPrice(shippingCost) }}</span>
       </div>
 
@@ -74,7 +74,7 @@
             class="px-4 py-1.5 rounded-full border text-xs font-medium transition-all"
             :class="[
               selectedVariant?.id === variant.id
-                ? 'bg-[#f02c56] text-white border-[#f02c56]'
+                ? 'bg-brand text-white border-[#f02c56]'
                 : 'border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-300 hover:border-neutral-500',
               variant.stock === 0 ? 'opacity-50 cursor-not-allowed line-through' : ''
             ]"
@@ -129,7 +129,7 @@
         <button
           @click="addToCart"
           :disabled="isInCart"
-          class="flex-1 bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-full py-2 text-sm font-medium hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all"
+          class="flex-1 bg-brand text-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-full py-2 text-sm font-medium hover:bg-brand-light dark:hover:bg-neutral-700 transition-all"
         >
           {{ isInCart ? 'Added' : 'Add to Cart' }}
         </button>
@@ -137,7 +137,7 @@
         <!-- Buy Now -->
         <button
           @click="buyNow"
-          class="flex-1 bg-[#f02c56] text-white rounded-full py-2 text-sm font-medium hover:bg-[#d81b36] transition-all"
+          class="flex-1 bg-brand text-white rounded-full py-2 text-sm font-medium hover:bg-brand-light transition-all"
         >
           Buy Now
         </button>

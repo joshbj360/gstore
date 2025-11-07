@@ -18,7 +18,7 @@
                 <Icon name="mdi:package-variant-closed" size="48" class="mx-auto text-gray-300 mb-4" />
                 <h3 class="text-lg font-medium text-gray-900 mb-2">No Orders Found</h3>
                 <p class="text-gray-500 mb-6">You haven't placed any orders yet.</p>
-                <NuxtLink to="/" class="px-6 py-2 bg-brand text-white font-semibold rounded-lg shadow-md hover:bg-[#d81b36]">
+                <NuxtLink to="/" class="px-6 py-2 bg-brand text-white font-semibold rounded-lg shadow-md hover:bg-brand-light">
                     Start Shopping
                 </NuxtLink>
             </div>
@@ -84,7 +84,7 @@ const getStatusClass = (status: string) => {
     if (status === EOrderStatus.SHIPPED) return 'bg-blue-100 text-blue-800';
     if (status === EOrderStatus.PAID) return 'bg-green-100 text-green-800';
     if (status === EOrderStatus.PENDING) return 'bg-yellow-100 text-yellow-800';
-    if (status === EOrderStatus.CANCELED) return 'bg-red-100 text-red-800';
+    if (status === EOrderStatus.CANCELED) return 'text-brand-light text-red-800';
     return 'bg-gray-100 text-gray-800';
 };
 </script>

@@ -5,9 +5,9 @@
       <SellerProfileSkeleton v-if="pending" />
 
       <div v-else-if="error || !sellerData" class="text-center py-20">
-        <h2 class="text-2xl font-bold text-red-500">Store Not Found</h2>
+        <h2 class="text-2xl font-bold text-brand-dark">Store Not Found</h2>
         <p class="text-gray-600 dark:text-neutral-400 mt-2">The store you are looking for does not exist or may have been moved.</p>
-        <NuxtLink to="/" class="mt-4 inline-block bg-[#f02c56] text-white px-6 py-2 rounded-md hover:bg-[#d81b36]">
+        <NuxtLink to="/" class="mt-4 inline-block bg-brand text-white px-6 py-2 rounded-md hover:bg-brand-light">
             Browse All Products
         </NuxtLink>
       </div>
@@ -44,7 +44,7 @@
 
           <!-- Action Buttons -->
           <div class="flex gap-3 py-4">
-            <button @click="toggleFollow" class="flex-1 py-2.5 rounded-lg font-semibold text-sm transition-colors" :class="isFollowing ? 'bg-gray-200 text-gray-800 dark:bg-neutral-700 dark:text-neutral-100' : 'bg-[#f02c56] text-white'">
+            <button @click="toggleFollow" class="flex-1 py-2.5 rounded-lg font-semibold text-sm transition-colors" :class="isFollowing ? 'bg-gray-200 text-gray-800 dark:bg-neutral-700 dark:text-neutral-100' : 'bg-brand text-white'">
               {{ isFollowing ? 'Following' : 'Follow' }}
             </button>
             <button @click="openChat" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700">Message</button>
@@ -148,7 +148,7 @@ const openChat = () => { /* ... chat logic ... */ };
     @apply flex-1 py-3 text-center font-medium border-b-2 transition-colors text-gray-500 dark:text-neutral-500 border-transparent hover:text-gray-800 dark:hover:text-neutral-100;
 }
 .tab-button.active {
-    @apply border-[#f02c56] text-[#f02c56];
+    @apply border-[#f02c56] text-brand;
 }
 </style>
 
