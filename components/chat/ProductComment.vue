@@ -33,7 +33,7 @@
                     </div>
                     <!-- THE FIX: Like button is now interactive -->
                     <button @click="toggleLike(comment)" class="flex flex-col items-center transition-colors"
-                        :class="isCommentLiked(comment.id) ? 'text-brand' : 'text-gray-500 hover:text-red-400'">
+                        :class="isCommentLiked(comment.id) ? 'text-brand' : 'text-gray-500 hover:text-brand-light'">
                         <Icon :name="isCommentLiked(comment.id) ? 'mdi:heart' : 'mdi:heart-outline'" size="18" />
                         <span class="text-xs">{{ comment._count?.likes }}</span>
                     </button>
@@ -55,7 +55,7 @@
                             </div>
                         </div>
                         <button @click="toggleLike(reply)" class="flex flex-col items-center transition-colors"
-                            :class="isCommentLiked(reply.id) ? 'text-brand' : 'text-gray-500 hover:text-red-400'">
+                            :class="isCommentLiked(reply.id) ? 'text-brand' : 'text-gray-500 hover:text-brand-light'">
                             <Icon :name="isCommentLiked(reply.id) ? 'mdi:heart' : 'mdi:heart-outline'" size="16" />
                             <span class="text-xs">{{ reply._count?.likes }}</span>
                         </button>

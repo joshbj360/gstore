@@ -36,7 +36,7 @@
         <div class="mt-8 flex flex-col sm:flex-row gap-4">
             <NuxtLink 
               to="/" 
-              class="px-6 py-3 bg-brand text-white font-semibold rounded-lg shadow-md hover:bg-[#d81b36] transition-transform hover:scale-105"
+              class="px-6 py-3 bg-brand text-white font-semibold rounded-lg shadow-md hover:bg-brand-light transition-transform hover:scale-105"
             >
               Continue Shopping
             </NuxtLink>

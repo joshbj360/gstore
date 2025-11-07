@@ -1,20 +1,18 @@
 <template>
   <div id="AuthPage" class="min-h-screen bg-gray-100 flex flex-col">
-    <!-- <header class="w-full flex items-center justify-center p-5 border-b border-gray-200 bg-white">
+    <header class="w-full flex items-center justify-center p-5 border-b border-gray-200 bg-white">
       <NuxtLink to="/">
-        <img width="170" src="~/assets/images/grandeur-logo.png" alt="Grandeur Logo" class="h-10 w-auto" />
+        <img width="170" src="~/assets/images/logo2.png" alt="Grandeur Logo" class="h-10 w-auto" />
       </NuxtLink>
-    </header> -->
+    </header>
 
     <main class="flex-1 flex items-center justify-center px-4 py-12">
       <div class="max-w-md w-full bg-white rounded-xl shadow-md p-6 sm:p-8 space-y-6">
         <NuxtLink class="text-center text-2xl sm:text-3xl font-bold text-gray-800">
-          <span class="text-brand">{{ siteName }}</span>
-          <br></br>
-          <span>{{ isRegister ? 'Create Your Account with Aura' : ' Login' }}</span>
+          <span>{{ isRegister ? `Create Your Account` : `Welcome Back`}}</span>
         </NuxtLink>
 
-        <p v-if="authMessage" class="text-center text-sm p-3 rounded-lg" :class="isError_ ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'">
+        <p v-if="authMessage" class="text-center text-sm p-3 rounded-lg" :class="isError_ ? 'text-brand-light text-red-600' : 'bg-green-50 text-green-600'">
           {{ authMessage }}
         </p>
 
@@ -27,7 +25,7 @@
             <TextInput v-if="isRegister" v-model:input="form.confirmPassword" placeholder="Confirm Password" inputType="password" label="Confirm Password" :error="errors.confirmPassword" />
           </transition>
           
-          <button type="submit" class="w-full py-3 px-4 text-white bg-brand rounded-lg font-semibold hover:bg-[#d81b36] transition-all disabled:bg-gray-400" :disabled="userStore.isLoading">
+          <button type="submit" class="w-full py-3 px-4 text-white bg-brand rounded-lg font-semibold hover:bg-brand-light transition-all disabled:bg-gray-400" :disabled="userStore.isLoading">
             {{ userStore.isLoading ? 'Processing...' : isRegister ? 'Create Account' : 'Sign In' }}
           </button>
         </form>
@@ -41,12 +39,12 @@
         <!-- Social Login -->
         <div class="space-y-3">
           <button @click="userStore.loginWithOAuth('google')" class="social-login-button">
-            <img class="w-6 h-6" src="~/assets/images/google-logo.png" alt="Google Logo" />
+            <Icon name="mdi:google" class="w-6 h-6" />
             <span>Continue with Google</span>
           </button>
-          <button @click="userStore.loginWithOAuth('github')" class="social-login-button">
-            <img class="w-6 h-6" src="~/assets/images/github-logo.png" alt="GitHub Logo" />
-            <span>Continue with GitHub</span>
+          <button @click="userStore.loginWithOAuth('facebook')" class="social-login-button">
+            <Icon name="mdi:facebook" class="w-6 h-6" />
+            <span>Continue with Facebook</span>
           </button>
         </div>
         
@@ -67,6 +65,7 @@ import { ref, reactive } from 'vue';
 import { useUserStore } from '~/stores/user.store';
 import { useRouter } from 'vue-router';
 import TextInput from '~/components/shared/TextInput.vue';
+import { notify } from '@kyvg/vue3-notification';
 
 definePageMeta({ layout: false });
 
@@ -110,6 +109,7 @@ const handleSubmit = async () => {
     result = await userStore.registerWithPassword(form.email, form.password);
     if(result.success && (result.user?.identities?.length ?? 0) > 0) {
         authMessage.value = 'Registration successful! Please check your email to confirm your account.';
+        notify({ type: 'success', text: 'Registration successful! Please check your email to confirm your account.' });
     }
   } else {
     result = await userStore.loginWithPassword(form.email, form.password);

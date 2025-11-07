@@ -1,26 +1,24 @@
 <template>
   <!-- 
-    THE FIX: The root div is now theme-aware.
+    This root div is now theme-aware.
     It defaults to the light theme and applies dark classes when the `dark` class is on the <html> tag.
   -->
   <div class="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 transition-colors duration-300">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-    <notifications position="bottom right" />
+   <NuxtNotifications position="top right" :speed="500" />
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
-// THE FIX: We import all the necessary stores for app initialization.
 import { useUserStore, useCartStore, useLikeStore, useFollowStore } from '~/stores';
 import { useSupabaseClient } from '#imports';
 
-// THE FIX: We do NOT import `useColorMode`. Nuxt provides it automatically.
 // This call now correctly uses the Nuxt Color Mode module.
 const colorMode = useColorMode();
-// We can set 'dark' as the default, but it will respect the user's saved preference.
 colorMode.preference = colorMode.preference || 'dark';
 
 const userStore = useUserStore();
@@ -30,22 +28,28 @@ const followStore = useFollowStore();
 const supabase = useSupabaseClient();
 
 /**
- * This listener handles the authentication state for the entire application.
+ * This listener now *only* handles NEW login/logout events.
+ * It no longer runs on page refresh (TOKEN_REFRESHED).
  */
 supabase.auth.onAuthStateChange(async (event, session) => {
+  
+  // This event fires *only* when a user actively logs IN.
   if (event === 'SIGNED_IN') {
-    // 1. Fetch the user's core profile data
+    console.log("Auth Event: SIGNED_IN. Merging guest cart...");
+    // 1. Fetch profile (this is new for this session)
     await userStore.fetchUserAndProfile();
-    // 2. Merge their local guest cart with their database cart
-    await cartStore.mergeAndSyncCartOnLogin();
-    // 3. Fetch their private social data (likes and follows)
-    await Promise.all([
-        likeStore.fetchUserLikes(),
-        followStore.fetchUserFollows()
-    ]);
+    // 2. THIS IS THE KEY: Merge the guest cart with the DB cart.
+    //await cartStore.mergeAndSyncCartOnLogin();
+    // 3. Fetch social data (this is new for this session)
+    // await Promise.all([
+    //     likeStore.fetchUserLikes(),
+    //     followStore.fetchUserFollows()
+    // ]);
   }
+  
+  // This event fires *only* when a user actively logs OUT.
   if (event === 'SIGNED_OUT') {
-    // On logout, clear all user-specific state
+    console.log("Auth Event: SIGNED_OUT. Resetting all user stores...");
     userStore.reset();
     cartStore.reset();
     likeStore.reset();
@@ -54,13 +58,18 @@ supabase.auth.onAuthStateChange(async (event, session) => {
 });
 
 /**
- * THE FIX: This `onMounted` hook handles the case for a user who is already logged in
- * (e.g., returning to the site). It fetches all their private social data.
+ * This hook handles the initial page load for a user
+ * who is *already* logged in (e.g., a page refresh).
  */
 onMounted(() => {
   if (userStore.isLoggedIn) {
-    likeStore.fetchUserLikes();
-    followStore.fetchUserFollows();
+    console.log("App mounted. User is already logged in. Fetching data...");
+    // 1. Fetch profile
+    userStore.fetchUserAndProfile();
+    // 2. THIS IS THE KEY: Fetch the DB cart, DO NOT merge.
+    cartStore.fetchCartItems();
+  } else {
+    console.log("App mounted. User is a guest.");
   }
 });
 </script>
@@ -84,4 +93,3 @@ html:not(.dark) {
   --vn-text-color: #171717;
 }
 </style>
-

@@ -22,7 +22,7 @@
         <!-- Error State -->
         <div v-else-if="error" class="h-dvh flex flex-col items-center justify-center text-center p-6">
             <p class="mb-4 text-neutral-400">Could not load Reels.</p>
-            <button @click="refresh()" class="px-6 py-2 bg-[#f02c56] text-white rounded-full font-medium">Retry</button>
+            <button @click="refresh()" class="px-6 py-2 bg-brand text-white rounded-full font-medium">Retry</button>
         </div>
 
         <!-- Empty State -->

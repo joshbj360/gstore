@@ -1,16 +1,20 @@
 import prisma from '~/server/prisma/prismaClient';
 import { z } from 'zod';
+import { ProductStatus } from '@prisma/client';
 
-export default defineEventHandler(async (event) => {
-    const productId = parseInt(event.context.params!.id, 10);
-    if (isNaN(productId)) {
-        throw createError({ statusCode: 400, message: 'Invalid Product ID.' });
-    }
+/**
+ * @description Fetches all linked "Shop the Look" accessories for a given product.
+ * This endpoint is cached for 10 minutes.
+ */
+export default defineCachedEventHandler(async (event) => {
+    
+    // 1. Validate the incoming product ID
+    const id = event.context.params!.id;
 
     try {
-        // 1. Find all relations where this product is the "main look"
+        // 2. Find all relations where this product is the "main look"
         const relations = await prisma.productRelation.findMany({
-            where: { styledWithId: productId },
+            where: { styledWithId: parseInt(id) },
             select: { appearsInId: true } // Get the IDs of the accessories
         });
 
@@ -19,11 +23,11 @@ export default defineEventHandler(async (event) => {
             return []; // No accessories linked
         }
 
-        // 2. Fetch the full product data for those accessories
+        // 3. Fetch the full product data for those accessories
         const accessories = await prisma.products.findMany({
             where: {
                 id: { in: accessoryIds },
-                status: 'PUBLISHED'
+                status: ProductStatus.PUBLISHED
             },
             select: {
                 id: true,
@@ -37,7 +41,10 @@ export default defineEventHandler(async (event) => {
         return accessories;
 
     } catch (error: any) {
+        // 4. Robust error handling
         console.error("Error fetching linked accessories:", error);
         throw createError({ statusCode: 500, message: 'Could not load accessories.' });
     }
+}, {
+    maxAge: 600 // Cache for 10 minutes
 });

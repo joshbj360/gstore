@@ -23,7 +23,7 @@
                     </div>
 
                     <div class="ml-auto">
-                        <button @click="logout" class="text-sm text-[#f02c56] hover:underline mt-2 font-semibold">Logout</button>
+                        <button @click="logout" class="text-sm text-brand hover:underline mt-2 font-semibold">Logout</button>
                     </div>
                 </div>
             </div>
@@ -38,7 +38,7 @@
                             class="py-3 px-1 border-b-2 font-medium text-sm transition-colors"
                             :class="[
                               activeTab === tab.id 
-                                ? 'border-[#f02c56] text-[#f02c56]' 
+                                ? 'border-[#f02c56] text-brand' 
                                 : 'border-transparent text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-200 hover:border-gray-300 dark:hover:border-neutral-600'
                             ]">
                             {{ tab.name }}
@@ -59,7 +59,7 @@
                         <div v-else class="bg-white dark:bg-neutral-900 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-neutral-800">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-neutral-100">Shipping Address</h3>
-                                <NuxtLink to="/shipping/address" class="text-sm font-medium text-[#f02c56] hover:underline">
+                                <NuxtLink to="/shipping/address" class="text-sm font-medium text-brand hover:underline">
                                     {{ address ? 'Edit Address' : 'Add Address' }}
                                 </NuxtLink>
                             </div>

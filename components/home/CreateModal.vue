@@ -51,7 +51,7 @@
                     
                     <!-- "Create Post" (Buyer & Seller) -->
                     <button @click="$emit('open-post-modal')" class="flex items-center w-full p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors">
-                        <Icon name="mdi:image-multiple" size="24" class="text-[#f02c56]" />
+                        <Icon name="mdi:image-multiple" size="24" class="text-brand" />
                         <div class="ml-4 text-left">
                             <p class="font-semibold text-gray-800 dark:text-neutral-100">Post</p>
                             <p class="text-sm text-gray-600 dark:text-neutral-400">Share a permanent photo or video to your profile.</p>

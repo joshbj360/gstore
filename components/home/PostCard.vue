@@ -12,7 +12,7 @@
                 <Icon v-if="product.seller?.is_verified" name="mdi:check-decagram" class="text-blue-500" />
             </NuxtLink>
             <button @click.stop="followStore.toggleFollow(product.sellerId)" class="ml-auto text-sm font-semibold hover:underline"
-                :class="isFollowing ? 'text-gray-500 dark:text-neutral-400' : 'text-[#f02c56]'">
+                :class="isFollowing ? 'text-gray-500 dark:text-neutral-400' : 'text-brand'">
                 {{ isFollowing ? 'Following' : 'Follow' }}
             </button>
         </div>
@@ -32,7 +32,7 @@
             <!-- Action Buttons -->
             <div class="flex items-center space-x-4 mb-3">
                 <button @click.stop="likeStore.toggleProductLike(product.id!)">
-                    <Icon :name="isLiked ? 'mdi:heart' : 'mdi:heart-outline'" class="w-7 h-7" :class="isLiked ? 'text-red-500' : 'text-gray-500 dark:text-neutral-300 hover:text-red-400'" />
+                    <Icon :name="isLiked ? 'mdi:heart' : 'mdi:heart-outline'" class="w-7 h-7" :class="isLiked ? 'text-brand-dark' : 'text-gray-500 dark:text-neutral-300 hover:text-brand-light'" />
                 </button>
                 <button @click.stop="$emit('open-comments', product)">
                     <Icon name="mdi:comment-text-outline" class="w-7 h-7 text-gray-500 dark:text-neutral-300 hover:text-black dark:hover:text-white" />
@@ -108,9 +108,11 @@ const handleAddToCart = () => {
         emit('open-details', props.product);
     } else if (variants && variants.length === 1) {
         // Only one size, add it directly
+        console.log(props.product.title, variants[0]) //TODO remove
         cartStore.addToCart(props.product, variants[0]);
         notify({ type: 'success', text: `${props.product.title} added to cart!` });
     } else {
+
         notify({ type: 'error', text: 'This product is currently unavailable.' });
     }
 };

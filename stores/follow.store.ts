@@ -29,15 +29,20 @@ export const useFollowStore = defineStore('follow', {
     /**
      * Fetches all sellers the current user follows.
      */
-    async fetchUserFollows() {
+    async fetchUserFollows(): Promise<{ followingId: string }[]> {
       const userStore = useUserStore();
-      if (!userStore.isLoggedIn) return;
+      if (!userStore.isLoggedIn) {
+        return [];
+      }
+
       try {
         const apiService = useApiService();
         const followedSellers = await apiService.getUserFollows(); 
         this._followedSellerIds = followedSellers.map((f: any) => f.followingId);
+        return followedSellers;
       } catch (error) {
         console.error("Failed to fetch user follows:", error);
+        return [];
       }
     },
 

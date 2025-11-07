@@ -17,7 +17,7 @@
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" v-model="product.isAccessory" id="isAccessory" class="sr-only peer">
-                    <div class="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-focus:ring-2 peer-focus:ring-[#f02c56]/50 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#f02c56]"></div>
+                    <div class="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-focus:ring-2 peer-focus:ring-[#f02c56]/50 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
                 </label>
             </div>
         </div>
@@ -42,9 +42,9 @@
                 <TextInput v-model:input="variant.size" placeholder="Size (e.g., Medium)" class="flex-1" />
                 <NumberInput v-model:input="variant.stock" placeholder="Stock" class="w-28" />
                  <CurrencyInput v-model:input="variant.price" placeholder="Variant Price (Optional)" class="w-36" />
-                <button @click="removeVariant(index)" type="button" class="p-2 text-gray-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800"><Icon name="mdi:trash-can-outline" size="20" /></button>
+                <button @click="removeVariant(index)" type="button" class="p-2 text-gray-400 dark:text-neutral-500 hover:text-brand-dark dark:hover:text-brand-light rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800"><Icon name="mdi:trash-can-outline" size="20" /></button>
             </div>
-            <button @click="addVariant" type="button" class="text-sm text-[#f02c56] hover:underline mt-2 font-semibold">+ Add another size</button>
+            <button @click="addVariant" type="button" class="text-sm text-brand hover:underline mt-2 font-semibold">+ Add another size</button>
         </div>
       </div>
 
@@ -54,7 +54,7 @@
         <p class="text-sm text-gray-500 dark:text-neutral-400 mb-3">Choose the shipping rules for this product.</p>
         <div v-if="!sellerShippingZones || sellerShippingZones.length === 0" class="text-center p-4 bg-gray-50 dark:bg-neutral-900 rounded-lg">
             <p class="text-sm text-gray-600 dark:text-neutral-400">You haven't created any shipping profiles yet.</p>
-            <NuxtLink to="/seller/dashboard" class="text-sm font-semibold text-[#f02c56] hover:underline mt-2 inline-block">Manage Shipping</NuxtLink>
+            <NuxtLink to="/seller/dashboard" class="text-sm font-semibold text-brand hover:underline mt-2 inline-block">Manage Shipping</NuxtLink>
         </div>
         <select v-else v-model="selectedShippingZoneId" class="form-input" required>
             <option disabled :value="null">-- Select a Shipping Profile --</option>
@@ -79,7 +79,7 @@
             <p class="text-xs font-semibold text-gray-500 dark:text-neutral-400">LINKED ITEMS:</p>
             <div v-for="linked in linkedProducts" :key="linked.id" class="flex items-center justify-between p-2 bg-gray-50 dark:bg-neutral-800 rounded-md">
                 <span class="text-sm font-medium">{{ linked.title }}</span>
-                <button @click="removeLinkedProduct(linked.id!)" class="p-1 text-gray-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400"><Icon name="mdi:close-circle" size="20" /></button>
+                <button @click="removeLinkedProduct(linked.id!)" class="p-1 text-gray-400 dark:text-neutral-500 hover:text-brand-dark dark:hover:text-brand-light"><Icon name="mdi:close-circle" size="20" /></button>
             </div>
         </div>
       </div>
@@ -93,7 +93,7 @@
     
     <div class="sticky bottom-0 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm border-t border-gray-200 dark:border-neutral-800 p-4 flex justify-end space-x-3">
         <button @click="$emit('discard')" type="button" class="px-6 py-2.5 border border-gray-300 dark:border-neutral-700 rounded-lg text-sm font-semibold text-gray-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800">Discard</button>
-        <button @click="submitForm" type="button" class="px-6 py-2.5 bg-[#f02c56] text-white rounded-lg text-sm font-semibold hover:bg-[#df4949]">Save Product</button>
+        <button @click="submitForm" type="button" class="px-6 py-2.5 bg-brand text-white rounded-lg text-sm font-semibold hover:bg-[#df4949]">Save Product</button>
     </div>
 
     <CategoryDialog :is-open="showCategoryDialog" :is-loading="isLoadingCategory" @submit="(data) => emit('add-category', data)" @close="showCategoryDialog = false" />
@@ -201,6 +201,6 @@ const submitForm = () => {
 .form-section { @apply p-6 border rounded-lg bg-white dark:bg-neutral-900 shadow-sm border-gray-200 dark:border-neutral-800; }
 .section-title { @apply text-lg font-semibold text-gray-800 dark:text-neutral-100 mb-4; }
 .form-input { @apply mt-1 block w-full border border-gray-300 dark:border-neutral-700 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#f02c56] focus:border-transparent bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100; }
-.form-error { @apply text-red-500 text-xs mt-1; }
+.form-error { @apply text-brand-dark text-xs mt-1; }
 </style>
 

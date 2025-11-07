@@ -12,9 +12,9 @@
             <ProductPageSkeleton v-if="pending" />
 
             <div v-else-if="error || !product" class="text-center py-20">
-                <h2 class="text-2xl font-bold text-red-500">Product Not Found</h2>
+                <h2 class="text-2xl font-bold text-brand-dark">Product Not Found</h2>
                 <p class="text-neutral-400 mt-2">This product does not exist or may have been moved.</p>
-                <NuxtLink to="/" class="mt-4 inline-block bg-brand text-white px-6 py-2 rounded-md hover:bg-[#d81b36]">
+                <NuxtLink to="/" class="mt-4 inline-block bg-brand text-white px-6 py-2 rounded-md hover:bg-brand-light">
                     Back to Homepage
                 </NuxtLink>
             </div>
@@ -30,6 +30,7 @@
                     <div class="relative">
                         <div
                             class="lg:sticky lg:top-20 top-20 bg-neutral-900 border border-neutral-800 rounded-xl shadow-md overflow-hidden">
+
                             <Carousel v-if="product.media?.length" :items-to-show="1" wrap-around>
                                 <Slide v-for="media in product.media" :key="media.id">
                                     <MediaDisplay :product-media="media" :is-playing="true"

@@ -17,7 +17,7 @@
                 </div>
 
                 <div v-if="notificationStore.isLoading" class="flex-1 flex items-center justify-center">
-                    <Icon name="eos-icons:loading" size="32" class="text-[#f02c56]" />
+                    <Icon name="eos-icons:loading" size="32" class="text-brand" />
                 </div>
                 <div v-else-if="notificationStore.notifications.length === 0"
                     class="flex-1 flex flex-col items-center justify-center text-center p-6 text-gray-500 dark:text-neutral-500">
@@ -32,7 +32,7 @@
 
                 <div class="p-2 border-t border-gray-200 dark:border-neutral-800">
                     <button @click="notificationStore.markAllAsRead()"
-                        class="w-full text-center text-sm font-medium text-[#f02c56] hover:underline p-2">
+                        class="w-full text-center text-sm font-medium text-brand hover:underline p-2">
                         Mark all as read
                     </button>
                 </div>

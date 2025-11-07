@@ -9,7 +9,7 @@
       <button 
         @click="isPayoutModalOpen = true" 
         :disabled="!wallet || wallet.balance <= 0"
-        class="bg-[#f02c56] text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#d81b36] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        class="bg-brand text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-brand-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Request Payout
       </button>
@@ -41,7 +41,7 @@
                         <p class="text-xs text-neutral-400">{{ tx.description }}</p>
                     </div>
                     <div>
-                        <p class="font-semibold text-right" :class="tx.amount >= 0 ? 'text-green-400' : 'text-red-400'">
+                        <p class="font-semibold text-right" :class="tx.amount >= 0 ? 'text-green-400' : 'text-brand-light'">
                             {{ formatPrice(tx.amount) }}
                         </p>
                         <p class="text-xs text-neutral-500 text-right">{{ new Date(tx.created_at).toLocaleDateString() }}</p>

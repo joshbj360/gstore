@@ -69,7 +69,7 @@
 
                         <TextInput v-model:input="form.phone" label="Phone Number" placeholder="e.g., 08012345678" type="tel" :error="errors.phone" required />
 
-                        <button :disabled="isWorking" type="submit" class="mt-6 w-full bg-brand text-white text-base font-semibold py-3 rounded-lg disabled:opacity-50 transition-all hover:bg-[#d81b36] shadow-md">
+                        <button :disabled="isWorking" type="submit" class="mt-6 w-full bg-brand text-white text-base font-semibold py-3 rounded-lg disabled:opacity-50 transition-all hover:bg-brand-light shadow-md">
                             <Icon v-if="isWorking" name="eos-icons:loading" size="20" class="mr-2 animate-spin" />
                             <span>{{ isUpdate ? 'Update Address' : 'Save Address' }}</span>
                         </button>

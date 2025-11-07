@@ -21,7 +21,7 @@
                 class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 cursor-pointer"
             >
                 <img 
-                    :src="acc.media[0]?.url || '/default-product.png'" 
+                    :src="acc?.media[0]?.url || '/default-product.png'" 
                     alt="Accessory" 
                     class="w-16 h-16 rounded-md object-cover flex-shrink-0"
                 />
@@ -48,6 +48,7 @@ const props = defineProps<{
 }>();
 
 const apiService = useApiService();
+
 
 // This component fetches its own data based on the product ID prop.
 const { data: accessories, pending } = await useAsyncData(

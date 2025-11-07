@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
                     slug: true,
                     price: true,
                     discount: true,
-                    media: { take: 1, select: { url: true } },
+                    media: { take: 1, select: { url: true, public_id: true, type: true , altText: true} },
                     seller: { select: { store_name: true, store_slug: true, is_verified: true, store_logo: true } },
                     variants: { select: { id: true, size: true, stock: true } },
                     likes: { select: { userId: true } },

@@ -1,109 +1,109 @@
 import { defineStore } from 'pinia';
-import { useUserStore } from './user.store';
+import { useUserStore} from '~/stores';
 import { useApiService } from '~/services/api/apiService';
-import type { IProductVariant, ICartItem, IPartialCartItem, IProduct } from '~/models';
+import type { IProductVariant, ICartItem, IProduct } from '~/models';
+import { notify } from '@kyvg/vue3-notification';
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
     cartItems: [] as ICartItem[],
     checkout: [] as ICartItem[],
     isLoading: false,
-    hasSyncedWithDB: false, // New flag to track if we've synced with DB
-    statusMessage: { type: '', text: '' } as { type: string; text: string } | null,
+    hasSyncedWithDB: false, // Flag to track initial DB sync
   }),
 
   getters: {
     cartCount: (state) => state.cartItems.length,
     cartTotal: (state) => {
       return state.cartItems.reduce((total, item) => {
-        const price = item.variant.price ?? 0;
+        const price = item.variant.price || item.product.price || 0;
         return total + (price * item.quantity);
       }, 0);
     },
-
   },
 
   actions: {
     /**
-   * Initializes the cart. Fetches from the DB for logged-in users, but only once.
-   * This should be called from a central location like app.vue when the app loads.
-   */
-    async initializeCart() {
+     * Resets the cart to its initial, empty state (called on logout).
+     */
+    reset() {
+      this.$reset();
+      this.hasSyncedWithDB = false;
+    },
+
+    /**
+     * Fetches the cart from the DB for a logged-in user.
+     */
+    async fetchCartItems() {
       const userStore = useUserStore();
-      // Don't run if user is a guest or if we have already synced.
-      if (!userStore.isLoggedIn || this.hasSyncedWithDB) {
-        return;
-      }
+      if (!userStore.isLoggedIn || this.hasSyncedWithDB) return;
 
       this.isLoading = true;
       try {
         const apiService = useApiService();
         const dbItems = await apiService.getCartItems();
-
-        // This is a one-time replacement of the local state with the DB state.
+        
+        // THE FIX: We now use the real DB ID.
         this.cartItems = dbItems.map((item: any) => ({
-          id: `${item.variant.product.id}-${item.variant.id}`,
-          variant: item.variant,
-          quantity: item.quantity,
-          variantId: item.variant.id,
-          userId: item.userId,
-          created_at: item.created_at,
-          product: item.variant.product,
-          productId: item.variant.product.id,
+          ...item,
+          product: item.variant.product, // Ensure product is nested correctly
         }));
-
-        // Set the flag to prevent this action from running again during this session.
+        
         this.hasSyncedWithDB = true;
       } catch (error) {
-        console.error("Failed to initialize cart from DB:", error);
+        console.error("Failed to fetch cart from DB:", error);
       } finally {
         this.isLoading = false;
       }
     },
 
     /**
-     * When a guest with items in their cart logs in, this action syncs their
-     * local cart with the database.
+     * Merges a guest's local cart with the DB upon login.
      */
     async mergeAndSyncCartOnLogin() {
       const userStore = useUserStore();
       const apiService = useApiService();
       if (!userStore.isLoggedIn) return;
-
+      this.isLoading = true;
+      
       try {
-        // Send each item from the guest cart (currently in state) to the backend
-        for (const item of this.cartItems) {
-          const partialItem: IPartialCartItem = {userId: userStore.user?.id || '', variantId: item.variant.id, quantity: item.quantity };
-          await apiService.addCartItem(partialItem);
+        if (this.cartItems.length > 0) {
+          // Send all local items to the backend to be merged
+          for (const item of this.cartItems) {
+            await apiService.addCartItem(item.variantId, item.quantity);
+          }
         }
-        // After merging, fetch the definitive, combined cart from the DB
-        this.hasSyncedWithDB = false; // Reset the flag to allow a fresh fetch
-        await this.initializeCart();
+        // After merging, clear the local state and fetch the definitive cart from the DB
+        this.cartItems = [];
+        this.hasSyncedWithDB = false;
+        await this.fetchCartItems();
       } catch (error) {
         console.error("Failed to merge guest cart:", error);
+      } finally {
+        this.isLoading = false;
       }
     },
 
     /**
      * Adds a specific product variant to the cart.
-     * If the item already exists, it increments the quantity.
-     * param product The main product object.
-     * param variant The specific variant to add.
-     * param quantity How many of this variant to add (default is 1).
      */
-    async addToCart( product: IProduct, variant: IProductVariant, quantity = 1,) {
+    async addToCart(product: IProduct, variant: IProductVariant, quantity = 1) {
       const userStore = useUserStore();
       const apiService = useApiService();
-      const cartId = `${product.id}-${variant.id}`;
-      const existingItem = this.cartItems.find(item => item.id === cartId);
 
-      console.log("Adding to cart:", { product, variant, quantity, userId: userStore.user?.id }); //TODO remove 
+      // Find the item in the cart *by its real variant ID*
+      const existingItem = this.cartItems.find(item => item.variantId === variant.id);
 
       if (existingItem) {
-        existingItem.quantity += quantity;
+        // If it exists, just update the quantity
+        const newQuantity = existingItem.quantity + quantity;
+        await this.updateItemQuantity(existingItem.id, newQuantity);
       } else {
+        // If it's a new item, add it
+        // 1. Optimistic UI Update (with a temporary ID)
+        const tempId = `temp-${Date.now()}`;
         this.cartItems.push({
-          id: cartId,
+          id: tempId,
           variant,
           quantity,
           variantId: variant.id,
@@ -111,61 +111,21 @@ export const useCartStore = defineStore('cart', {
           created_at: new Date(),
           product,
         });
-      }
 
-      if (userStore.isLoggedIn) {
-        try {
-          // await useFetch<ICartItem>('/api/prisma/cart/add/', {
-          //   method: 'POST',
-          //   body: {userId: userStore.user?.id,   variantId: variant.id, quantity: quantity },
-          // })
-          const partialItem = { userId: userStore.user?.id || '', variantId: variant.id, quantity: quantity };
-          await apiService.addCartItem(partialItem)
-        } catch (error) {
-          this.statusMessage = ({ type: 'error', text: 'Could not sync item with your cart.' });
-        }
-      }
-    },   /**
-     * NEW ACTION: Takes the selected items from the cart page and prepares them for checkout.
-     * This is called when the user clicks "Proceed to Checkout".
-     */
-    prepareForCheckout(selectedItems: ICartItem[]) {
-      if (selectedItems.length === 0) {
-        this.statusMessage = { type: 'warn', text: 'Please select items to checkout.' }
-        return;
-      }
-      this.checkout = [...selectedItems]; // Create a copy
-      useRouter().push('/buyer/shipping/checkout');
-    },
-
-    /**
-     * Clears the main cart of items that were successfully purchased.
-     */
-    clearPurchasedItems() {
-      const checkoutIds = new Set(this.checkout.map(item => item.id));
-      this.cartItems = this.cartItems.filter(item => !checkoutIds.has(item.id));
-      this.checkout = []; // Clear the checkout snapshot
-
-      // Here, you would also call an API to remove these items from the database cart
-    },
-
-    /**
-     * Removes an item from the cart using its unique cartId.
-     */
-    async removeFromCart(cartId: string) {
-      const userStore = useUserStore();
-      const apiService = useApiService();
-      const itemIndex = this.cartItems.findIndex(item => item.id === cartId);
-      if (itemIndex === -1) return;
-
-      const variantId = this.cartItems[itemIndex].variant.id;
-      this.cartItems.splice(itemIndex, 1);
-
-      if (userStore.isLoggedIn) {
-        try {
-          await apiService.removeCartItem(variantId);
-        } catch (error) {
-          this.statusMessage = ({ type: 'error', text: 'Could not remove item from your cart.' });
+        // 2. Sync with DB if logged in
+        if (userStore.isLoggedIn) {
+          try {
+            const savedItem = await apiService.addCartItem(variant.id, quantity);
+            // 3. Reconcile: Replace the temporary item with the real one from the DB
+            const index = this.cartItems.findIndex(item => item.id === tempId);
+            if (index !== -1) {
+              this.cartItems[index] = { ...savedItem, product: product };
+            }
+          } catch (error) {
+            notify({ type: 'error', text: 'Could not add item to your cart.' });
+            // Rollback optimistic update on failure
+            this.cartItems = this.cartItems.filter(item => item.id !== tempId);
+          }
         }
       }
     },
@@ -173,48 +133,83 @@ export const useCartStore = defineStore('cart', {
     /**
      * Updates the quantity of a specific item in the cart.
      */
-    async updateCartItem(updatedItem: ICartItem) {
+    async updateItemQuantity(cartId: string, quantity: number) {
       const userStore = useUserStore();
       const apiService = useApiService();
-      const index = this.cartItems.findIndex(item => item.id === updatedItem.id);
+      const index = this.cartItems.findIndex(item => item.id === cartId);
 
-      if (index !== -1) {
-        this.cartItems[index].quantity = updatedItem.quantity;
+      if (index === -1) return;
 
-        if (userStore.isLoggedIn) {
-          try {
-            await apiService.updateCartItem(updatedItem.variant.id, updatedItem.quantity);
-          } catch (error) {
-            this.statusMessage = ({ type: 'error', text: 'Could not update item quantity.' });
-          }
+      const originalQuantity = this.cartItems[index].quantity;
+      const variantId = this.cartItems[index].variantId;
+      
+      // Optimistic update
+      this.cartItems[index].quantity = quantity;
+
+      if (userStore.isLoggedIn) {
+        try {
+          // THE FIX: Correctly call the API
+          await apiService.updateCartItem(variantId, quantity);
+        } catch (error) {
+          // Rollback on failure
+          this.cartItems[index].quantity = originalQuantity;
+          notify({ type: 'error', text: 'Could not update item quantity.' });
         }
       }
     },
 
     /**
-      * Resets the cart state on logout.
-      */
-    resetCart() {
-      this.cartItems = [];
-      this.checkout = [];
-      this.hasSyncedWithDB = false;
-    },
-
-    async fetchOrGetProductById(id: number) {
-      const productStore = useProductStore();
-
-      // If not found, fetch it from the API
-      return await productStore.fetchProductById(id);
-    },
-     /**
-     * Resets the cart to its initial, empty state.
+     * Removes an item from the cart using its *real* cartId.
      */
-    reset() {
-      this.$reset();
+    async removeFromCart(cartId: string) {
+      const userStore = useUserStore();
+      const apiService = useApiService();
+      const index = this.cartItems.findIndex(item => item.id === cartId);
+      if (index === -1) return;
+
+      const itemToRemove = this.cartItems[index];
+      const variantId = itemToRemove.variantId;
+      
+      // Optimistic removal
+      this.cartItems.splice(index, 1);
+
+      if (userStore.isLoggedIn) {
+        try {
+          await apiService.removeCartItem(variantId);
+        } catch (error) {
+          // Rollback on failure
+          this.cartItems.splice(index, 0, itemToRemove);
+          notify({ type: 'error', text: 'Could not remove item from cart.' });
+        }
+      }
+    },
+    
+    prepareForCheckout(selectedItems: ICartItem[]) {
+      if (selectedItems.length === 0) return;
+      this.checkout = [...selectedItems];
+      useRouter().push('/shipping/checkout');
     },
 
-    // Persists the cart in localStorage, perfect for guest users.
-    persist: true,
-  },
-});
+    async clearPurchasedItems() {
+      const userStore = useUserStore();
+      const apiService = useApiService();
+      const checkoutIds = new Set(this.checkout.map(item => item.id));
+      const variantIdsToRemove = this.checkout.map(item => item.variantId);
+      
+      this.cartItems = this.cartItems.filter(item => !checkoutIds.has(item.id));
+      this.checkout = [];
 
+      // THE FIX: Call the API to remove items from the DB
+      if (userStore.isLoggedIn) {
+        try {
+          await Promise.all(
+            variantIdsToRemove.map(variantId => apiService.removeCartItem(variantId))
+          );
+        } catch (error) {
+          console.error("Failed to clear purchased items from DB:", error);
+        }
+      }
+    },
+  },
+  persist: true,
+});

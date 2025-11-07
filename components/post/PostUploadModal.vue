@@ -66,7 +66,7 @@
 
                 <!-- Footer Action -->
                 <div v-if="uploadedMedia" class="p-4 border-t border-gray-200 dark:border-neutral-800 shrink-0">
-                    <button @click="submitPost" :disabled="isPosting" class="w-full py-3 bg-[#f02c56] text-white rounded-lg font-semibold hover:bg-[#d81b36] disabled:opacity-50">
+                    <button @click="submitPost" :disabled="isPosting" class="w-full py-3 bg-brand text-white rounded-lg font-semibold hover:bg-brand-light disabled:opacity-50">
                         {{ isPosting ? 'Posting...' : 'Post' }}
                     </button>
                 </div>

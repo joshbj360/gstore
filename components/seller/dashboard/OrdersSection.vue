@@ -1,35 +1,39 @@
 <template>
-  <div class="text-neutral-100">
+  <!-- 
+    THE FIX: Component is now theme-compliant. 
+    It defaults to light mode and uses dark: prefixes.
+  -->
+  <div class="text-gray-900 dark:text-neutral-100">
     <!-- Section Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
       <div>
-        <h2 class="text-2xl font-bold text-neutral-100">Manage Orders</h2>
-        <p class="text-sm text-neutral-400 mt-1">View and fulfill your customer orders.</p>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-neutral-100">Manage Orders</h2>
+        <p class="text-sm text-gray-600 dark:text-neutral-400 mt-1">View and fulfill your customer orders.</p>
       </div>
       <!-- You can add other controls here, like an "Export" button -->
     </div>
 
     <!-- Tab Navigation -->
-    <nav class="flex border-b border-neutral-700 mb-6">
-      <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id" class="px-4 py-3 text-sm font-medium flex items-center"
+    <nav class="flex border-b border-gray-200 dark:border-neutral-700 mb-6">
+      <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id" class="px-4 py-3 text-sm font-medium flex items-center whitespace-nowrap"
         :class="[
           activeTab === tab.id
             ? 'text-brand border-b-2 border-brand'
-            : 'text-neutral-400 hover:text-neutral-100 hover:border-b-2 hover:border-neutral-500'
+            : 'text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-100 hover:border-b-2 hover:border-gray-300 dark:hover:border-neutral-500'
         ]">
         {{ tab.label }}
-        <span class="ml-2 text-xs bg-neutral-700 px-1.5 py-0.5 rounded-full">{{ getCount(tab.id) }}</span>
+        <span class="ml-2 text-xs bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-200 px-1.5 py-0.5 rounded-full">{{ getCount(tab.id) }}</span>
       </button>
     </nav>
 
     <!-- Orders Table -->
-    <div class="bg-neutral-950 rounded-lg shadow-md border border-neutral-800 overflow-x-auto">
-      <div v-if="visibleOrders.length === 0" class="text-center p-12 text-neutral-500">
+    <div class="bg-white dark:bg-neutral-950 rounded-lg shadow-md border border-gray-200 dark:border-neutral-800 overflow-x-auto">
+      <div v-if="visibleOrders.length === 0" class="text-center p-12 text-gray-500 dark:text-neutral-500">
         <Icon name="mdi:package-variant-closed-remove" size="48" class="mx-auto mb-4" />
         <p>You have no {{ activeTab.toLowerCase() }} orders.</p>
       </div>
-      <table v-else class="min-w-full divide-y divide-neutral-800">
-        <thead class="bg-neutral-800">
+      <table v-else class="min-w-full divide-y divide-gray-200 dark:divide-neutral-800">
+        <thead class="bg-gray-50 dark:bg-neutral-800">
           <tr>
             <th scope="col" class="table-header"></th>
             <th scope="col" class="table-header">Order ID</th>
@@ -41,49 +45,48 @@
             <th scope="col" class="table-header text-center">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-neutral-800">
+        <tbody class="divide-y divide-gray-200 dark:divide-neutral-800">
           <template v-for="order in visibleOrders" :key="order.id">
-            <tr class="hover:bg-neutral-800/50">
+            <tr class="hover:bg-gray-50 dark:hover:bg-neutral-800/50">
               <td class="px-4 py-4 whitespace-nowrap">
-                <button @click="toggleRow(order.id)" class="p-1 rounded-full hover:bg-neutral-700">
+                <button @click="toggleRow(order.id)" class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700">
                   <Icon :name="expandedRows.includes(order.id) ? 'mdi:chevron-up' : 'mdi:chevron-down'" size="20" />
                 </button>
               </td>
-              <td class="table-cell font-medium text-neutral-100">#{{ order.id }}</td>
+              <td class="table-cell font-medium text-gray-900 dark:text-neutral-100">#{{ order.id }}</td>
               <td class="table-cell">{{ new Date(order.created_at).toLocaleDateString() }}</td>
               <td class="table-cell">{{ order.user?.username || 'N/A' }}</td>
               <td class="table-cell text-right font-medium">{{ formatPrice(order.totalAmount) }}</td>
               <td class="table-cell">
                 <span class="status-badge" :class="getStatusClass(order.status)">{{ order.status }}</span>
               </td>
-              <!-- THE FIX: Displaying the pre-calculated payoutAmount from the database -->
-              <td class="table-cell text-right font-semibold text-green-400">{{ formatPrice(order.payoutAmount || 0) }}</td>
+              <td class="table-cell text-right font-semibold text-green-600 dark:text-green-400">{{ formatPrice(order.payoutAmount || 0) }}</td>
               <td class="table-cell text-center">
                 <button 
-                  v-if="order.status === 'PAID'" 
-                  class="action-button bg-blue-900/50 text-blue-300 hover:bg-blue-900"
+                  v-if="order.status === EOrderStatus.PAID" 
+                  class="action-button bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-900"
                   @click="openShipModal(order)"
                 >Ship</button>
-                <span v-if="order.status === 'SHIPPED'" class="text-xs text-neutral-500">Shipped</span>
-                <button v-if="order.status !== 'CANCELED' && order.status !== 'SHIPPED'" class="action-button bg-red-900/50 text-red-300 hover:bg-red-900 ml-2">Cancel</button>
+                <span v-if="order.status === EOrderStatus.SHIPPED" class="text-xs text-gray-400 dark:text-neutral-500">Shipped</span>
+                <button v-if="order.status !== EOrderStatus.CANCELED && order.status !== EOrderStatus.SHIPPED" class="action-button text-brand-light text-red-700 hover:bg-red-200 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900 ml-2">Cancel</button>
               </td>
             </tr>
             <!-- Expanded Row -->
             <tr v-if="expandedRows.includes(order.id)">
-              <td colspan="8" class="p-4 bg-neutral-800/30">
+              <td colspan="8" class="p-4 bg-gray-50 dark:bg-neutral-800/30">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
                     <h4 class="font-semibold mb-1">Items ({{ order.orderItem.length }})</h4>
-                    <p class="text-neutral-300">{{ order.orderItem.map(item => `${item.variant.product?.title} (${item.variant.size}) x${item.quantity}`).join(', ') }}</p>
+                    <p class="text-gray-600 dark:text-neutral-300">{{ order.orderItem.map(item => `${item.variant.product?.title} (${item.variant.size}) x${item.quantity}`).join(', ') }}</p>
                   </div>
                   <div>
                     <h4 class="font-semibold mb-1">Delivery Address</h4>
-                    <p class="text-neutral-300">{{ order.address }}, {{ order.county }}</p>
+                    <p class="text-gray-600 dark:text-neutral-300">{{ order.address }}, {{ order.county }}</p>
                   </div>
                   <div>
                     <h4 class="font-semibold mb-1">Tracking</h4>
-                    <p v-if="order.trackingNumber" class="text-neutral-300">{{ order.shipper }}: {{ order.trackingNumber }}</p>
-                    <p v-else class="text-neutral-500">Not yet shipped.</p>
+                    <p v-if="order.trackingNumber" class="text-gray-600 dark:text-neutral-300">{{ order.shipper }}: {{ order.trackingNumber }}</p>
+                    <p v-else class="text-gray-500 dark:text-neutral-500">Not yet shipped.</p>
                   </div>
                 </div>
               </td>
@@ -122,19 +125,22 @@ const activeTab = ref<EOrderStatus | 'ALL'>(EOrderStatus.PAID);
 const tabs: Array<{ id: EOrderStatus | 'ALL'; label: string }> = [
   { id: EOrderStatus.PAID, label: 'Ready to Ship' },
   { id: EOrderStatus.SHIPPED, label: 'Shipped' },
+  { id: EOrderStatus.PENDING, label: 'Pending' }, // ADDED
   { id: EOrderStatus.CANCELED, label: 'Canceled' },
   { id: 'ALL', label: 'All Orders' },
 ];
 
 // Computed properties to filter orders based on the active tab
-const PAIDOrders = computed(() => props.orders.filter(o => o.status === EOrderStatus.PAID));
+const paidOrders = computed(() => props.orders.filter(o => o.status === EOrderStatus.PAID));
 const shippedOrders = computed(() => props.orders.filter(o => o.status === EOrderStatus.SHIPPED));
+const pendingOrders = computed(() => props.orders.filter(o => o.status === EOrderStatus.PENDING)); // ADDED
 const canceledOrders = computed(() => props.orders.filter(o => o.status === EOrderStatus.CANCELED));
 
 const visibleOrders = computed(() => {
   switch (activeTab.value) {
-    case EOrderStatus.PAID: return PAIDOrders.value;
+    case EOrderStatus.PAID: return paidOrders.value;
     case EOrderStatus.SHIPPED: return shippedOrders.value;
+    case EOrderStatus.PENDING: return pendingOrders.value; // ADDED
     case EOrderStatus.CANCELED: return canceledOrders.value;
     case 'ALL': return props.orders;
     default: return [];
@@ -143,8 +149,9 @@ const visibleOrders = computed(() => {
 
 const getCount = (status: EOrderStatus | 'ALL') => {
   switch (status) {
-    case EOrderStatus.PAID: return PAIDOrders.value.length;
+    case EOrderStatus.PAID: return paidOrders.value.length;
     case EOrderStatus.SHIPPED: return shippedOrders.value.length;
+    case EOrderStatus.PENDING: return pendingOrders.value.length; // ADDED
     case EOrderStatus.CANCELED: return canceledOrders.value.length;
     case 'ALL': return props.orders.length;
     default: return 0;
@@ -164,20 +171,21 @@ const toggleRow = (orderId: number) => {
 };
 
 const getStatusClass = (status: string) => {
-    if (status === EOrderStatus.PAID ) return 'bg-green-900/50 text-green-300';
-    if (status === EOrderStatus.SHIPPED) return 'bg-blue-900/50 text-blue-300';
-    if (status === EOrderStatus.PENDING) return 'bg-yellow-900/50 text-yellow-300';
-    if (status === EOrderStatus.CANCELED) return 'bg-red-900/50 text-red-300';
-    return 'bg-neutral-700 text-neutral-300';
+    // THE FIX: Added theme-compliant light mode classes
+    if (status === EOrderStatus.PAID) return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300';
+    if (status === EOrderStatus.SHIPPED) return 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300';
+    if (status === EOrderStatus.PENDING) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300';
+    if (status === EOrderStatus.CANCELED) return 'text-brand-light text-red-800 dark:bg-red-900/50 dark:text-red-300';
+    return 'bg-gray-100 text-gray-800 dark:bg-neutral-700 dark:text-neutral-300';
 };
 </script>
 
 <style scoped>
 .table-header {
-    @apply px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider;
+    @apply px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider;
 }
 .table-cell {
-    @apply px-4 py-4 whitespace-nowrap text-sm text-neutral-300;
+    @apply px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-neutral-300;
 }
 .status-badge {
     @apply px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full;
@@ -186,3 +194,4 @@ const getStatusClass = (status: string) => {
     @apply px-3 py-1 text-xs font-medium rounded-full transition-colors;
 }
 </style>
+

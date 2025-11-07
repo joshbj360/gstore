@@ -4,10 +4,10 @@
         <!-- LIKE BUTTON -->
         <button 
             @click.stop="likeStore.toggleProductLike(product.id!)"
-            class="absolute top-2 right-2 z-20 h-8 w-8 bg-white/80 dark:bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 dark:text-white hover:text-[#f02c56] transition-colors"
+            class="absolute top-2 right-2 z-20 h-8 w-8 bg-white/80 dark:bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 dark:text-white hover:text-brand transition-colors"
             aria-label="Like Product"
         >
-            <Icon :name="isLiked ? 'mdi:heart' : 'mdi:heart-outline'" size="20" :class="{ 'text-[#f02c56]': isLiked }" />
+            <Icon :name="isLiked ? 'mdi:heart' : 'mdi:heart-outline'" size="20" :class="{ 'text-brand': isLiked }" />
         </button>
 
         <!-- Product Image (Square for grid layout) -->
@@ -33,7 +33,7 @@
                 <div class="relative">
                     <button 
                         @click.stop="handleAddToCartClick"
-                        class="h-9 w-9 flex items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800 hover:bg-[#f02c56] hover:text-white text-gray-700 dark:text-neutral-300 dark:hover:text-white transition-colors"
+                        class="h-9 w-9 flex items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800 hover:bg-brand hover:text-white text-gray-700 dark:text-neutral-300 dark:hover:text-white transition-colors"
                         aria-label="Add to cart"
                     >
                         <Icon name="mdi:cart-plus" class="h-5 w-5" />

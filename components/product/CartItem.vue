@@ -1,137 +1,63 @@
 <template>
-  <article class="flex items-start gap-4 p-4 transition-colors duration-200" :class="{ 'opacity-60': isOutOfStock }">
-    <div class="flex-shrink-0">
-      <input 
-        type="checkbox" 
-        :checked="selected"
-        @change="toggleSelection"
-        class="h-5 w-5 rounded border-gray-300 text-brand-dark focus:ring-[#C42B78]/50"
-      >
-      <NuxtLink :to="`/product/${item.product.slug}`" class="block mt-4">
-        <div class="w-24 h-24 rounded-lg overflow-hidden bg-gray-100">
-          <img
-            v-if="item.product.media && item.product.media.length"
-            :src="item.product.media[0].url || '~/assets/images/men.png'"
-            :alt="item.product.title"
-            class="w-full h-full object-cover"
-            loading="lazy"
-          />
-        </div>
-      </NuxtLink>
-    </div>
+  <div class="flex items-start gap-4">
+    <input 
+      type="checkbox" 
+      :checked="selected" 
+      @change="$emit('selected', { item: item, selected: ($event.target as HTMLInputElement).checked })"
+      class="h-5 w-5 rounded border-gray-300 dark:border-neutral-600 text-brand focus:ring-[#f02c56]/50 mt-1"
+    />
+    <img 
+      v-if="item.product.media && item.product.media.length"
+      :src="item.product?.media[0].url" 
+      class="w-20 h-20 rounded-md object-cover"
+    >
+    <div v-else class="w-20 h-20 rounded-md bg-gray-100 dark:bg-neutral-800"></div>
 
     <div class="flex-1 min-w-0">
-      <h3 class="font-semibold text-gray-800 line-clamp-2">
-        <NuxtLink :to="`/product/${item.product.slug}`">{{ item.product.title }}</NuxtLink>
-      </h3>
+      <p class="font-semibold text-sm text-gray-800 dark:text-neutral-100 line-clamp-1">{{ item.product?.title }}</p>
+      <p class="text-sm text-gray-500 dark:text-neutral-400">Size: {{ item.variant.size }}</p>
+      <p class="text-lg font-bold text-gray-900 dark:text-neutral-100 mt-1">{{ formatPrice(item.variant.price || item.product.price) }}</p>
       
-      <p v-if="item.variant.size" class="text-sm text-gray-500 mt-1">
-        Size: {{ item.variant.size }}
-      </p>
-
-      <p class="font-bold text-lg text-brand-dark mt-2">
-        {{ formatPrice(item.variant.price || 0) }}
-      </p>
-      
-      <p v-if="isOutOfStock" class="text-sm font-semibold text-brand mt-2">
-        Out of Stock
-      </p>
-
-      <div class="mt-4 flex items-center justify-between">
-        <div class="flex items-center border border-gray-200 rounded-lg">
-          <button @click="decreaseQuantity" :disabled="localQuantity <= 1" class="px-3 py-1 text-gray-600 disabled:opacity-50">
-            <Icon name="mdi:minus" size="18" />
-          </button>
-          <span class="px-4 text-sm font-medium">{{ localQuantity }}</span>
-          <button @click="increaseQuantity" class="px-3 py-1 text-gray-600">
-            <Icon name="mdi:plus" size="18" />
-          </button>
-        </div>
-
-        <div class="flex items-center text-sm">
-          <button @click="emitSaveForLater" class="text-gray-500 hover:text-brand-dark font-medium transition-colors">
-              Save for Later
-          </button>
-          <div class="h-4 border-l mx-3"></div>
-          <button @click="removeFromCart" class="text-gray-500 hover:text-brand font-medium transition-colors">
-              Remove
-          </button>
-        </div>
+      <!-- Quantity Control -->
+      <div class="flex items-center border border-gray-200 dark:border-neutral-700 rounded-md w-fit mt-2">
+        <button @click="updateQuantity(item.quantity - 1)" :disabled="item.quantity <= 1" class="px-2 py-1 text-gray-600 dark:text-neutral-400 disabled:opacity-50">
+          <Icon name="mdi:minus" size="16" />
+        </button>
+        <span class="px-3 text-sm font-medium">{{ item.quantity }}</span>
+        <button @click="updateQuantity(item.quantity + 1)" class="px-2 py-1 text-gray-600 dark:text-neutral-400">
+          <Icon name="mdi:plus" size="16" />
+        </button>
       </div>
     </div>
-  </article>
+
+    <div class="flex flex-col items-end gap-2">
+      <button @click="cartStore.removeFromCart(item.id)" class="p-1 text-gray-400 dark:text-neutral-500 hover:text-brand-dark dark:hover:text-brand-light">
+        <Icon name="mdi:trash-can-outline" size="20" />
+      </button>
+      <button @click="$emit('save-for-later', item)" class="text-xs font-medium text-gray-600 dark:text-neutral-400 hover:underline">
+        Save for later
+      </button>
+    </div>
+  </div>
 </template>
 
-<script lang="ts" setup>
-import { ref, watch, computed } from 'vue';
+<script setup lang="ts">
 import { useCartStore } from '~/stores/cart.store';
-// FIX: Use the correct, updated interface
-import type { ICartItem, IProduct } from '~/models';
-import { notify } from "@kyvg/vue3-notification";
+import type { ICartItem } from '~/models';
+import { formatPrice } from '~/utils/formatters';
 
 const props = defineProps<{
-  // FIX: Use the correct, updated interface
-  item: ICartItem 
-  selected: boolean,
+  item: ICartItem;
+  selected: boolean;
 }>();
 
-const emit = defineEmits<{
-  (e: 'selected', value: { item: ICartItem; selected: boolean }): void,
-  (e: 'save-for-later', item: ICartItem): void,
-}>();
+const emit = defineEmits(['selected', 'save-for-later']);
 
 const cartStore = useCartStore();
-const localQuantity = ref(props.item.quantity || 1);
 
-// This now correctly checks the stock of the specific variant
-const isOutOfStock = computed(() => (props.item.variant.stock ?? 0) <= 0);
-
-watch(() => props.item.quantity, (newValue) => {
-  localQuantity.value = newValue || 1;
-});
-
-const toggleSelection = (event: Event) => {
-  const isSelected = (event.target as HTMLInputElement).checked;
-  emit('selected', { item: props.item, selected: isSelected });
-};
-
-const updateQuantity = () => {
-  // The store's updateCartItem action will use the item's unique id ('productID-variantID')
-  cartStore.updateCartItem({ ...props.item, quantity: localQuantity.value });
-};
-
-const decreaseQuantity = () => {
-  if (localQuantity.value > 1) {
-    localQuantity.value--;
-    updateQuantity();
+const updateQuantity = (quantity: number) => {
+  if (quantity > 0) {
+    cartStore.updateItemQuantity(props.item.id, quantity);
   }
-};
-
-const increaseQuantity = () => {
-  if (localQuantity.value < props.item.variant.stock) {
-    localQuantity.value++;
-    updateQuantity();
-  } else {
-    notify({ type: 'warn', text: 'No more items in stock.' });
-  }
-};
-
-const removeFromCart = () => {
-  if (confirm(`Are you sure you want to remove "${props.item.product.title}" (${props.item.variant.size}) from your cart?`)) {
-    // FIX: Pass the unique cart item ID to the store action.
-    cartStore.removeFromCart(props.item.id);
-    notify({ type: 'success', text: 'Item removed from cart.' });
-  }
-};
-
-const emitSaveForLater = () => {
-  emit('save-for-later', props.item);
-};
-
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-  }).format(price / 100);
 };
 </script>
