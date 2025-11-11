@@ -3,7 +3,7 @@
       THE FIX: The layout now defaults to light mode (bg-gray-50)
       and uses dark: prefixes for the dark theme (dark:bg-neutral-900)
     -->
-    <div class="min-h-screen bg-gray-50 dark:bg-neutral-900">
+    <div class="min-h-screen w-full bg-gray-50 dark:bg-neutral-900">
         <!-- Sticky Header: Now fully theme-compliant -->
         <header class="sticky top-0 z-20 bg-white/95 dark:bg-neutral-950/90 backdrop-blur-sm shadow-sm border-b border-gray-200 dark:border-neutral-800">
             <div class="container mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">

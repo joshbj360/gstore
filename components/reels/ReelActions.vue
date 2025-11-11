@@ -1,10 +1,10 @@
 <template>
     <div class="flex flex-col gap-4">
         <button @click="likeStore.toggleProductLike(product.id)" class="action-button">
-            <Icon name="mdi:heart" size="28" :class="isLiked ? 'text-brand-dark' : ''" />
+            <Icon name="mdi:heart" size="28" :class="isLiked ? 'text-brand' : 'text-white'" />
             <span class="text-xs">{{ product._count?.likes || 0 }}</span>
         </button>
-        <button @click="$emit('open-comments')" class="action-button">
+         <button @click="$emit('open-comments')" class="action-button">
             <Icon name="mdi:comment-text-outline" size="28" />
             <span class="text-xs">{{ product._count?.comments || 0 }}</span>
         </button>
@@ -29,5 +29,8 @@ const shareReel = () => {
 </script>
 
 <style scoped>
-.action-button { @apply flex flex-col items-center text-white font-semibold; }
+/* THE FIX: Changed text color to white */
+.action-button { 
+  @apply flex flex-col items-center text-white font-semibold; 
+}
 </style>

@@ -11,7 +11,7 @@ export const useRealtimeService = () => {
   const supabase = useSupabaseClient();
   const productStore = useProductStore();
   const likeStore = useLikeStore();
-    const commentStore = useCommentStore();
+  // const commentStore = useCommentStore(); // No longer needed here
 
   const subscribe = () => {
     if (channel) return; // Already subscribed
@@ -28,16 +28,14 @@ export const useRealtimeService = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'Like' }, (payload) => {
         console.log('Real-time like update received:', payload);
         // Tell the like store to handle the update
-        likeStore._handleRealtimeLikeUpdate(payload);
+         likeStore._handleRealtimeLikeUpdate(payload);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'Comment' }, (payload) => {
-        console.log('Real-time comment update received:', payload);
-        // Tell the comment store to handle the update
-        commentStore._handleRealtimeCommentUpdate(payload);
-      })
+      //
+      // --- THE FIX: The global listener for 'Comment' has been removed ---
+      //
       .subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
-          console.log('Real-time service connected.');
+           console.log('Real-time service connected.');
         }
         if (err) {
             console.error('Real-time service error:', err);

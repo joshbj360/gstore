@@ -52,12 +52,27 @@
             
             <!-- Likes and Price -->
             <div class="text-sm">
-                <p class="font-semibold text-gray-800 dark:text-neutral-100">{{ likeCountFormatted }} likes</p>
+                <div class="font-semibold text-gray-800 dark:text-neutral-100 mb-1">
+                    <span>{{ likeCountFormatted }} likes</span>
+                    
+                    <span v-if="totalStock > 10 && product.soldCount > 0" class="ml-2">
+                      • {{ product.soldCount }} sold
+                    </span>
+                    
+                    <span v-if="totalStock > 0 && totalStock <= 10" class="ml-2 text-brand font-bold">
+                      • 🔥 Only {{ totalStock }} left!
+                    </span>
+                    
+                    <span v-if="totalStock <= 0" class="ml-2 text-gray-500 font-bold">
+                      • Out of Stock
+                    </span>
+                </div>
+                
                 <p class="font-bold text-lg text-gray-900 dark:text-neutral-100">{{ formatPrice(product.price) }}</p>
                 <p class="text-gray-800 dark:text-neutral-100">
                     <span class="font-semibold">{{ product.seller?.store_name }}</span>
                     <span class="text-gray-600 dark:text-neutral-400 ml-2 line-clamp-1">{{ product.title }}</span>
-                </p>
+                 </p>
             </div>
         </div>
     </div>
@@ -98,6 +113,10 @@ const likeCountFormatted = computed(() => {
         return Math.max(0, baseLikes - 1); // User just unliked, subtract 1
     }
     return baseLikes; // No change
+});
+const totalStock = computed(() => {
+    if (!props.product.variants) return 0;
+    return props.product.variants.reduce((total, variant) => total + (variant.stock || 0), 0);
 });
 
 // --- COMPONENT METHODS ---

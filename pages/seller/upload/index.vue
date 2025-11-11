@@ -3,77 +3,78 @@
         <LoadingOverlay :visible="isSubmitting" />
         <BulkUploadProgress v-if="bulkUploadState.active" :progress="bulkUploadState.progress" @cancel="cancelBulkUpload" />
 
-        <!-- Skeleton loader is now guaranteed to show on navigation -->
-        <UploadPageSkeleton v-if="pending" />
+        <UploadPageSkeleton v-if="pending || isLoadingProduct" />
         
-        <div v-else-if="error" class="p-8 text-center max-w-md mx-auto">
+        <div v-else-if="error || productError" class="p-8 text-center max-w-md mx-auto">
              <Icon name="mdi:alert-circle" size="48" class="mx-auto mb-4 text-brand" />
-             <p class="text-gray-600 dark:text-neutral-400 text-lg mb-4">Couldn't load form data. Let's fix that.</p>
-             <button @click="refresh()" class="px-6 py-2 bg-brand text-white rounded-lg font-medium hover:bg-brand-light transition-colors mr-3">Retry</button>
+             <p class="text-gray-600 dark:text-neutral-400 text-lg mb-4">
+               {{ error ? "Couldn't load form data." : "Couldn't load product to edit." }}
+             </p>
+             <button @click="error ? refresh() : fetchProductToEdit()" class="px-6 py-2 bg-brand text-white rounded-lg font-medium hover:bg-brand-light transition-colors mr-3">Retry</button>
              <button @click="router.back()" class="px-6 py-2 bg-gray-200 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-neutral-700">Back</button>
         </div>
 
-        <!-- Main Form: Renders only after all data is ready -->
-        <div v-else class="w-full mt-16 mb-12 bg-white dark:bg-neutral-950 shadow-xl rounded-2xl max-w-5xl mx-auto overflow-hidden">
+        <div v-else class="w-full  mb-12 bg-white dark:bg-neutral-950 shadow-xl rounded-2xl max-w-5xl mx-auto overflow-hidden">
             <div class="p-6 md:p-8 border-b border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div class="flex items-center space-x-3">
+                     <div class="flex items-center space-x-3">
                         <div>
-                            <h1 class="text-2xl font-bold text-gray-900 dark:text-neutral-100">Add New Product</h1>
-                            <p class="text-gray-600 dark:text-neutral-400 text-sm">Upload media, fill details, and go live in seconds.</p>
+                            <h1 class="text-2xl font-bold text-gray-900 dark:text-neutral-100">
+                              {{ isEditMode ? 'Edit Product' : 'Add New Product' }}
+                            </h1>
+                            <p class="text-gray-600 dark:text-neutral-400 text-sm">
+                              {{ isEditMode ? 'Update your product details and media.' : 'Upload media, fill details, and go live.' }}
+                            </p>
                         </div>
                     </div>
-                    <div class="flex space-x-2 shrink-0">
+                     <div class="flex space-x-2 shrink-0">
                         <button @click="activeTab = 'single'" class="tab-btn" :class="{ 'active': activeTab === 'single' }">Single</button>
                         <button @click="activeTab = 'bulk'" class="tab-btn" :class="{ 'active': activeTab === 'bulk' }">Bulk</button>
-                    </div>
+                     </div>
                 </div>
             </div>
 
-            <!-- Single Upload: Guided Grid -->
             <div v-if="activeTab === 'single'" class="p-6 md:p-8">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Step 1: Media -->
-                    <div class="space-y-4">
+                     <div class="space-y-4">
                         <h2 class="section-header"><span class="step-circle">1</span> Media Upload</h2>
-                        <div class="bg-gray-50 dark:bg-neutral-900 p-6 rounded-xl border-2 border-dashed border-gray-300 dark:border-neutral-700 hover:border-[#f02c56]/50 transition-colors">
+                         <div class="bg-gray-50 dark:bg-neutral-900 p-6 rounded-xl border-2 border-dashed border-gray-300 dark:border-neutral-700 hover:border-[#f02c56]/50 transition-colors">
                             <UploadWidget 
                                 :allow-multiple="true" 
-                                :alt-text="'product'"
+                                 :alt-text="'product'"
                                 @upload-complete="handleMediaUpload" 
                             />
-                        </div>
+                         </div>
                         <MediaPreview 
                             v-if="mediaData.length" 
-                            :media="mediaData" 
+                             :media="mediaData" 
                             @remove="removeMedia" 
                             @set-main="setMainDisplay"
                         />
-                    </div>
-                    <!-- Step 2: Details -->
+                     </div>
                     <div class="space-y-4">
                          <h2 class="section-header"><span class="step-circle">2</span> Product Details</h2>
-                        <ProductForm 
+                          <ProductForm 
                             :media-data="mediaData" 
                             :categories="categories"
                             :seller-shipping-zones="shippingZones"
                             :is-loading-category="categoryStore.isLoading"
-                            :key="formKey" 
+                            :key="formKey"
+                            :existing-product="productToEdit"
                             @submit="handleProductSubmit" 
                             @discard="discardUpload" 
                             @add-category="addNewCategory"
-                        />
+                         />
                     </div>
                 </div>
             </div>
 
-            <!-- Bulk Upload: Simplified Guide -->
             <div v-if="activeTab === 'bulk'" class="p-6 md:p-8">
-                <BulkUploadGuide class="mb-8 bg-gray-50 dark:bg-neutral-900 p-6 rounded-xl border dark:border-neutral-800" />
+                 <BulkUploadGuide class="mb-8 bg-gray-50 dark:bg-neutral-900 p-6 rounded-xl border dark:border-neutral-800" />
                 <BulkUploadWidget 
                     @upload-start="startBulkUpload" 
                     @upload-complete="handleBulkUploadComplete" 
-                    @upload-error="handleBulkError"
+                     @upload-error="handleBulkError"
                 />
             </div>
         </div>
@@ -98,6 +99,7 @@ import LoadingOverlay from '~/components/upload/LoadingOverlay.vue';
 import BulkUploadProgress from '~/components/upload/BulkUploadProgress.vue';
 
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
 const productStore = useProductStore();
 const shippingStore = useShippingStore();
@@ -109,10 +111,37 @@ const isSubmitting = ref(false);
 const formKey = ref(0);
 const bulkUploadState = ref({ active: false, progress: 0 });
 
-// Async Data: Guarded for Auth
+const isEditMode = computed(() => !!route.query.edit);
+const productToEdit = ref<IProduct | null>(null);
+const isLoadingProduct = ref(false);
+const productError = ref<Error | null>(null);
+
+// This function fetches the product data if we are in edit mode
+const fetchProductToEdit = async () => {
+  if (isEditMode.value) {
+    const slug = route.query.edit as string;
+    isLoadingProduct.value = true;
+    productError.value = null;
+    try {
+      const product = await productStore.getProductBySlug(slug);
+      if (product) {
+        productToEdit.value = product;
+        mediaData.value = product.media || []; // Pre-fill media
+      } else {
+        throw new Error('Product not found.');
+      }
+    } catch (err: any) {
+      productError.value = err;
+    } finally {
+      isLoadingProduct.value = false;
+    }
+  }
+};
+
+// Fetch data for the form (categories, shipping zones)
 const { pending, error, refresh } = await useLazyAsyncData('upload-form-data', async () => {
   if (!userStore.isLoggedIn || !userStore.isSeller) {
-    if (import.meta.server) await router.push('/seller/become-a-seller');
+    if (import.meta.server) await navigateTo('/auth/login'); // Changed from /seller/become-a-seller
     return null;
   }
   await Promise.all([
@@ -122,6 +151,11 @@ const { pending, error, refresh } = await useLazyAsyncData('upload-form-data', a
   return true;
 }, {
   default: () => false,
+});
+
+// Run this when the component mounts
+onMounted(() => {
+  fetchProductToEdit();
 });
 
 const categories = computed(() => categoryStore.categories);
@@ -154,27 +188,36 @@ const handleProductSubmit = async (productData: IProduct) => {
     notify({ type: 'error', text: 'Add at least one image/video first.' });
     return;
   }
-  isSubmitting.value = true;
   
-  try {
-    const newProduct = await productStore.createProduct({ 
-        ...productData, 
-        media: mediaData.value 
-    } as IProduct);
+  isSubmitting.value = true;
+  productData.media = mediaData.value;
 
-    if (newProduct) {
-        notify({ type: 'success', text: `Product "${newProduct.title}" created!` });
-        router.push('/seller/dashboard');
+  try {
+    let savedProduct: IProduct | null = null;
+    if (isEditMode.value && productToEdit.value) {
+      // --- UPDATE LOGIC (NOW ENABLED) ---
+      savedProduct = await productStore.updateProduct(productToEdit.value.id, productData);
+      if (savedProduct) {
+        notify({ type: 'success', text: `Product "${savedProduct.title}" updated!` });
+      } else {
+        throw new Error('Failed to update product.');
+      }
     } else {
+      // --- CREATE LOGIC ---
+      savedProduct = await productStore.createProduct(productData);
+      if (savedProduct) {
+        notify({ type: 'success', text: `Product "${savedProduct.title}" created!` });
+      } else {
         throw new Error('Failed to create product.');
+      }
     }
-  } catch (err) {
-    notify({ type: 'error', text: 'Upload failed—check details and retry.' });
+    router.push('/seller/dashboard');
+  } catch (err: any) {
+     notify({ type: 'error', text: err.data?.message || 'Upload failed—check details and retry.' });
   } finally {
     isSubmitting.value = false;
   }
 };
-
 const addNewCategory = async (categoryData: { name: string; thumbnailCatUrl: string }) => {
   try {
     const newCategory = await categoryStore.addCategory(categoryData);

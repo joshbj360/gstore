@@ -20,6 +20,9 @@
             role="dialog" 
             aria-modal="true"
         >
+            <!-- 
+              THE FIX: This modal is now theme-aware
+            -->
             <div @click.stop class="bg-white dark:bg-neutral-900 w-full max-h-[85vh] sm:rounded-lg shadow-xl flex flex-col">
                 <!-- Modal Header -->
                 <header class="flex items-center justify-between p-3 border-b border-gray-200 dark:border-neutral-800 shrink-0">
@@ -57,8 +60,10 @@
                         </div>
 
                         <div class="space-y-4 pt-4">
+                            <!-- These components are now theme-aware from our previous fixes -->
                             <TextInput v-model:input="product.title" label="Title" placeholder="What are you selling?" required />
                             <CurrencyInput v-model:input="product.price" label="Price" required />
+                            <RichTextEditor v-model="product.description" :error="errors.description" />
                             <SelectInput v-model:input="selectedCategory.name" :categories="categories" label="Category" @open-dialog="showCategoryDialog = true" required />
                         </div>
                     </div>
@@ -82,8 +87,8 @@ import { useProductStore, useUserStore, useCategoryStore} from '~/stores';
 import { useApiService } from '~/services/api/apiService';
 import { notify } from "@kyvg/vue3-notification";
 import type { IMedia, IProduct, ICategory } from '~/models';
-import { EMediaType, defaultProduct, defaultCategory } from '~/models';
 import TextInput from '~/components/shared/TextInput.vue';
+import RichTextEditor from '~/components/shared/RichTextEditor.vue';
 import CurrencyInput from '~/components/shared/CurrencyInput.vue';
 import SelectInput from '~/components/category/SelectInput.vue';
 import CategoryDialog from '~/components/category/CategoryDialog.vue';
@@ -99,12 +104,14 @@ const categoryStore = useCategoryStore();
 const apiService = useApiService();
 
 const isUploading = ref(false);
-const mediaData = ref<IMedia[]>([]);
+const mediaData = ref<IMedia[]>([]); // Corrected type to IMedia
 const product = ref<Partial<IProduct>>({});
 const selectedCategory = ref<Partial<ICategory>>({});
+const errors = ref<Record<string, string>>({}); 
 const showCategoryDialog = ref(false);
 
-const { data: data, refresh } = useLazyAsyncData(
+// Use useLazyAsyncData for fetching categories, ensuring it works on server/client
+const { data: categoriesData, refresh } = useLazyAsyncData(
     'categories-quick-add',
     () => categoryStore.fetchCategories(),
     { default: () => [] }
@@ -116,8 +123,20 @@ const canPost = computed(() => {
     return product.value.title && product.value.price && selectedCategory.value.name && mediaData.value.length > 0;
 });
 
-const handleMediaUpload = (uploadedMedia: IMedia[]) => {
-    mediaData.value = uploadedMedia;
+const validateForm = (): boolean => {
+    errors.value = {};
+    if (!product.value.description) errors.value.description = 'Product description is required.';
+    if (!product.value.title) errors.value.title = 'Product name is required.';
+    if (!selectedCategory.value.name) errors.value.category = 'Category is required.';
+    return Object.keys(errors.value).length === 0;
+};
+
+const handleMediaUpload = (uploadedMedia: IMedia | IMedia[]) => { // Handle both single and multiple
+    if (Array.isArray(uploadedMedia)) {
+        mediaData.value = uploadedMedia;
+    } else {
+        mediaData.value = [uploadedMedia];
+    }
     isUploading.value = false;
     notify({ type: 'success', text: 'Media added!' });
 };
@@ -131,19 +150,27 @@ const postProduct = async () => {
     isUploading.value = true;
     
     try {
+        if (!validateForm()) return;
         const createdProduct = await apiService.quickCreateProduct({
             title: product.value.title!,
             price: product.value.price!,
             categoryName: selectedCategory.value.name!,
-            media: mediaData.value,
+            media: mediaData.value, // This is an array
+            description: product.value.description!,
         });
 
         if (createdProduct) {
             notify({ type: 'success', text: 'Product posted successfully!' });
-            productStore.products.unshift(createdProduct); // Optimistically update store
+            productStore.products.unshift(createdProduct);
             productStore.productMap.set(createdProduct.id!, createdProduct);
             emit('posted');
-            router.push(`/product/${createdProduct.slug}`);
+            // Reset form
+            product.value = {};
+            selectedCategory.value = {};
+            errors.value = {};
+            product.value.description = '';
+            mediaData.value = [];
+            router.push(`/`);
         }
     } catch (err: any) {
         notify({ type: 'error', text: err.data?.message || 'Failed to post product.' });
@@ -156,7 +183,7 @@ const addNewCategory = async (categoryData: { name: string; thumbnailCatUrl: str
     const newCategory = await categoryStore.addCategory(categoryData);
     if (newCategory) {
         selectedCategory.value = newCategory;
-        refresh();
+        refresh(); // Refresh the categories list
         showCategoryDialog.value = false;
     }
 };

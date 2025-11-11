@@ -1,7 +1,6 @@
 <template>
     <div id="product-card" class="bg-white dark:bg-neutral-900 rounded-xl shadow-md overflow-hidden border border-gray-200 dark:border-neutral-800 transition-all duration-300 hover:shadow-lg">
         
-        <!-- LIKE BUTTON -->
         <button 
             @click.stop="likeStore.toggleProductLike(product.id!)"
             class="absolute top-2 right-2 z-20 h-8 w-8 bg-white/80 dark:bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 dark:text-white hover:text-brand transition-colors"
@@ -10,7 +9,6 @@
             <Icon :name="isLiked ? 'mdi:heart' : 'mdi:heart-outline'" size="20" :class="{ 'text-brand': isLiked }" />
         </button>
 
-        <!-- Product Image (Square for grid layout) -->
         <NuxtLink :to="`/product/${product.slug}`" class="block w-full aspect-square relative overflow-hidden group bg-gray-100 dark:bg-neutral-800">
             <img 
                 :src="getMediaThumbnailUrl(product.media?.[0])" 
@@ -22,14 +20,12 @@
             </div>
         </NuxtLink>
 
-        <!-- Product details -->
         <div class="p-3">
             <h3 class="text-sm font-semibold text-gray-800 dark:text-neutral-100 line-clamp-2 leading-tight h-10">{{ product.title }}</h3>
             
             <div class="flex justify-between items-center mt-1">
                 <p class="text-base font-bold text-gray-900 dark:text-neutral-100">{{ formatPrice(product.price) }}</p>
 
-                <!-- ADD TO CART BUTTON & VARIANT POP-UP -->
                 <div class="relative">
                     <button 
                         @click.stop="handleAddToCartClick"
@@ -39,7 +35,6 @@
                         <Icon name="mdi:cart-plus" class="h-5 w-5" />
                     </button>
 
-                    <!-- Slim Variant Selection Pop-up -->
                     <transition
                         enter-active-class="transition-all duration-200 ease-out"
                         leave-active-class="transition-all duration-200 ease-in"
@@ -106,21 +101,9 @@ const selectVariant = (variant: IProductVariant) => {
     cartStore.addToCart(props.product, variant);
     notify({ type: 'success', text: `${props.product.title} (${variant.size}) added to cart!` });
     showVariantSelector.value = false;
-};
+}; 
 
-// Custom directive for clicking outside
-const vClickOutside = {
-  beforeMount: (el: any, binding: any) => {
-    el.clickOutsideEvent = (event: MouseEvent) => {
-      if (!(el === event.target || el.contains(event.target))) {
-        binding.value();
-      }
-    };
-    document.addEventListener('click', el.clickOutsideEvent);
-  },
-  unmounted: (el: any) => {
-    document.removeEventListener('click', el.clickOutsideEvent);
-  },
-};
+// --- REDUNDANT DIRECTIVE REMOVED ---
+// The v-click-outside directive is now provided globally
+// by plugins/click-outside.client.ts 
 </script>
-

@@ -2,7 +2,6 @@
   <div class="relative">
     <form @submit.prevent="submitForm" class="space-y-8">
       
-      <!-- Section 1: Basic Information -->
       <div class="form-section">
         <h3 class="section-title">Basic Information</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -16,78 +15,73 @@
                     <p class="text-xs text-gray-500 dark:text-neutral-400">Enable if this item is styled with other products (e.g., bag, shoes).</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" v-model="product.isAccessory" id="isAccessory" class="sr-only peer">
+                     <input type="checkbox" v-model="product.isAccessory" id="isAccessory" class="sr-only peer">
                     <div class="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-neutral-700 peer-focus:ring-2 peer-focus:ring-[#f02c56]/50 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
                 </label>
             </div>
-        </div>
+       </div>
       </div>
 
-      <!-- Section 2: Description -->
       <div class="form-section">
         <h3 class="section-title">Description</h3>
-        <RichTextEditor :model-value="product.description" @update:model-value="product.description = $event" :error="errors.description" />
+        <RichTextEditor v-model="product.description" :error="errors.description" />
       </div>
 
-      <!-- Section 3: Pricing & Inventory -->
       <div class="form-section">
         <h3 class="section-title">Pricing & Inventory</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <CurrencyInput v-model:input="product.price" label="Price" :error="errors.price" required />
-            <CurrencyInput v-model:input="product.discount" label="Discount (as a decimal, e.g., 0.15)" :error="errors.discount" />
+            <CurrencyInput v-model:input="product.discount" label="Discount Percentage (e.g., 15 for 15%)" :error="errors.discount" />
         </div>
-        <div class="mt-6 p-4 border rounded-md bg-gray-50 dark:bg-neutral-900 border-gray-200 dark:border-neutral-800">
+        <div class="mt-6 p-4 border rounded-md bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700">
             <h4 class="text-sm font-medium text-gray-700 dark:text-neutral-200 mb-3">Sizes & Stock</h4>
-            <div v-for="(variant, index) in variants" :key="index" class="flex items-center gap-2 mb-2">
+             <div v-for="(variant, index) in variants" :key="index" class="flex items-center gap-2 mb-2">
                 <TextInput v-model:input="variant.size" placeholder="Size (e.g., Medium)" class="flex-1" />
                 <NumberInput v-model:input="variant.stock" placeholder="Stock" class="w-28" />
-                 <CurrencyInput v-model:input="variant.price" placeholder="Variant Price (Optional)" class="w-36" />
-                <button @click="removeVariant(index)" type="button" class="p-2 text-gray-400 dark:text-neutral-500 hover:text-brand-dark dark:hover:text-brand-light rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800"><Icon name="mdi:trash-can-outline" size="20" /></button>
+                 <CurrencyInput v-model:input="variant.price" label="Variant Price (Optional)" :showNairaValue="false" placeholder="Overrides main price" class="w-36" />
+                 <button @click="removeVariant(index)" type="button" class="p-2 text-gray-400 dark:text-neutral-500 hover:text-brand-dark dark:hover:text-brand-light rounded-full hover:bg-gray-100 dark:hover:bg-neutral-700"><Icon name="mdi:trash-can-outline" size="20" /></button>
             </div>
             <button @click="addVariant" type="button" class="text-sm text-brand hover:underline mt-2 font-semibold">+ Add another size</button>
         </div>
       </div>
 
-      <!-- Section 4: Shipping Profile -->
       <div class="form-section">
-        <h3 class="section-title">Shipping Profile</h3>
+         <h3 class="section-title">Shipping Profile</h3>
         <p class="text-sm text-gray-500 dark:text-neutral-400 mb-3">Choose the shipping rules for this product.</p>
-        <div v-if="!sellerShippingZones || sellerShippingZones.length === 0" class="text-center p-4 bg-gray-50 dark:bg-neutral-900 rounded-lg">
+        <div v-if="!sellerShippingZones || sellerShippingZones.length === 0" class="text-center p-4 bg-gray-50 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700">
             <p class="text-sm text-gray-600 dark:text-neutral-400">You haven't created any shipping profiles yet.</p>
             <NuxtLink to="/seller/dashboard" class="text-sm font-semibold text-brand hover:underline mt-2 inline-block">Manage Shipping</NuxtLink>
         </div>
-        <select v-else v-model="selectedShippingZoneId" class="form-input" required>
+         <select v-else v-model="selectedShippingZoneId" class="form-input" required>
             <option disabled :value="null">-- Select a Shipping Profile --</option>
             <option v-for="zone in sellerShippingZones" :key="zone.id" :value="zone.id">{{ zone.name }}</option>
         </select>
         <p v-if="errors.shippingZone" class="form-error">{{ errors.shippingZone }}</p>
       </div>
 
-      <!-- Section 5: "Shop the Look" -->
       <div class="form-section">
         <h3 class="section-title">Shop the Look</h3>
         <p class="text-sm text-gray-500 dark:text-neutral-400 mb-4">Link other products (e.g., accessories) styled with this item.</p>
         <div class="relative">
             <TextInput v-model:input="accessorySearchQuery" @input="debouncedSearchAccessories" placeholder="Search your products..." />
             <div v-if="accessorySearchResults.length > 0" class="absolute z-10 w-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg shadow-lg mt-1">
-                <ul>
+                 <ul>
                     <li v-for="item in accessorySearchResults" :key="item.id" @click="addLinkedProduct(item)" class="p-2 hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer text-sm">{{ item.title }}</li>
                 </ul>
             </div>
         </div>
-        <div v-if="linkedProducts.length > 0" class="mt-4 space-y-2">
+         <div v-if="linkedProducts.length > 0" class="mt-4 space-y-2">
             <p class="text-xs font-semibold text-gray-500 dark:text-neutral-400">LINKED ITEMS:</p>
             <div v-for="linked in linkedProducts" :key="linked.id" class="flex items-center justify-between p-2 bg-gray-50 dark:bg-neutral-800 rounded-md">
                 <span class="text-sm font-medium">{{ linked.title }}</span>
                 <button @click="removeLinkedProduct(linked.id!)" class="p-1 text-gray-400 dark:text-neutral-500 hover:text-brand-dark dark:hover:text-brand-light"><Icon name="mdi:close-circle" size="20" /></button>
-            </div>
+             </div>
         </div>
       </div>
 
-      <!-- Section 6: Tags -->
       <div class="form-section">
         <h3 class="section-title">Tags & Keywords</h3>
-        <TagInput v-model:modelValue="tags" label="Product Tags" placeholder="Add a tag and press Enter..." />
+        <TagInput v-model="tags" label="Product Tags" placeholder="Add a tag and press Enter..." />
       </div>
     </form>
     
@@ -127,7 +121,7 @@ const props = defineProps({
 const userStore = useUserStore();
 const apiService = useApiService();
 
-const product = ref<Partial<IProduct>>({ discount: 0, isAccessory: false });
+const product = ref<Partial<IProduct>>({ discount: 0, isAccessory: false, price: 0 }); // Ensure price is initialized
 const measurement = ref<Partial<IMeasurement>>({});
 const tags = ref<string[]>([]);
 const selectedCategory = ref<Partial<ICategory>>({});
@@ -176,31 +170,56 @@ const validateForm = (): boolean => {
     errors.value = {};
     if (!product.value.title) errors.value.title = 'Product name is required.';
     if (!selectedCategory.value.name) errors.value.category = 'Category is required.';
-    if (product.value.price === undefined || product.value.price === null) errors.value.price = 'Price is required.';
+    if (product.value.price === undefined || product.value.price === null || product.value.price <= 0) errors.value.price = 'Price is required.';
     if (!selectedShippingZoneId.value) errors.value.shippingZone = 'Shipping profile is required.';
     return Object.keys(errors.value).length === 0;
 };
 
 const submitForm = () => { 
   if (!validateForm()) return;
-  const completeProduct = {
+  
+  // THE FIX: Create a single object that matches the IProduct shape
+  // and the data needed by the store's `createProduct` action.
+  const completeProduct: IProduct = {
     ...product.value,
+    id: 0, // Placeholder
+    slug: '', // Placeholder
+    sellerId: '', // Placeholder
+    status: 'DRAFT',
+    created_at: new Date(),
+    updated_at: new Date(),
+    title: product.value.title!,
+    description: product.value.description!,
+    price: product.value.price!,
+    discount: product.value.discount || 0,
+    shippingZoneId: selectedShippingZoneId.value!,
+    isAccessory: product.value.isAccessory || false,
     measurement: measurement.value,
-    tags: tags.value.map(tag => ({ name: tag })),
-    category: { name: selectedCategory.value.name },
+    tags: tags.value.map(tag => ({ name: tag })), // This matches IProduct
+    category: [{ category: { name: selectedCategory.value.name } }], // This matches IProduct
     variants: variants.value.filter(v => v.size.trim() && v.stock >= 0),
     media: props.mediaData, // This is passed up to the parent
-    shippingZoneId: selectedShippingZoneId.value,
-    linkedProductIds: linkedProducts.value.map(p => p.id)
+    linkedProductIds: linkedProducts.value.map(p => p.id!) // Pass this for the update step
   };
   emit('submit', completeProduct);
 };
 </script>
 
 <style scoped>
-.form-section { @apply p-6 border rounded-lg bg-white dark:bg-neutral-900 shadow-sm border-gray-200 dark:border-neutral-800; }
-.section-title { @apply text-lg font-semibold text-gray-800 dark:text-neutral-100 mb-4; }
-.form-input { @apply mt-1 block w-full border border-gray-300 dark:border-neutral-700 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#f02c56] focus:border-transparent bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100; }
-.form-error { @apply text-brand-dark text-xs mt-1; }
+/* THE FIX: All form section styles are now theme-aware
+*/
+.form-section { 
+  @apply p-6 border rounded-lg bg-white dark:bg-neutral-900 shadow-sm border-gray-200 dark:border-neutral-800; 
+}
+.section-title { 
+  @apply text-lg font-semibold text-gray-800 dark:text-neutral-100 mb-4; 
+}
+.form-input { 
+  @apply mt-1 block w-full border border-gray-300 dark:border-neutral-700 rounded-lg shadow-sm py-2 px-3 
+         bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100
+         focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent; 
+}
+.form-error { 
+  @apply text-brand dark:text-brand-light text-xs mt-1; 
+}
 </style>
-

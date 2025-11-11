@@ -2,12 +2,11 @@
     <div class="space-y-6">
         <h3 class="font-bold text-gray-800 dark:text-neutral-200">Shop the Look</h3>
         
-        <div v-if="pending" class="space-y-3">
-            <!-- Skeleton Loader -->
+         <div v-if="pending || !accessories" class="space-y-3">
             <div v-for="i in 2" :key="i" class="flex items-center space-x-3 p-2 animate-pulse">
                 <div class="w-16 h-16 rounded-md bg-gray-200 dark:bg-neutral-800"></div>
                 <div class="flex-1 space-y-2">
-                    <div class="h-4 w-3/4 bg-gray-200 dark:bg-neutral-800 rounded"></div>
+                     <div class="h-4 w-3/4 bg-gray-200 dark:bg-neutral-800 rounded"></div>
                     <div class="h-4 w-1/2 bg-gray-300 dark:bg-neutral-700 rounded"></div>
                 </div>
             </div>
@@ -23,7 +22,7 @@
                 <img 
                     :src="acc?.media[0]?.url || '/default-product.png'" 
                     alt="Accessory" 
-                    class="w-16 h-16 rounded-md object-cover flex-shrink-0"
+                     class="w-16 h-16 rounded-md object-cover flex-shrink-0"
                 />
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-900 dark:text-neutral-100 truncate">{{ acc.title }}</p>
@@ -39,6 +38,8 @@
 </template>
 
 <script setup lang="ts">
+// THE FIX: Import watch and ref
+import { watch, ref } from 'vue';
 import type { IProduct } from '~/models';
 import { useApiService } from '~/services/api/apiService';
 import { formatPrice } from '~/utils/formatters';
@@ -49,12 +50,22 @@ const props = defineProps<{
 
 const apiService = useApiService();
 
+// THE FIX: Define refs for data and pending state, but don't fetch yet.
+const accessories = ref<IProduct[] | null>(null);
+const pending = ref(false);
 
-// This component fetches its own data based on the product ID prop.
-const { data: accessories, pending } = await useAsyncData(
-    `linked-accessories-${props.productId}`,
-    () => apiService.getLinkedAccessories(props.productId),
-    { lazy: true }
-);
-
+// THE FIX: Use watch to trigger the fetch *only* when productId is valid.
+watch(() => props.productId, async (newId) => {
+    // Only run if newId is a valid, positive number
+    if (newId && newId > 0) {
+        pending.value = true;
+        const { data } = await useAsyncData(
+            `linked-accessories-${newId}`,
+            () => apiService.getLinkedAccessories(newId),
+            { lazy: true }
+        );
+        accessories.value = data.value;
+        pending.value = false;
+    }
+}, { immediate: true }); // 'immediate: true' makes this run as soon as the component mounts
 </script>

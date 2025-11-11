@@ -144,6 +144,7 @@ const uploadFile = (fileState: any) => {
               height: data.height,
             },
             sellerId: '',
+            authorId: '',
             created_at: new Date(data.created_at),
             productId: null,
             altText: props.altText || data.original_filename,

@@ -12,10 +12,6 @@
 
     <div 
       class="relative w-full h-full flex items-center justify-center"
-      @mouseenter="handleFocus"
-      @mouseleave="handleBlur"
-      @focus="handleFocus"
-      @blur="handleBlur"
       tabindex="0"
     >
       <template v-if="productMedia?.type === EMediaType.VIDEO">
@@ -42,12 +38,11 @@
           @error="handleError" 
           :width="width"
           :height="height"
-          
         />
       </template>
 
       <template v-else>
-        <img src="https://picsum.photos/id/1000/800/800" alt="Placeholder image" class="media-content" />
+         <img src="https://picsum.photos/id/1000/800/800" alt="Placeholder image" class="media-content" />
       </template>
 
       <div v-if="error" class="absolute inset-0 flex items-center justify-center bg-gray-200/80 z-20">
@@ -57,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch } from "vue"; // Removed 'computed'
 import type { PropType } from "vue";
 import { EMediaType, type IMedia } from "~/models/interface/";
 
@@ -87,32 +82,17 @@ const props = defineProps({
 const error = ref(false);
 const videoRef = ref<HTMLVideoElement | null>(null);
 
-// NEW: Local state to track hover/focus
-const isHoveredOrFocused = ref(false);
 
-// NEW: Handlers for the events
-const handleFocus = () => {
-    isHoveredOrFocused.value = true;
-};
-const handleBlur = () => {
-    isHoveredOrFocused.value = false;
-};
-
-// NEW: A computed property to decide if the video should play
-const shouldBePlaying = computed(() => {
-    return props.isPlaying && isHoveredOrFocused.value;
-});
-
-// MODIFIED: The watcher now uses the computed property
-watch(shouldBePlaying, (play) => {
+// MODIFIED: The watcher now *only* listens to the isPlaying prop.
+watch(() => props.isPlaying, (play) => {
     if (videoRef.value) {
         if (play) {
-            videoRef.value.play().catch(e => { /* Browser may prevent play, which is fine */ });
+             videoRef.value.play().catch(e => { /* Browser may prevent play, which is fine */ });
         } else {
             videoRef.value.pause();
         }
     }
-});
+}, { immediate: true }); // Added immediate: true to play on load if prop is set
 
 const handleError = () => { error.value = true; };
 </script>

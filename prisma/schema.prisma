@@ -331,21 +331,32 @@ model Post {
   media          Media            @relation(fields: [mediaId], references: [id], onDelete: Cascade)
   taggedProducts ProductPostTag[]
   likes          PostLike[]
+  comments         Comment[]
+  notifications  Notification[]
 }
 
 model Comment {
-  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  text          String
-  authorId      String         @db.Uuid
-  productId     Int
-  parentId      String?        @db.Uuid
-  created_at    DateTime       @default(now()) @db.Timestamptz(6)
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  text       String
+  authorId   String   @db.Uuid
+  parentId   String?  @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  // --- THE FIX ---
+  // ProductId is now optional
+  productId Int?
+  // PostId is new and optional
+  postId    String?  @db.Uuid
+
+  author  Profile   @relation("UserComments", fields: [authorId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("Replies", fields: [parentId], references: [id], onDelete: NoAction)
+  replies Comment[] @relation("Replies")
+  likes   CommentLike[]
   
-  author        Profile        @relation("UserComments", fields: [authorId], references: [id], onDelete: Cascade)
-  product       Products       @relation(fields: [productId], references: [id], onDelete: Cascade)
-  parent        Comment?       @relation("Replies", fields: [parentId], references: [id], onDelete: NoAction)
-  replies       Comment[]      @relation("Replies")
-  likes         CommentLike[]
+  // Relations are now optional
+  product Products? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  post    Post?     @relation(fields: [postId], references: [id], onDelete: Cascade) // Add this new relation
+
   notifications Notification[] @relation("NotificationToComment")
 }
 
@@ -484,14 +495,20 @@ model Notification {
   // Relations
   profile    Profile          @relation("NotificationToProfile", fields: [userId], references: [id])
   actor      Profile?         @relation("NotificationFromActor", fields: [actorId], references: [id])
+  
   orderId    Int?
   order      Orders?          @relation("NotificationToOrder", fields: [orderId], references: [id])
+  
   productId  Int?
   product    Products?        @relation("NotificationToProduct", fields: [productId], references: [id])
+  
   commentId  String?          @db.Uuid
   comment    Comment?         @relation("NotificationToComment", fields: [commentId], references: [id])
+  
+  // --- THE FIX: ADD THIS RELATION ---
+  postId     String?          @db.Uuid
+  post       Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
-
 model SocialMediaInfo {
   id         Int       @id @default(autoincrement())
   userId     String?   @db.Uuid
