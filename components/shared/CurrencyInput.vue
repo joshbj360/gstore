@@ -1,18 +1,18 @@
 <template>
   <div class="space-y-1">
     <label v-if="label" class="block text-sm font-medium text-gray-700 dark:text-neutral-300">
-      {{ label }}
+      {{ label }} ({{ currencySymbol }})
       <span v-if="required" class="text-brand">*</span>
     </label>
     <div class="relative rounded-md shadow-sm">
       <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-        <span class="text-gray-500 dark:text-neutral-400 sm:text-sm">{{ currencySymbol }}</span>
       </div>
       <input
         type="text"
         :value="formattedValue"
         @input="handleInput"
         @blur="handleBlur"
+        :placeholder="'0.00'"
         :class="[
           'block w-full rounded-md border py-2 pl-7 pr-3 focus:outline-none sm:text-sm',
           'bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100',

@@ -2,7 +2,7 @@ import prisma from '~/server/prisma/prismaClient';
 import { serverSupabaseUser } from '#supabase/server';
 import { z } from 'zod';
 import { ProductStatus } from '@prisma/client';
-import Store_slug from '~/pages/seller/profile/[store_slug].vue';
+import Store_slug from '~/pages/sellers/profile/[store_slug].vue';
 
 const quickProductSchema = z.object({
   title: z.string().min(1, "Title is required."),

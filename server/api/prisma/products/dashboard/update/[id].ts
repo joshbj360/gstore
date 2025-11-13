@@ -3,7 +3,7 @@ import { serverSupabaseUser } from '#supabase/server';
 import { z } from 'zod';
 import { MediaType, ProductStatus } from '@prisma/client';
 
-// The Zod schema we fixed before is still correct.
+// Zod schema is correct from our last fix
 const productUpdateSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters long.'),
   description: z.string().optional(),
@@ -56,17 +56,16 @@ export default defineEventHandler(async (event) => {
             message: validation.error.issues.map(i => `${i.path.join('.') || 'root'}: ${i.message}`).join(', ')
         });
     }
+
     const body = validation.data;
 
     try {
         const updatedProduct = await prisma.$transaction(async (tx) => {
             
-            // 1. Verify ownership
             await tx.products.findFirstOrThrow({
                 where: { id: productId, sellerId: sellerProfile.id }
             });
 
-            // 2. Delete all old relations
             await Promise.all([
                 tx.media.deleteMany({ where: { productId: productId } }),
                 tx.productVariant.deleteMany({ where: { productId: productId } }),
@@ -75,7 +74,6 @@ export default defineEventHandler(async (event) => {
                 tx.productRelation.deleteMany({ where: { styledWithId: productId } })
             ]);
 
-            // 3. Update the simple fields on the product
             await tx.products.update({
                 where: { id: productId },
                 data: {
@@ -86,15 +84,15 @@ export default defineEventHandler(async (event) => {
                     shippingZoneId: body.shippingZoneId,
                     isAccessory: body.isAccessory || false,
                     status: 'PUBLISHED',
-                    // We REMOVE the nested 'category' and 'tags' writes from here
                 }
             });
 
-            // 4. Find or Create the Categories/Tags to get their IDs
+            // --- THE FIX IS HERE ---
             const categoryOps = body.category.map(cat => 
                 tx.category.upsert({
                     where: { name: cat.category.name },
                     create: { name: cat.category.name, slug: cat.category.name.toLowerCase().replace(/\s+/g, '-') },
+                    update: {}, // This empty object is the fix
                     select: { id: true }
                 })
             );
@@ -102,27 +100,31 @@ export default defineEventHandler(async (event) => {
                 tx.tag.upsert({
                     where: { name: tag.name },
                     create: { name: tag.name },
+                    update: {}, // This empty object is the fix
                     select: { id: true }
                 })
             );
+            // -------------------------
+
             const categories = await Promise.all(categoryOps);
             const tags = await Promise.all(tagOps);
 
-            // 5. Explicitly create the new join table records
             await tx.productCategories.createMany({
                 data: categories.map(cat => ({
                     productId: productId,
                     categoryId: cat.id
                 }))
             });
-            await tx.productTags.createMany({
-                data: tags.map(tag => ({
-                    productId: productId,
-                    tagId: tag.id
-                }))
-            });
+            // Handle empty tags array
+            if (tags.length > 0) {
+                await tx.productTags.createMany({
+                    data: tags.map(tag => ({
+                        productId: productId,
+                        tagId: tag.id
+                    }))
+                });
+            }
 
-            // 6. Create the other 1-to-many relations (still OK to do this here)
             await tx.media.createMany({
                 data: body.media.map(m => ({
                     url: m.url,
@@ -131,7 +133,7 @@ export default defineEventHandler(async (event) => {
                     metadata: m.metadata || {},
                     authorId: user.id,
                     sellerId: sellerProfile.id,
-                    productId: productId // Explicitly link
+                    productId: productId 
                 }))
             });
             await tx.productVariant.createMany({
@@ -139,7 +141,7 @@ export default defineEventHandler(async (event) => {
                     size: variant.size,
                     stock: variant.stock,
                     price: variant.price,
-                    productId: productId // Explicitly link
+                    productId: productId 
                 }))
             });
             if (body.linkedProductIds && body.linkedProductIds.length > 0) {
@@ -151,7 +153,6 @@ export default defineEventHandler(async (event) => {
                 });
             }
 
-            // 7. Return the final, fully updated product
             return tx.products.findUnique({
                 where: { id: productId },
                 include: { media: true, variants: true, category: true, tags: true, styledWith: true }
@@ -162,8 +163,8 @@ export default defineEventHandler(async (event) => {
 
     } catch (error: any) {
         console.error(`Error updating product ${productId}:`, error);
-        if (error.code === 'P2002') { // Handle unique constraint
-            throw createError({ statusCode: 409, message: error.message });
+        if (error.code === 'P2002') { 
+            throw createError({ statusCode: 409, message: "A database constraint failed. This might be a duplicate slug or other unique field." });
         }
         if (error.code === 'P2025' || error.message.includes("findFirstOrThrow")) {
              throw createError({ statusCode: 404, message: 'Product not found or you do not have permission.' });

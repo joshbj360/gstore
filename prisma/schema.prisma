@@ -1,10 +1,12 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
 }
 
 // --- ENUMS ---
@@ -113,6 +115,8 @@ model SellerProfile {
   verificationDocuments   VerificationDocument[]
   wallet                  SellerWallet?
   followers               Follow[]              @relation("Followers")
+
+  @@unique([followers_count, id])
 }
 
 model Products {
@@ -134,6 +138,7 @@ model Products {
   bannerImageUrl   String?
   isAccessory      Boolean             @default(false)
   SKU              String?             @unique
+  embedding   Unsupported("vector")? 
   
   // Aggregated data
   soldCount        Int                 @default(0)

@@ -50,7 +50,7 @@
         <p class="text-sm text-gray-500 dark:text-neutral-400 mb-3">Choose the shipping rules for this product.</p>
         <div v-if="!sellerShippingZones || sellerShippingZones.length === 0" class="text-center p-4 bg-gray-50 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700">
             <p class="text-sm text-gray-600 dark:text-neutral-400">You haven't created any shipping profiles yet.</p>
-            <NuxtLink to="/seller/dashboard" class="text-sm font-semibold text-brand hover:underline mt-2 inline-block">Manage Shipping</NuxtLink>
+            <NuxtLink to="/sellers/dashboard" class="text-sm font-semibold text-brand hover:underline mt-2 inline-block">Manage Shipping</NuxtLink>
         </div>
          <select v-else v-model="selectedShippingZoneId" class="form-input" required>
             <option disabled :value="null">-- Select a Shipping Profile --</option>

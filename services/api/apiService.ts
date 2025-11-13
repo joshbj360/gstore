@@ -164,14 +164,25 @@ getHomeFeed(params: { limit?: number, cursor?: string | null }): Promise<{ feed:
   }
 
   getSellerProfileBySlug(slug: string): Promise<ISellerProfile> {
-    return this.request(`/api/prisma/user/seller/get-seller-store-by-slug/${slug}`);
+    return this.request(`/api/prisma/user/sellers/get-seller-store-by-slug/${slug}`);
   }
   
   createSellerProfile(data: Partial<ISellerProfile>): Promise<ISellerProfile> {
-    return this.request('/api/prisma/user/seller-profile', {
+    return this.request('/api/prisma/user/sellers/seller-profile', {
       method: 'POST',
       body: data
     });
+  }
+/**
+   * THE FIX: This method now sends cursor-based parameters
+   * instead of page-based parameters, matching the API.
+   */
+  getAllSellers(params: { 
+    limit?: number, 
+    cursorId?: string, 
+    cursorFollowers?: number 
+  }): Promise<{ sellers: ISellerProfile[], meta: any }> {
+    return this.request('/api/prisma/user/seller/all', { params });
   }
 
   getUserFollows(): Promise<any[]> {
@@ -364,7 +375,61 @@ getHomeFeed(params: { limit?: number, cursor?: string | null }): Promise<{ feed:
   searchSellerProducts(query: string): Promise<IProduct[]> {
       return this.request(`/api/prisma/search/seller-products`, { params: { query } });
   }
+
+  //#region === AI METHODS (MERGED & SECURED) ===
+  
+  // From your new `useApi.ts`, but points to *our* secure server route
+  aiGenerateDescription(productInfo: any): Promise<{ description: string }> {
+    return this.request('/api/ai/generate-description', {
+      method: 'POST',
+      body: productInfo
+    });
+  }
+
+  // From your new `useApi.ts`, but points to *our* secure server route
+  aiSuggestHashtags(title: string, category: string): Promise<{ hashtags: string[] }> {
+    return this.request('/api/ai/suggest-hashtags', {
+      method: 'POST',
+      body: { title, category }
+    });
+  }
+
+  // From your new `useApi.ts`, but points to *our* secure server route
+  aiGeneratePlatformCaption(platformId: string, productInfo: any): Promise<{ caption: string }> {
+    return this.request('/api/ai/generate-caption', {
+      method: 'POST',
+      body: { platformId, ...productInfo }
+    });
+  }
+  //#endregion
+
+    // --- NEW SOCIAL METHODS (Merged) ---
+  //
+  // These are the methods your new UI calls.
+  // You will still need to build these server API routes.
+
+  /**
+   * Kicks off the OAuth flow (if not using Supabase linking).
+   */
+  connectSocialPlatform(platform: string): Promise<any> {
+    return this.request('/api/social/connect', {
+      method: 'POST',
+      body: { platform }
+    });
+  }
+
+  /**
+   * Sends the final post to your server, which then uses the Supabase provider_token.
+   */
+  postToSocial(socialData: any): Promise<any> {
+    return this.request('/api/social/post', {
+      method: 'POST',
+      body: socialData
+    });
+  }
 }
+
+
 
 // Singleton instance of the ApiService
 let apiServiceInstance: ApiService | null = null;

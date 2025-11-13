@@ -8,7 +8,7 @@
         <div class="flex items-center gap-3">
           <NuxtLink
             v-if="sellerStore?.store_name"
-            :to="`/seller/profile/${sellerStore.store_slug}`"
+            :to="`/sellers/profile/${sellerStore.store_slug}`"
             class="flex items-center gap-3 group"
           >
             <img

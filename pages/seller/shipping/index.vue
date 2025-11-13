@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import ShippingZoneModal from '@/components/seller/dashboard/ShippingZoneModal.vue'
+import ShippingZoneModal from '@/components/sellers/dashboard/ShippingZoneModal.vue'
 import type { ShippingZone } from '@prisma/client'; // Assuming you have run `prisma generate`
 import { notify } from "@kyvg/vue3-notification";
 

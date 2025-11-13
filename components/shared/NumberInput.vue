@@ -9,7 +9,6 @@
         :type="inputType"
         :value="input"
         @input="handleInput"
-        :placeholder="placeholder"
         :class="[
           'block w-full rounded-md border py-2 px-3 focus:outline-none sm:text-sm',
           'bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100', // Theme-aware bg and text

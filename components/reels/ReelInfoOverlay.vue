@@ -30,7 +30,7 @@ const props = defineProps<{
 
 const authorLink = computed(() => {
     if (props.item.type === 'PRODUCT' && props.item.product?.seller) {
-        return `/seller/profile/${props.item.product.seller.store_slug}`;
+        return `/sellers/profile/${props.item.product.seller.store_slug}`;
     }
     return `/profile/${props.item.author.username}`;
 });

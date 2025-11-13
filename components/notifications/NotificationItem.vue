@@ -45,7 +45,7 @@ const iconColorClass = computed(() => {
 
 // Create a link based on the notification type
 const notificationLink = computed(() => {
-    if (props.notification.orderId) return `/seller/dashboard?tab=orders`;
+    if (props.notification.orderId) return `/sellers/dashboard?tab=orders`;
     if (props.notification.productId) return `/product/${props.notification.product?.slug}`;
     if (props.notification.actorId) return `/profile/${props.notification.actor?.username}`;
     return '#';

@@ -45,6 +45,10 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    openaiApiKey: process.env.OPENAI_API_KEY, 
+    grokApiKey: process.env.GROK_API_KEY,
+    googleApiKey: process.env.GOOGLE_API_KEY,
     paystackSecretKey: process.env.PAYSTACK_SECRET_KEY, // TODO move to private
     platformCommissionRate: process.env.PLATFORM_COMMISSION_RATE,
     public: {
@@ -56,6 +60,7 @@ export default defineNuxtConfig({
       cloudinaryUploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET
     },
     private: {
+      
       cloudinary: {
         apiSecret: process.env.CLOUDINARY_API_SECRET
       }

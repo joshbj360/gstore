@@ -93,6 +93,11 @@
             <ProductsSection v-if="activeSection === 'products'" :products="products" @update="refresh" />
             <OrdersSection v-if="activeSection === 'orders'" :orders="orders" @order-updated="refresh" />
             <EarningsSection v-if="activeSection === 'earnings'" :wallet="wallet" @payout-requested="refresh" />
+             <SocialMarketingSection 
+              v-if="activeSection === 'social'" 
+              :products="products" 
+              @promote="openSocialPostModal"
+            />
             <LogisticsSection v-if="activeSection === 'logistics'" :orders="orders" :shippingZoneCount="userStore.sellerProfile?.shippingZones?.length || 0" />
             <AnalyticsSection v-if="activeSection === 'analytics'" :orders="orders" />
             <CustomersSection v-if="activeSection === 'customers'" :customers="customerData" />
@@ -104,6 +109,13 @@
         </div>
       </main>
     </div>
+    <SocialPostModal
+      v-if="productToPost"
+      :is-open="isSocialModalOpen"
+      :product="productToPost"
+      @close="isSocialModalOpen = false"
+      @posted="handleSocialPost"
+    />
   </div>
 </template>
 
@@ -129,6 +141,8 @@ import OrdersSection from '~/components/seller/dashboard/OrdersSection.vue';
 import AnalyticsSection from '~/components/seller/dashboard/AnalyticsSection.vue';
 import EarningsSection from '~/components/seller/dashboard/EarningSection.vue';
 import type { IProduct, IOrders } from '~/models'; // Import IOrders
+import SocialMarketingSection from '@/components/seller/dashboard/SocialMarketingSection.vue';
+import SocialPostModal from '@/components/seller/dashboard/SocialPostModal.vue';
 
 const vClickOutside = { /* ... (click outside directive logic) ... */ };
 
@@ -141,6 +155,8 @@ const supabase = useSupabaseClient();
 
 const activeSection = ref('products');
 const showNotificationMenu = ref(false);
+const productToPost = ref<IProduct | null>(null);
+const isSocialModalOpen = ref(false)
 
 const { data: dashboardData, pending, error, refresh } = await useLazyAsyncData('seller-dashboard', async () => {
   if (!userStore.isLoggedIn || !userStore.isSeller) {
@@ -255,6 +271,7 @@ const sections = [
   { id: 'products', label: 'Products', icon: 'mdi:package-variant' },
   { id: 'orders', label: 'Orders', icon: 'mdi:clipboard-list' },
   { id: 'earnings', label: 'Earnings', icon: 'mdi:wallet-outline' },
+    { id: 'social', label: 'Social & Marketing', icon: 'mdi:share-variant' },
   { id: 'analytics', label: 'Analytics', icon: 'mdi:chart-line' },
   { id: 'customers', label: 'Customers', icon: 'mdi:account-group' },
   { id: 'messages', label: 'Messages', icon: 'mdi:chat' },
@@ -263,6 +280,18 @@ const sections = [
   { id: 'ai-enhancement', label: 'AI Tools', icon: 'mdi:robot-happy-outline' },
   { id: 'settings', label: 'Settings', icon: 'mdi:cog' },
 ];
+
+const openSocialPostModal = (product: IProduct) => {
+  productToPost.value = product;
+  isSocialModalOpen.value = true;
+};
+
+const handleSocialPost = () => {
+  isSocialModalOpen.value = false;
+  productToPost.value = null;
+  notify({ type: 'success', text: 'Product successfully posted to socials!' });
+  // You could also refresh() here if needed
+};
 </script>
 
 <style scoped>

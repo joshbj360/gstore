@@ -6,7 +6,7 @@
     <div class="bg-white dark:bg-neutral-950 rounded-xl shadow-md overflow-hidden border border-gray-200 dark:border-neutral-800">
         <!-- Seller Header -->
         <div class="flex items-center p-3">
-            <NuxtLink :to="`/seller/profile/${product.seller?.store_slug}`" class="flex items-center gap-3">
+            <NuxtLink :to="`/sellers/profile/${product.seller?.store_slug}`" class="flex items-center gap-3">
                 <img :src="product.seller?.store_logo || '/default-avatar.png'" class="w-10 h-10 rounded-full object-cover">
                 <span class="font-semibold text-sm text-gray-800 dark:text-neutral-100">{{ product.seller?.store_name }}</span>
                 <Icon v-if="product.seller?.is_verified" name="mdi:check-decagram" class="text-blue-500" />

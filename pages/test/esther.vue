@@ -29,7 +29,7 @@
                         class="w-6 h-6" />
                 </button>
                 
-                <NuxtLink to="/seller/dashboard" class="p-2 rounded-md hover:bg-gray-100">
+                <NuxtLink to="/sellers/dashboard" class="p-2 rounded-md hover:bg-gray-100">
                     <Icon name="mdi:account-edit" class="w-6 h-6" />
                 </NuxtLink>
             </div>
@@ -305,7 +305,7 @@ const setCategory = (slug: string) => {
 };
 
 const navigateToSeller = (slug: string) => {
-    router.push(`/seller/profile/${slug}`);
+    router.push(`/sellers/profile/${slug}`);
 };
 
 const openUpload = () => {

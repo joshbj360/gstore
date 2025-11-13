@@ -203,7 +203,7 @@ const saveProfile = async () => {
     const success = await userStore.createSellerProfile(completeProfile);
     if (success) {
       notify({ type: "success", text: 'Your store has been created successfully!' });
-      router.push(`/seller/profile/${completeProfile.store_name}`);
+      router.push(`/sellers/profile/${completeProfile.store_name}`);
     } else {
         throw new Error(userStore.error || 'Failed to create profile.');
     }

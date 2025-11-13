@@ -283,7 +283,7 @@ const handleSubmit = async () => {
     } else {
       result = await userStore.loginWithPassword(form.email, form.password);
       if (result.success) {
-        router.push(userStore.isSeller ? '/seller/dashboard' : '/');
+        router.push(userStore.isSeller ? '/sellers/dashboard' : '/');
       }
     }
     if (result.error) {

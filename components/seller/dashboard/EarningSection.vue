@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import PayoutModal from '~/components/seller/dashboard/PayoutModal.vue';
+import PayoutModal from '~/components/sellers/dashboard/PayoutModal.vue';
 import { useApiService } from '~/services/api/apiService';
 import { notify } from '@kyvg/vue3-notification';
 import { formatPrice } from '~/utils/formatters';

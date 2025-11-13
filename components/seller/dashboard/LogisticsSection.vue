@@ -4,7 +4,7 @@
       <h2 class="text-lg font-medium">Logistics Overview</h2>
       <!-- This button now links to the dedicated shipping management page -->
       <NuxtLink 
-        to="/seller/dashboard/shipping"
+        to="/sellers/dashboard/shipping"
         class="bg-brand/10 text-brand px-4 py-2 rounded-lg font-semibold text-sm hover:bg-brand/20 transition-colors"
       >
         Manage Shipping Profiles
