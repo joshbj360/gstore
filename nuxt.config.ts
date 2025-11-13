@@ -28,7 +28,12 @@ export default defineNuxtConfig({
     'vue3-carousel-nuxt',
     "@nuxtjs/cloudinary",
     'nuxt-charts',
-    '@nuxtjs/color-mode',
+    ['@nuxtjs/color-mode', {
+      preference: 'dark',  // Your preferred default theme
+      fallback: 'dark',    // Fallback if the user has no preference
+      classSuffix: '',     // This is the key: it makes the class ".dark" instead of ".dark-mode"
+      storageKey: 'nuxt-color-mode' // The key for localStorage
+    }],
     'nuxt3-notifications',
   ],
   supabase: {
@@ -40,7 +45,11 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
-    paystackSecretKey: process.env.PAYSTACK_SECRET_KEY,
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    openaiApiKey: process.env.OPENAI_API_KEY, 
+    grokApiKey: process.env.GROK_API_KEY,
+    googleApiKey: process.env.GOOGLE_API_KEY,
+    paystackSecretKey: process.env.PAYSTACK_SECRET_KEY, // TODO move to private
     platformCommissionRate: process.env.PLATFORM_COMMISSION_RATE,
     public: {
       siteName: process.env.NUXT_PUBLIC_SITE_NAME,
@@ -51,6 +60,7 @@ export default defineNuxtConfig({
       cloudinaryUploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET
     },
     private: {
+      
       cloudinary: {
         apiSecret: process.env.CLOUDINARY_API_SECRET
       }

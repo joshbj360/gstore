@@ -7,6 +7,7 @@ export default defineEventHandler(async (event) => {
                 orderBy: { followers_count: 'desc' },
                 take: 5,
                 select: { 
+                    id: true,
                     store_name: true, 
                     store_slug: true, 
                     store_logo: true, 

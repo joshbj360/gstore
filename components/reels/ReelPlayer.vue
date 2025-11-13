@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import type { IMedia } from '~/models';
-
+import { getMediaThumbnailUrl } from '~/utils/formatters'; // Import the formatter
 
 const props = defineProps<{
     media: IMedia;
@@ -29,7 +29,16 @@ const videoRef = ref<HTMLVideoElement | null>(null);
 
 watch(() => props.isActive, (active) => {
     if (videoRef.value) {
-        active ? videoRef.value.play() : videoRef.value.pause();
+        if (active) {
+            // Play video when it becomes active
+            videoRef.value.play().catch(() => {
+                // Autoplay might be blocked, which is fine.
+            });
+        } else {
+            // Pause video when it's no longer active
+            videoRef.value.pause();
+            videoRef.value.currentTime = 0; // Rewind
+        }
     }
-});
+}, { immediate: true });
 </script>

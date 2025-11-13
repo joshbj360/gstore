@@ -6,7 +6,7 @@
     <div class="bg-white dark:bg-neutral-950 rounded-xl shadow-md overflow-hidden border border-gray-200 dark:border-neutral-800">
         <!-- Seller Header -->
         <div class="flex items-center p-3">
-            <NuxtLink :to="`/seller/profile/${product.seller?.store_slug}`" class="flex items-center gap-3">
+            <NuxtLink :to="`/sellers/profile/${product.seller?.store_slug}`" class="flex items-center gap-3">
                 <img :src="product.seller?.store_logo || '/default-avatar.png'" class="w-10 h-10 rounded-full object-cover">
                 <span class="font-semibold text-sm text-gray-800 dark:text-neutral-100">{{ product.seller?.store_name }}</span>
                 <Icon v-if="product.seller?.is_verified" name="mdi:check-decagram" class="text-blue-500" />
@@ -52,12 +52,27 @@
             
             <!-- Likes and Price -->
             <div class="text-sm">
-                <p class="font-semibold text-gray-800 dark:text-neutral-100">{{ likeCountFormatted }} likes</p>
+                <div class="font-semibold text-gray-800 dark:text-neutral-100 mb-1">
+                    <span>{{ likeCountFormatted }} likes</span>
+                    
+                    <span v-if="totalStock > 10 && product.soldCount > 0" class="ml-2">
+                      • {{ product.soldCount }} sold
+                    </span>
+                    
+                    <span v-if="totalStock > 0 && totalStock <= 10" class="ml-2 text-brand font-bold">
+                      • 🔥 Only {{ totalStock }} left!
+                    </span>
+                    
+                    <span v-if="totalStock <= 0" class="ml-2 text-gray-500 font-bold">
+                      • Out of Stock
+                    </span>
+                </div>
+                
                 <p class="font-bold text-lg text-gray-900 dark:text-neutral-100">{{ formatPrice(product.price) }}</p>
                 <p class="text-gray-800 dark:text-neutral-100">
                     <span class="font-semibold">{{ product.seller?.store_name }}</span>
                     <span class="text-gray-600 dark:text-neutral-400 ml-2 line-clamp-1">{{ product.title }}</span>
-                </p>
+                 </p>
             </div>
         </div>
     </div>
@@ -98,6 +113,10 @@ const likeCountFormatted = computed(() => {
         return Math.max(0, baseLikes - 1); // User just unliked, subtract 1
     }
     return baseLikes; // No change
+});
+const totalStock = computed(() => {
+    if (!props.product.variants) return 0;
+    return props.product.variants.reduce((total, variant) => total + (variant.stock || 0), 0);
 });
 
 // --- COMPONENT METHODS ---

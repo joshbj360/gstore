@@ -68,17 +68,19 @@ export const useShippingStore = defineStore('shipping', {
     /**
      * Fetches the seller's shipping zones if they haven't been loaded yet.
      */
-    async fetchShippingZones() {
-      if (this.shippingZones.length > 0) return;
-      
+    async fetchShippingZones(): Promise<IShippingZone[]> {
+      if (this.shippingZones.length > 0)
+        return this.shippingZones;
       this.isLoading = true;
       try {
         const apiService = useApiService();
         // Assuming you have a getShippingZones method in your apiService
         const zones = await apiService.getShippingZones(); 
         this.shippingZones = zones;
+        return zones;
       } catch (error) {
         notify({ type: 'error', text: 'Could not load shipping profiles.' });
+        return [];
       } finally {
         this.isLoading = false;
       }

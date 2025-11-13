@@ -3,9 +3,14 @@
     class="bg-white dark:bg-neutral-900 rounded-lg shadow-sm p-4 sm:p-5 border border-gray-200 dark:border-neutral-800 hover:shadow-md transition-all duration-200">
     <div class="flex items-center justify-between">
       <div>
-        <p class="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">{{ title }}</p>
-        <p class="text-2xl sm:text-3xl font-bold text-gray-800 mt-1">{{ value }}</p>
-      </div>
+  <p class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+    {{ title }}
+  </p>
+  <p class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mt-1">
+    {{ value }}
+  </p>
+</div>
+
       <div class="p-3 rounded-full" :class="{
           'bg-brand/10': trend === 'up',
           'bg-yellow-100': trend === 'down',

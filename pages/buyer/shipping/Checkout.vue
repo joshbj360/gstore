@@ -161,7 +161,7 @@ const processOrder = async () => {
         };
 
         if (paymentMethod.value === 'paynow') {
-            const res = await apiService.initializePayment({ amount: total.value});
+            const res = await apiService.initializePayment(total.value);
             await apiService.createOrder({ ...orderPayload, paymentReference: res.reference, paymentMethod: 'paystack' });
             window.location.href = res.authorization_url;
         } else {

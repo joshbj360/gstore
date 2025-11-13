@@ -35,7 +35,7 @@
                         
                         <!-- Header: Seller Link -->
                         <div class="absolute top-10 left-0 right-0 p-4 bg-gradient-to-b from-black/60 to-transparent">
-                            <NuxtLink :to="`/seller/profile/${story.seller.store_slug}`" class="flex items-center gap-2" aria-label="View Seller Profile">
+                            <NuxtLink :to="`/sellers/profile/${story.seller.store_slug}`" class="flex items-center gap-2" aria-label="View Seller Profile">
                                 <img :src="story.seller.store_logo || '/default-avatar.png'" class="w-8 h-8 rounded-full object-cover" loading="lazy" alt="Seller Avatar" />
                                 <span class="font-semibold text-sm truncate">{{ story.seller.store_name }}</span>
                             </NuxtLink>

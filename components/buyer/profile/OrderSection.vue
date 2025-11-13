@@ -1,64 +1,63 @@
 <template>
-    <div class="min-h-screen bg-gray-50">
-        <header class="bg-white shadow-sm sticky top-0 z-10">
+    <div>
+        <header class="bg-white dark:bg-neutral-950 shadow-sm  top-0 z-10 border-b border-gray-200 dark:border-neutral-800">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 py-4">
-                <h1 class="text-2xl font-bold text-gray-900">My Orders</h1>
-                <p class="text-sm text-gray-500 mt-1">View your order history and track your shipments.</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-neutral-100">My Orders</h1>
+                <p class="text-sm text-gray-500 dark:text-neutral-400 mt-1">View your order history and track your shipments.</p>
             </div>
         </header>
 
-        <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+         <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
             <div v-if="pending" class="space-y-4">
-                <div v-for="i in 3" :key="i" class="bg-gray-200 rounded-lg h-32 animate-pulse"></div>
+                <div v-for="i in 3" :key="i" class="bg-gray-200 dark:bg-neutral-800 rounded-lg h-32 animate-pulse"></div>
             </div>
             <div v-else-if="error" class="text-center py-12">
-                <p class="text-brand">Could not load your order history.</p>
+                 <p class="text-brand dark:text-brand-light">Could not load your order history.</p>
             </div>
             <div v-else-if="!orders || orders.length === 0" class="text-center py-16">
-                <Icon name="mdi:package-variant-closed" size="48" class="mx-auto text-gray-300 mb-4" />
-                <h3 class="text-lg font-medium text-gray-900 mb-2">No Orders Found</h3>
-                <p class="text-gray-500 mb-6">You haven't placed any orders yet.</p>
+                <Icon name="mdi:package-variant-closed" size="48" class="mx-auto text-gray-300 dark:text-neutral-700 mb-4" />
+                <h3 class="text-lg font-medium text-gray-900 dark:text-neutral-100 mb-2">No Orders Found</h3>
+                 <p class="text-gray-500 dark:text-neutral-400 mb-6">You haven't placed any orders yet.</p>
                 <NuxtLink to="/" class="px-6 py-2 bg-brand text-white font-semibold rounded-lg shadow-md hover:bg-brand-light">
                     Start Shopping
                 </NuxtLink>
             </div>
 
-            <div v-else class="space-y-6">
-                <div v-for="order in orders" :key="order.id" class="bg-white rounded-xl shadow-sm border overflow-hidden">
-                    <div class="p-4 bg-gray-50/70 border-b flex justify-between items-center text-sm">
+             <div v-else class="space-y-6">
+                <div v-for="order in orders" :key="order.id" class="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden">
+                    <div class="p-4 bg-gray-50/70 dark:bg-neutral-800/30 border-b border-gray-200 dark:border-neutral-800 flex justify-between items-center text-sm">
                         <div>
-                            <p class="font-semibold">Order #{{ order.id }}</p>
-                            <p class="text-xs text-gray-500">Placed on {{ new Date(order.created_at).toLocaleDateString() }}</p>
-                        </div>
+                             <p class="font-semibold text-gray-900 dark:text-neutral-100">Order #{{ order.id }}</p>
+                            <p class="text-xs text-gray-500 dark:text-neutral-400">Placed on {{ new Date(order.created_at).toLocaleDateString() }}</p>
+                         </div>
                         <div class="text-right">
-                            <p class="font-semibold">{{ formatPrice(order.totalAmount) }}</p>
+                            <p class="font-semibold text-gray-900 dark:text-neutral-100">{{ formatPrice(order.totalAmount) }}</p>
                             <span class="status-badge" :class="getStatusClass(order.status)">{{ order.status }}</span>
-                        </div>
+                         </div>
                     </div>
                     <div class="p-4 space-y-4">
                         <div v-for="item in order.orderItem" :key="item.id" class="flex gap-4">
-                            <img :src="item.variant?.product?.media[0]?.url" class="w-16 h-16 rounded-md object-cover">
+                            <img :src="item.variant?.product?.media[0]?.url" class="w-16 h-16 rounded-md object-cover bg-gray-100 dark:bg-neutral-800">
                             <div class="flex-1 text-sm">
-                                <p class="font-medium text-gray-800">{{ item.variant?.product?.title }}</p>
-                                <p class="text-gray-500">Size: {{ item.variant.size }} | Qty: {{ item.quantity }}</p>
+                                <p class="font-medium text-gray-800 dark:text-neutral-100">{{ item.variant?.product?.title }}</p>
+                                <p class="text-gray-500 dark:text-neutral-400">Size: {{ item.variant.size }} | Qty: {{ item.quantity }}</p>
                             </div>
-                        </div>
+                         </div>
                     </div>
                     
-                    <!-- THE FIX: This section now displays the tracking information -->
-                    <div v-if="order.status === EOrderStatus.SHIPPED && order.trackingNumber" class="p-4 border-t bg-blue-50">
+                    <div v-if="order.status === EOrderStatus.SHIPPED && order.trackingNumber" class="p-4 border-t border-gray-200 dark:border-neutral-800 bg-blue-50 dark:bg-blue-900/20">
                         <div class="flex items-center">
-                             <Icon name="mdi:truck-delivery-outline" size="20" class="text-blue-600 shrink-0" />
+                             <Icon name="mdi:truck-delivery-outline" size="20" class="text-blue-600 dark:text-blue-400 shrink-0" />
                              <div class="ml-3 text-sm">
-                                <p class="font-semibold text-blue-800">Shipped with {{ order.shipper }}</p>
-                                <a :href="`https://www.google.com/search?q=${order.shipper}+tracking+${order.trackingNumber}`" target="_blank" class="text-blue-600 hover:underline">
+                                <p class="font-semibold text-blue-800 dark:text-blue-300">Shipped with {{ order.shipper }}</p>
+                                 <a :href="`https://www.google.com/search?q=${order.shipper}+tracking+${order.trackingNumber}`" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">
                                     Track Package: {{ order.trackingNumber }}
                                 </a>
-                             </div>
+                           </div>
                         </div>
                     </div>
                 </div>
-            </div>
+             </div>
         </main>
     </div>
 </template>
@@ -77,15 +76,13 @@ const props = defineProps<{
 const orderStore = useOrderStore();
 const userStore = useUserStore();
 
-
-
 const getStatusClass = (status: string) => {
-    // Add the SHIPPED status for correct styling
-    if (status === EOrderStatus.SHIPPED) return 'bg-blue-100 text-blue-800';
-    if (status === EOrderStatus.PAID) return 'bg-green-100 text-green-800';
-    if (status === EOrderStatus.PENDING) return 'bg-yellow-100 text-yellow-800';
-    if (status === EOrderStatus.CANCELED) return 'text-brand-light text-red-800';
-    return 'bg-gray-100 text-gray-800';
+    // THE FIX: Added theme-compliant light/dark mode classes
+    if (status === EOrderStatus.SHIPPED) return 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300';
+    if (status === EOrderStatus.PAID) return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300';
+    if (status === EOrderStatus.PENDING) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300';
+    if (status === EOrderStatus.CANCELED) return 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300';
+    return 'bg-gray-100 text-gray-800 dark:bg-neutral-700 dark:text-neutral-300';
 };
 </script>
 
@@ -94,4 +91,3 @@ const getStatusClass = (status: string) => {
     @apply px-2 inline-flex text-xs leading-5 font-semibold rounded-full mt-1;
 }
 </style>
-

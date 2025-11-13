@@ -17,7 +17,7 @@
             <NuxtLink to="/reels" class="nav-button" active-class="text-brand">
                 <Icon name="mdi:play-box-outline" size="26" />
             </NuxtLink>
-            <NuxtLink v-if="userStore.isLoggedIn && userStore.isSeller" to="/seller/dashboard" class="nav-button" active-class="active">
+            <NuxtLink v-if="userStore.isLoggedIn && userStore.isSeller" to="/sellers/dashboard" class="nav-button" active-class="active">
                 <Icon name="mdi:view-dashboard-outline" size="26" />
             </NuxtLink>
             <NuxtLink v-if="userStore.isLoggedIn" to="/buyer/profile" class="nav-button" active-class="text-brand">

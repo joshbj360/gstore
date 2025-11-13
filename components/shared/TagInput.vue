@@ -1,45 +1,57 @@
 <template>
   <div>
     <client-only>
-      <!-- <label class="text-semibold text-[13px] text-gray-400">{{ placeholder }}</label> -->
-    <label class="block text-sm font-medium text-gray-700">{{ label }}</label>
+      <label class="block text-sm font-medium text-gray-700 dark:text-neutral-300">{{ label }}</label>
 
-        <div id="tag-input-container" class="flex flex-wrap items-center border p-1 rounded-md w-80">
-          <!-- Render tags -->
-            <div id="tags" class="flex flex-wrap gap-1">
-              <div
-                v-for="(tag, index) in modelValue"
-                  :key="index"
-                  class="tag bg-gray-200 px-2 py-1 rounded flex items-center gap-1"
-                >
-                  <span>{{ tag }}</span>
-                  <span class="close cursor-pointer" @click="removeTag(index)">×</span>
-              </div>
-            </div>
-
-            <!-- Input for adding tags -->
-            <input
-              v-model="inputValue"
-              type="text"
-              id="tag-input"
-              class="flex p-[5px] outline-none"
-              :placeholder="placeholder"
-              @focus="isFocused = true"
-              @blur="isFocused = false"
-              @keydown.tab.prevent="addTag" 
-              @keydown.enter.prevent="addTag" 
-            />
+      <!-- 
+        THE FIX: Container is now w-full, theme-aware, and has a focus ring.
+      -->
+      <div 
+        id="tag-input-container" 
+        class="flex flex-wrap items-center border p-2 rounded-lg w-full mt-1
+               bg-white dark:bg-neutral-800 
+               border-gray-300 dark:border-neutral-700
+               focus-within:ring-2 focus-within:ring-brand"
+        :class="{ 'border-gray-900': isFocused, 'border-red-500': error }"
+      >
+        <!-- Render tags -->
+        <div id="tags" class="flex flex-wrap gap-2">
+          <div
+            v-for="(tag, index) in modelValue"
+            :key="index"
+            class="tag-pill"
+          >
+            <span class="text-sm">{{ tag }}</span>
+            <span class="close-icon" @click="removeTag(index)">×</span>
           </div>
+        </div>
+
+        <!-- Input for adding tags -->
+        <input
+          v-model="inputValue"
+          type="text"
+          id="tag-input"
+          class="flex-1 p-1 outline-none min-w-[100px]
+                 bg-transparent 
+                 text-gray-900 dark:text-neutral-100
+                 placeholder-gray-500 dark:placeholder-neutral-400"
+          :placeholder="placeholder"
+          @focus="isFocused = true"
+          @blur="isFocused = false"
+          @keydown.tab.prevent="addTag"
+          @keydown.enter.prevent="addTag"
+        />
+      </div>
     </client-only>
-        <!-- <span v-if="error" class="text-brand text-[14px] font-semibold">
-            {{ error }}
-        </span> -->
+    <span v-if="error" class="text-brand dark:text-brand-light text-[14px] font-semibold">
+        {{ error }}
+    </span>
   </div>
 </template>
 
 <script lang="ts" setup>
-import  { type ITag, defaultTag } from '~/models';
-
+import { ref } from 'vue';
+// THE FIX: Removed unused ITag and defaultTag imports
 
 const inputValue = ref<string>(''); // Local state for the input value
 const props = defineProps({
@@ -55,6 +67,10 @@ const props = defineProps({
     type: String,
     default: 'Add tags...',
   },
+  error: { // Added error prop to match other inputs
+    type: String,
+    default: '',
+  }
 })
 let isFocused = ref(false)
 
@@ -65,36 +81,32 @@ const emit = defineEmits<{
 // Add a new tag
 const addTag = () => {
   if (inputValue.value.trim() && !props.modelValue.includes(inputValue.value.trim())) {
-    const newTags = [...props.modelValue, inputValue.value];
-    emit('update:modelValue', newTags); // Emit the updated tags to the parent component
-    inputValue.value = ''; // Clear the input field
+    const newTags = [...props.modelValue, inputValue.value.trim()];
+    emit('update:modelValue', newTags);
+    inputValue.value = '';
   }
 };
 
 // Remove a tag by index
 const removeTag = (index: number) => {
   const newTags = props.modelValue.filter((_, i) => i !== index);
-  emit('update:modelValue', newTags); // Emit the updated tags to the parent component
+  emit('update:modelValue', newTags);
 };
 </script>
 
 <style scoped>
-.tag {
-  background-color: #e0e0e0;
-  padding: 5px 10px;
-  border-radius: 15px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+/* THE FIX: 
+  Moved styles here to be theme-aware using @apply
+*/
+.tag-pill {
+  @apply bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-neutral-100 
+         px-2.5 py-1 rounded-full flex items-center gap-1.5;
 }
 
-.close {
-  cursor: pointer;
-  color: #888;
-  font-size: 14px;
-}
-
-.close:hover {
-  color: #333;
+.close-icon {
+  @apply cursor-pointer text-gray-500 dark:text-neutral-400 font-bold 
+         hover:text-black dark:hover:text-white;
+  font-size: 16px;
+  line-height: 1;
 }
 </style>

@@ -1,116 +1,140 @@
 <template>
-    <HomeLayout>
-        <!-- Main Page Content -->
-        <div>
-            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-neutral-800">
-                <button @click="router.back()"
-                    class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">
-                    <Icon name="mdi:arrow-left" size="22" class="text-gray-600 dark:text-neutral-300" />
-        
-                </button>
+  <div>
+    <!-- HEADER -->
+    <div
+      class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md  top-0 z-20"
+    >
+      <button
+        @click="router.back()"
+        class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+      >
+        <Icon name="mdi:arrow-left" size="22" class="text-gray-600 dark:text-neutral-300" />
+      </button>
+
+      <div class="flex gap-2">
+        <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800">
+          <Icon name="mdi:share-variant" size="22" class="text-gray-600 dark:text-neutral-300" />
+        </button>
+        <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800">
+          <Icon name="mdi:bookmark-outline" size="22" class="text-gray-600 dark:text-neutral-300" />
+        </button>
+      </div>
+    </div>
+
+    <!-- LOADING STATE -->
+    <ProductPageSkeleton v-if="pending" />
+
+    <!-- ERROR STATE -->
+    <div v-else-if="error || !product" class="text-center py-20">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-neutral-100">Product Not Found</h2>
+      <p class="text-gray-600 dark:text-neutral-400 mt-2">This product may have been removed.</p>
+      <NuxtLink to="/" class="mt-4 inline-block bg-brand text-white px-6 py-2 rounded-lg">
+        Back to Homepage
+      </NuxtLink>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <template v-else>
+      <div class="max-w-6xl mx-auto py-6 md:py-10">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- PRODUCT IMAGES -->
+          <div class="relative">
+            <div class="lg:sticky lg:top-24">
+              <div class="rounded-2xl overflow-hidden shadow-lg relative bg-black">
+                <Carousel ref="carousel" :items-to-show="1" :wrap-around="true" class="h-full">
+                  <Slide v-for="media in product.media" :key="media.id">
+                    <MediaDisplay
+                      :product-media="media"
+                      :is-playing="true"
+                      class="w-full h-[350px] md:h-[500px] lg:h-[550px] object-cover"
+                    />
+                  </Slide>
+
+                  <template #addons>
+                    <Pagination />
+                  </template>
+                </Carousel>
+              </div>
+
+              <!-- THUMBNAILS -->
+              <div
+                v-if="product.media?.length > 1"
+                class="flex gap-2 mt-4 overflow-x-auto pb-1 scrollbar-hide"
+              >
+                <img
+                  v-for="(thumb, index) in product.media"
+                  :key="thumb.id"
+                  :src="getMediaThumbnailUrl(thumb)"
+                  @click="goToSlide(index)"
+                  class="w-20 h-20 rounded-xl object-cover cursor-pointer hover:ring-2 hover:ring-brand transition-all"
+                />
+              </div>
             </div>
-            <ProductPageSkeleton v-if="pending" />
+          </div>
 
-            <div v-else-if="error || !product" class="text-center py-20">
-                <h2 class="text-2xl font-bold text-brand-dark">Product Not Found</h2>
-                <p class="text-neutral-400 mt-2">This product does not exist or may have been moved.</p>
-                <NuxtLink to="/" class="mt-4 inline-block bg-brand text-white px-6 py-2 rounded-md hover:bg-brand-light">
-                    Back to Homepage
-                </NuxtLink>
-            </div>
-
-            <!-- 
-            This is the main Product Detail Page (PDP) layout.
-            It's a 2-column grid on desktop and stacks on mobile.
-        -->
-            <div v-else class="max-w-6xl mx-auto py-8">
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Left Column: Sticky Media Carousel -->
-                    <div class="relative">
-                        <div
-                            class="lg:sticky lg:top-20 top-20 bg-neutral-900 border border-neutral-800 rounded-xl shadow-md overflow-hidden">
-
-                            <Carousel v-if="product.media?.length" :items-to-show="1" wrap-around>
-                                <Slide v-for="media in product.media" :key="media.id">
-                                    <MediaDisplay :product-media="media" :is-playing="true"
-                                        class="w-full aspect-square object-cover" />
-                                </Slide>
-                                <template #addons>
-                                    <Pagination />
-                                </template>
-                            </Carousel>
-                        </div>
-                    </div>
-
-                    <!-- Right Column: Scrollable Details -->
-                    <div class="text-neutral-100 flex flex-col">
-                        <ProductDetails v-if="product.seller" :product="product" :sellerStore="product.seller"
-                            class="flex-1" />
-                    </div>
-                </div>
-
-
-                <!-- TODO: Add a "Related Products" or "Shop the Look" section here -->
-            </div>
+          <!-- PRODUCT DETAILS -->
+          <div class="flex flex-col">
+            <ProductDetails :product="product" :sellerStore="product.seller" class="flex-1" />
+          </div>
         </div>
-
-        <!-- Sidebar Content (fetched from the layout) -->
-        <template #left-sidebar>
-            <SideNav :top-sellers="topSellers" :categories="categories" />
-        </template>
-        <template #right-sidebar>
-            <!-- The right sidebar can be empty or have other content -->
-            <LinkedAccessories v-if="product?.id" :productId="product.id" />
-        </template>
-    </HomeLayout>
+      </div>
+    </template>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { useProductStore } from '~/stores';
+import { ref, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useProductStore, useUserStore } from '~/stores';
 import { useApiService } from '~/services/api/apiService';
 import { useLayoutData } from '@/composables/useLayoutData';
-import HomeLayout from '~/layouts/HomeLayout.vue';
-import SideNav from '~/layouts/children/SideNav.vue';
+// HomeLayout import removed
 import ProductDetails from '~/components/product/productDetails/productDetails/ProductDetails.vue';
 import MediaDisplay from '~/components/product/productDetails/mediaSection/MediaDisplay.vue';
 import ProductPageSkeleton from '@/components/skeletons/ProductPageSkeleton.vue';
-import LinkedAccessories from '~/components/accessories/LinkedAccesories.vue';
 import 'vue3-carousel/dist/carousel.css';
 import type { IProduct } from '~/models';
+import { getMediaThumbnailUrl } from '~/utils/formatters';
+
+// THE FIX: definePageMeta is now used to set the layout *and* the wide page flag.
+definePageMeta({
+    layout: 'home-layout',
+    isWidePage: true
+});
 
 const route = useRoute();
 const router = useRouter();
 const productStore = useProductStore();
 const apiService = useApiService();
+const userStore = useUserStore();
 const slug = route.params.slug as string;
 
-// 1. Fetch layout data (categories, top sellers) from our composable
-const { data: layoutData } = useLayoutData();
-const categories = computed(() => layoutData.value?.categories || []);
-const topSellers = computed(() => layoutData.value?.topSellers || []);
+const carousel = ref<any>(null);
 
-// 2. Fetch all page-specific data (the single product)
-// We use a new, more specific action from the product store
+// 1. Fetch layout data
+const { data: layoutData } = useLayoutData();
+
+// 2. Fetch product data
 const { data: product, pending, error } = await useLazyAsyncData(
     `product-${slug}`,
     () => productStore.getProductBySlug(slug)
 );
 
 // 3. Pre-fetch the seller profile
-// This watcher ensures the seller data is loaded by the time the ProductDetails component renders.
 watch(product, (newProduct) => {
     if (newProduct?.seller?.store_slug) {
-        useUserStore().ensureSellerProfileLoaded(newProduct.seller.store_slug);
+        userStore.ensureSellerProfileLoaded(newProduct.seller.store_slug);
     }
 }, { immediate: true });
+
+const goToSlide = (index: number) => {
+    carousel.value?.slideTo(index);
+};
 
 </script>
 
 <style>
-/* Scoped styles for dark-theme carousel pagination */
+/* ... (your existing carousel styles are fine) ... */
 .carousel__pagination-button {
     background-color: rgba(120, 120, 120, 0.5) !important;
     border-radius: 50%;
@@ -122,5 +146,14 @@ watch(product, (newProduct) => {
 
 .carousel__pagination-button--active {
     background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
 }
 </style>

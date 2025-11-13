@@ -1,10 +1,11 @@
-import { useCategoryStore,useUserStore, useLikeStore, useFollowStore } from '~/stores';
-import { useApiService } from '~/services/api/apiService';  
+import { useCategoryStore,  useUserStore, useLikeStore, useFollowStore } from '~/stores';
+import { useApiService } from '~/services/api/apiService';
 import { onMounted, onUnmounted } from 'vue';
 
 /**
- * A composable to fetch and cache ALL shared data required by the main application layout.
- * It uses useAsyncData with a singleton key to ensure data is fetched only once per session.
+ * @description Fetches ALL shared layout data (public and private) in one go.
+ * This runs on the server (or client) and uses the apiService,
+ * which now correctly forwards auth.
  */
 export const useLayoutData = () => {
     const categoryStore = useCategoryStore();
@@ -13,31 +14,27 @@ export const useLayoutData = () => {
     const likeStore = useLikeStore();
     const followStore = useFollowStore();
 
-    // `useAsyncData` provides a `refresh` function to re-run the async logic
     const { data, pending, error, refresh } = useAsyncData(
         'layout-data', 
         async () => {
-            console.log('Fetching fresh layout data via apiService...'); // For debugging
+            console.log('Fetching fresh layout data via apiService...');
             
-            // We create an array of all the promises we need to resolve
             const promises: Promise<any>[] = [
                 apiService.getTopSellers(),
-                categoryStore.fetchCategories() // This action is already "smart" and has its own cache
+                categoryStore.fetchCategories() // This action has its own smart cache
             ];
 
-            // If the user is logged in, add their private data
-            // to the list of things we need to fetch *before* we render.
-            // The `apiService` will now correctly forward the auth cookie.
+            // If the user is logged in, add their private data to the parallel fetch
             if (userStore.isLoggedIn) {
                 promises.push(likeStore.fetchUserLikes());
                 promises.push(followStore.fetchUserFollows());
             }
 
             // Promise.all runs all fetches in parallel
+            // The `apiService` will correctly handle auth for the private calls
             const [topSellers, categories] = await Promise.all(promises);
             
-            // The other promises (fetchUserLikes, fetchUserFollows) have also
-            // completed, and their stores are now populated.
+            // The like/follow stores are now populated by their own actions.
             
             return { topSellers, categories };
         }, {
@@ -47,11 +44,11 @@ export const useLayoutData = () => {
         })
     });
 
-    // We still set up the auto-refresh interval
+    // Auto-refresh interval
     let refreshInterval: NodeJS.Timeout | null = null;
     onMounted(() => {
         refreshInterval = setInterval(() => {
-            if (userStore.isLoggedIn) { // Only auto-refresh for logged-in users
+            if (userStore.isLoggedIn) {
                 refresh();
             }
         }, 300000); // 5 minutes

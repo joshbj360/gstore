@@ -1,6 +1,5 @@
 <template>
   <HomeLayout>
-    <!-- Default Slot: Main Cart Content -->
     <div class="space-y-6">
       <div class="px-4">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-neutral-100">Shopping Cart</h1>
@@ -12,8 +11,7 @@
         <p class="text-brand-dark dark:text-brand-light">Could not load your cart.</p>
       </div>
 
-      <!-- Empty Cart -->
-      <div v-else-if="cartStore.cartItems.length === 0 && savedForLaterItems.length === 0" class="text-center py-16">
+      <div v-else-if="cartStore.cartCount === 0 && savedForLaterItems.length === 0" class="text-center py-16">
         <Icon name="mdi:cart-remove" size="64" class="mx-auto text-gray-300 dark:text-neutral-700 mb-4" />
         <h2 class="text-2xl font-bold text-gray-800 dark:text-neutral-200">Your cart is empty</h2>
         <p class="text-gray-500 dark:text-neutral-400 mt-2 mb-6">Looks like you haven't added anything yet.</p>
@@ -22,9 +20,8 @@
         </NuxtLink>
       </div>
 
-      <!-- Cart with Items -->
       <div v-else class="space-y-6">
-        <div v-if="cartStore.cartItems.length > 0" class="bg-white dark:bg-neutral-950 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-neutral-800">
+        <div v-if="cartStore.cartCount > 0" class="bg-white dark:bg-neutral-950 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-neutral-800">
           <div class="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-neutral-800">
             <div class="flex items-center">
               <input type="checkbox" v-model="selectAll" class="h-5 w-5 rounded border-gray-300 dark:border-neutral-600 text-brand focus:ring-[#f02c56]/50">
@@ -38,8 +35,8 @@
           </div>
           <transition-group name="cart-item" tag="div" class="divide-y divide-gray-200 dark:divide-neutral-800">
             <CartItem
-              v-for="item in cartStore.cartItems"
-              :key="item.id"
+              v-for="item in cartStore.cartItemsArray"
+              :key="item.variantId" 
               :item="item"
               :selected="isSelected(item)"
               @selected="toggleProductSelection"
@@ -49,24 +46,16 @@
           </transition-group>
         </div>
         
-        <!-- Saved for Later Section -->
         <div v-if="savedForLaterItems.length > 0" class="bg-white dark:bg-neutral-950 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-neutral-800">
           <h2 class="text-xl font-bold text-gray-900 dark:text-neutral-100 mb-4">Saved for Later ({{ savedForLaterItems.length }})</h2>
           <div class="divide-y divide-gray-200 dark:divide-neutral-800">
-              <!-- ... saved for later items ... -->
-          </div>
+              </div>
         </div>
       </div>
       
-      <!-- 
-        THE FIX: Add padding to the bottom of the main content 
-        to ensure it doesn't get hidden by the sticky mobile footer.
-        h-14 (nav) + h-20 (summary) = pb-34
-      -->
       <div class="h-34 lg:hidden"></div>
     </div>
 
-    <!-- Right Sidebar Slot: Desktop Order Summary -->
     <template #right-sidebar>
         <div class="bg-white dark:bg-neutral-900 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-neutral-800 sticky top-6">
           <h2 class="text-xl font-bold text-gray-900 dark:text-neutral-100 mb-4">Order Summary</h2>
@@ -92,15 +81,9 @@
         </div>
     </template>
 
-    <!-- Left sidebar is empty for a focused cart experience -->
     <template #left-sidebar></template>
   </HomeLayout>
 
-  <!-- 
-    THE FIX: Mobile-Only Sticky Footer
-    This bar is fixed to the bottom of the screen and sits *above* the
-    BottomNavMobile (which is h-14). It is hidden on desktop (lg:hidden).
-  -->
   <div class="lg:hidden fixed bottom-14 left-0 right-0 z-10 p-4 bg-white dark:bg-neutral-900 border-t border-gray-200 dark:border-neutral-800 shadow-lg">
       <div class="flex items-center justify-between mb-2">
         <span class="text-sm text-gray-600 dark:text-neutral-400">Total ({{ selectedItems.length }} items)</span>
@@ -137,19 +120,21 @@ const { pending, error } = await useLazyAsyncData(
     { server: userStore.isLoggedIn }
 );
 
-// "Select All" logic
+// "Select All" logic - uses cartCount and cartItemsArray
 const selectAll = computed({
-  get: () => cartStore.cartItems.length > 0 && selectedItems.value.length === cartStore.cartItems.length,
+  get: () => cartStore.cartCount > 0 && selectedItems.value.length === cartStore.cartCount,
   set: (value) => {
-    selectedItems.value = value ? [...cartStore.cartItems] : [];
+    selectedItems.value = value ? cartStore.cartItemsArray : [];
   }
 });
 
-const isSelected = (item: ICartItem) => selectedItems.value.some(p => p.id === item.id);
+// Uses variantId for stable comparison
+const isSelected = (item: ICartItem) => selectedItems.value.some(p => p.variantId === item.variantId);
 
+// Uses variantId for stable comparison
 const toggleProductSelection = (data: { item: ICartItem, selected: boolean }) => {
   const { item, selected } = data;
-  const index = selectedItems.value.findIndex(p => p.id === item.id);
+  const index = selectedItems.value.findIndex(p => p.variantId === item.variantId);
   if (selected && index === -1) {
     selectedItems.value.push({ ...item });
   } else if (!selected && index > -1) {
@@ -157,23 +142,26 @@ const toggleProductSelection = (data: { item: ICartItem, selected: boolean }) =>
   }
 };
 
+// Calls removeFromCart with variantId
 const removeSelectedItems = () => {
     if(!confirm('Are you sure you want to remove the selected items?')) return;
-    selectedItems.value.forEach(item => cartStore.removeFromCart(item.id));
+    selectedItems.value.forEach(item => cartStore.removeFromCart(item.variantId));
     selectedItems.value = [];
     notify({ type: 'success', text: 'Selected items removed.' });
 };
 
+// Calls removeFromCart with variantId
 const saveItemForLater = (item: ICartItem) => {
     savedForLaterItems.value.push(item);
-    cartStore.removeFromCart(item.id);
+    cartStore.removeFromCart(item.variantId);
     notify({ type: 'info', text: `${item.product?.title} saved for later.` });
 };
 
 const moveToCart = (item: ICartItem) => {
   if(item.product){
     cartStore.addToCart( item.product, item.variant, item.quantity);
-    savedForLaterItems.value = savedForLaterItems.value.filter(p => p.id !== item.id);
+    // Assumes savedForLaterItems also use variantId as a key
+    savedForLaterItems.value = savedForLaterItems.value.filter(p => p.variantId !== item.variantId);
   }
 };
 

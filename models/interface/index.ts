@@ -50,7 +50,7 @@ export interface IProduct extends Products {
   category?: { category: ICategory }[];
   tags?: { tag: ITag }[];
   media?: IMedia[];
-  measurement?: IMeasurement | null;
+  measurement?: IMeasurement;
   variants?: IProductVariant[];
   likes?: ILike[];
   notifications?: INotification[];

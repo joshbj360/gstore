@@ -1,3 +1,4 @@
+// stores/feed.store.ts
 import { defineStore } from 'pinia';
 import { useApiService } from '~/services/api/apiService';
 import type { IFeedItem } from '~/models';
@@ -6,7 +7,8 @@ import { notify } from '@kyvg/vue3-notification';
 export const useFeedStore = defineStore('feed', {
   state: () => ({
     mainFeed: [] as IFeedItem[],
-    currentPage: 1,
+    // FIX: Changed from currentPage to nextCursor
+    nextCursor: null as string | null,
     hasMore: true,
     isLoading: false,
   }),
@@ -14,33 +16,47 @@ export const useFeedStore = defineStore('feed', {
     /**
      * Sets the initial, unified feed for the homepage.
      */
-    setInitialFeed(initialFeed: IFeedItem[]) {
+    // FIX: Updated signature to accept meta object
+    setInitialFeed(initialFeed: IFeedItem[], meta: { hasMore: boolean, nextCursor: string | null }) {
         this.mainFeed = initialFeed;
-        this.currentPage = 1;
-        this.hasMore = initialFeed.length > 0;
+        // FIX: Set the cursor and hasMore from the initial load
+        this.nextCursor = meta.nextCursor;
+        this.hasMore = meta.hasMore;
     },
 
     /**
      * Fetches the next page of the unified feed for infinite scroll.
      */
     async fetchMoreFeedItems() {
-        if (this.isLoading || !this.hasMore) return;
+        // FIX: Check for hasMore and nextCursor
+        if (this.isLoading || !this.hasMore || !this.nextCursor) {
+            if (!this.nextCursor && this.hasMore) {
+                // This means we've reached the end
+                this.hasMore = false;
+            }
+            return;
+        }
 
         this.isLoading = true;
         try {
-            const nextPage = this.currentPage + 1;
             const apiService = useApiService();
-            const { feed, meta } = await apiService.getHomeFeed({ page: nextPage, limit: 10 });
+            // FIX: Pass the cursor to the API
+            const { feed, meta } = await apiService.getHomeFeed({ 
+                cursor: this.nextCursor, 
+                limit: 10 
+            });
 
             if (feed.length > 0) {
                 this.mainFeed.push(...feed);
-                this.currentPage = nextPage;
+                // FIX: Update the cursor and hasMore from the response
+                this.nextCursor = meta.nextCursor;
                 this.hasMore = meta.hasMore;
             } else {
                 this.hasMore = false;
+                this.nextCursor = null;
             }
         } catch (error) {
-            notify({ type: 'error', text: 'Could not load more items.' });
+             notify({ type: 'error', text: 'Could not load more items.' });
         } finally {
             this.isLoading = false;
         }

@@ -19,7 +19,7 @@
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@paystack/inline-js": "^2.22.7",
     "@pinia/nuxt": "^0.11.2",
-    "@prisma/client": "^6.15.0",
+    "@prisma/client": "^6.19.0",
     "@vueuse/nuxt": "^13.5.0",
     "chart.js": "^4.5.1",
     "country-state-city": "^3.2.1",
@@ -46,6 +46,6 @@
     "@nuxtjs/color-mode": "^3.5.2",
     "@types/papaparse": "^5.3.16",
     "nuxt3-notifications": "^1.3.1",
-    "prisma": "^6.15.0"
+    "prisma": "^6.19.0"
   }
 }

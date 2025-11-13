@@ -23,7 +23,7 @@
         <!-- Product Grid -->
         <section class="px-4">
             <!-- Skeleton Loader -->
-            <div v-if="productsPending" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div v-if="productsPending" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div v-for="n in 10" :key="n" class="h-72 bg-gray-100 dark:bg-neutral-800 rounded-lg animate-pulse"></div>
             </div>
              <div v-else-if="productsError" class="text-center py-20 text-brand-dark dark:text-brand-light">
@@ -34,7 +34,7 @@
                 <h2 class="text-xl font-semibold text-gray-800 dark:text-neutral-300 mb-2">No Products Found</h2>
                 <p class="text-gray-500 dark:text-neutral-500">There are no products in this category yet.</p>
             </div>
-            <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div v-else class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-3">
                 <ProductCard v-for="product in products" :key="product.id" :product="product" />
             </div>
         </section>
@@ -51,7 +51,7 @@
         <SideNav :top-sellers="topSellers" :categories="categories" @create-post="() => router.push('/upload')" />
     </template>
     <template #right-sidebar>
-        <!-- The right sidebar is empty on this page for a cleaner, focused browsing experience -->
+        <AllAccessories />
     </template>
   </HomeLayout>
 </template>
@@ -64,6 +64,7 @@ import { useRouter } from 'vue-router';
 import HomeLayout from '~/layouts/HomeLayout.vue';
 import ProductCard from '~/components/product/productCard/ProductCard.vue';
 import SideNav from '~/layouts/children/SideNav.vue';
+import AllAccessories from '~/components/accessories/AllAccessories.vue';
 
 const productStore = useProductStore();
 const categoryStore = useCategoryStore()

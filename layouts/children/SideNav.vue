@@ -63,7 +63,7 @@
                 <span class="nav-text">Cart</span>
             </NuxtLink>
 
-            <NuxtLink v-if="userStore.isLoggedIn" to="/seller/dashboard" class="nav-button relative"
+            <NuxtLink v-if="userStore.isLoggedIn" to="/sellers/dashboard" class="nav-button relative"
                 active-class="active">
                 <div class="relative">
                     <Icon name="mdi:message-outline" size="26" />
@@ -73,7 +73,7 @@
                 <span class="nav-text">Messages</span>
             </NuxtLink>
 
-            <NuxtLink v-if="userStore.isLoggedIn && userStore.isSeller" to="/seller/dashboard" class="nav-button"
+            <NuxtLink v-if="userStore.isLoggedIn && userStore.isSeller" to="/sellers/dashboard" class="nav-button"
                 active-class="active">
                 <Icon name="mdi:view-dashboard-outline" size="26" />
                 <span class="nav-text">Dashboard</span>
